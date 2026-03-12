@@ -9,7 +9,7 @@ import { useEditorStore } from './store/editorStore';
 import { getRegionAtTime, timeToMusicPos } from '../core/musicsync.js';
 
 export default function App() {
-  const { setProject, setMusicLoaded, setMusicError, togglePlayback, stopPlayback, nudgePlayhead, jumpToClip, isPlaying, clock, modPlayer } =
+  const { setProject, setMusicLoaded, setMusicError, togglePlayback, stopPlayback, nudgePlayhead, jumpToClip, toggleVariant, isPlaying, clock, modPlayer } =
     useEditorStore();
 
   useEffect(() => {
@@ -103,11 +103,15 @@ export default function App() {
           e.preventDefault();
           stopPlayback();
           break;
+        case 'KeyX':
+          e.preventDefault();
+          toggleVariant();
+          break;
       }
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [togglePlayback, stopPlayback, nudgePlayhead, jumpToClip]);
+  }, [togglePlayback, stopPlayback, nudgePlayhead, jumpToClip, toggleVariant]);
 
   return (
     <div className="h-screen w-screen grid grid-rows-[auto_1fr_240px_1fr] grid-cols-[1fr_1fr] gap-px bg-border">
