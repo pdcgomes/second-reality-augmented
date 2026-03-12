@@ -12,6 +12,7 @@ export const useEditorStore = create((set, get) => ({
   zoomLevel: 1,
   snapToBeat: true,
   variant: 'classic',
+  previewFit: 'fill',
   clock,
 
   setProject: (project) => set({ project }),
@@ -53,6 +54,7 @@ export const useEditorStore = create((set, get) => ({
   setZoom: (zoomLevel) => set({ zoomLevel: Math.max(0.25, Math.min(16, zoomLevel)) }),
   toggleSnap: () => set((s) => ({ snapToBeat: !s.snapToBeat })),
   setVariant: (variant) => set({ variant }),
+  togglePreviewFit: () => set((s) => ({ previewFit: s.previewFit === 'fill' ? 'native' : 'fill' })),
 
   getSelectedClip: () => {
     const { project, selectedClipId } = get();

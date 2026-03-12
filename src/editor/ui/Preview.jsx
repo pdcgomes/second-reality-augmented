@@ -5,15 +5,15 @@ import { getBeatPosition } from '@core/beatmap.js';
 
 const INTERNAL_WIDTH = 320;
 const INTERNAL_HEIGHT = 256;
-const ASPECT = INTERNAL_WIDTH / INTERNAL_HEIGHT;
 
 export default function Preview() {
-  const containerRef = useRef(null);
   const canvasRef = useRef(null);
-  const glRef = useRef(null);
   const rafRef = useRef(null);
   const effectsRef = useRef({});
   const [status, setStatus] = useState('Initializing...');
+
+  const previewFit = useEditorStore((s) => s.previewFit);
+  const togglePreviewFit = useEditorStore((s) => s.togglePreviewFit);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -22,13 +22,12 @@ export default function Preview() {
       setStatus('WebGL2 not supported');
       return;
     }
-    glRef.current = gl;
 
     gl.viewport(0, 0, INTERNAL_WIDTH, INTERNAL_HEIGHT);
     gl.clearColor(0, 0, 0, 1);
 
     const effects = listEffects();
-    setStatus(`Registered effects: ${effects.map((e) => e.name).join(', ') || 'none'}`);
+    setStatus(effects.length ? `${effects.map((e) => e.name).join(', ')}` : 'no effects registered');
 
     for (const { name } of effects) {
       const variant = useEditorStore.getState().variant;
@@ -75,21 +74,39 @@ export default function Preview() {
     };
   }, []);
 
+  const isFill = previewFit === 'fill';
+
   return (
-    <div ref={containerRef} className="w-full h-full flex flex-col items-center justify-center gap-1">
+    <div className="w-full h-full relative bg-black overflow-hidden">
       <canvas
         ref={canvasRef}
         width={INTERNAL_WIDTH}
         height={INTERNAL_HEIGHT}
-        className="border border-border bg-black"
         style={{
-          maxWidth: '100%',
-          maxHeight: 'calc(100% - 20px)',
-          aspectRatio: `${ASPECT}`,
           imageRendering: 'pixelated',
+          ...(isFill
+            ? { width: '100%', height: '100%', objectFit: 'contain' }
+            : {
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                width: INTERNAL_WIDTH * 3,
+                height: INTERNAL_HEIGHT * 3,
+              }),
         }}
       />
-      <span className="text-text-dim text-[10px] font-mono">{status}</span>
+      {/* Overlay controls */}
+      <div className="absolute bottom-1 right-1 flex items-center gap-2">
+        <span className="text-text-dim text-[10px] font-mono opacity-60">{status}</span>
+        <button
+          onClick={togglePreviewFit}
+          className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-surface-800/80 text-text-secondary hover:text-text-primary transition-colors"
+          title={isFill ? 'Switch to native 320×256 (3× pixel)' : 'Switch to fill pane'}
+        >
+          {isFill ? '320×256' : 'FILL'}
+        </button>
+      </div>
     </div>
   );
 }
