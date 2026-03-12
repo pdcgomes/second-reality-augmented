@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback } from 'react';
+import { useRef, useEffect, useCallback, useState } from 'react';
 import { useEditorStore } from '../store/editorStore';
 
 const LABEL_WIDTH = 56;
@@ -13,6 +13,11 @@ export default function Timeline() {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
   const draggingRef = useRef(false);
+  const panningRef = useRef(false);
+  const panAnchorRef = useRef({ x: 0, offset: 0 });
+  const [scrollOffset, setScrollOffset] = useState(0);
+  const scrollOffsetRef = useRef(0);
+  scrollOffsetRef.current = scrollOffset;
 
   const project = useEditorStore((s) => s.project);
   const playheadSeconds = useEditorStore((s) => s.playheadSeconds);
@@ -22,16 +27,19 @@ export default function Timeline() {
   const selectClip = useEditorStore((s) => s.selectClip);
   const setZoom = useEditorStore((s) => s.setZoom);
 
+  const zoomRef = useRef(zoomLevel);
+  zoomRef.current = zoomLevel;
+
   const pxPerSecond = 8 * zoomLevel;
 
   const xToTime = useCallback(
-    (x) => Math.max(0, (x - LABEL_WIDTH) / pxPerSecond),
-    [pxPerSecond],
+    (x) => Math.max(0, (x - LABEL_WIDTH) / pxPerSecond + scrollOffset),
+    [pxPerSecond, scrollOffset],
   );
 
   const timeToX = useCallback(
-    (t) => LABEL_WIDTH + t * pxPerSecond,
-    [pxPerSecond],
+    (t) => LABEL_WIDTH + (t - scrollOffset) * pxPerSecond,
+    [pxPerSecond, scrollOffset],
   );
 
   // Draw
@@ -233,6 +241,14 @@ export default function Timeline() {
   // Mouse interaction
   const handleMouseDown = useCallback(
     (e) => {
+      // Middle mouse button → start panning
+      if (e.button === 1) {
+        e.preventDefault();
+        panningRef.current = true;
+        panAnchorRef.current = { x: e.clientX, offset: scrollOffsetRef.current };
+        return;
+      }
+
       const rect = canvasRef.current.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
@@ -257,6 +273,12 @@ export default function Timeline() {
 
   const handleMouseMove = useCallback(
     (e) => {
+      if (panningRef.current) {
+        const dx = e.clientX - panAnchorRef.current.x;
+        const pps = 8 * zoomRef.current;
+        setScrollOffset(Math.max(0, panAnchorRef.current.offset - dx / pps));
+        return;
+      }
       if (!draggingRef.current) return;
       const rect = canvasRef.current.getBoundingClientRect();
       setPlayheadRaw(xToTime(e.clientX - rect.left));
@@ -266,19 +288,42 @@ export default function Timeline() {
 
   const handleMouseUp = useCallback(() => {
     draggingRef.current = false;
+    panningRef.current = false;
   }, []);
 
-  // Zoom with scroll wheel
-  const handleWheel = useCallback(
-    (e) => {
-      if (e.ctrlKey || e.metaKey) {
-        e.preventDefault();
-        const delta = e.deltaY > 0 ? 0.8 : 1.25;
-        setZoom(zoomLevel * delta);
+  // Wheel: vertical = zoom (cursor-anchored), horizontal/shift = pan.
+  // Uses native listener for { passive: false } so we can preventDefault.
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const onWheel = (e) => {
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const curZoom = zoomRef.current;
+      const curOffset = scrollOffsetRef.current;
+      const curPps = 8 * curZoom;
+
+      if (e.shiftKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+        const delta = e.shiftKey ? e.deltaY : e.deltaX;
+        setScrollOffset(Math.max(0, curOffset + delta / curPps));
+        return;
       }
-    },
-    [zoomLevel, setZoom],
-  );
+
+      // Vertical scroll → zoom, keeping the time under the cursor stable
+      const mouseTime = (mouseX - LABEL_WIDTH) / curPps + curOffset;
+      const factor = e.deltaY > 0 ? 0.8 : 1.25;
+      const newZoom = Math.max(0.25, Math.min(16, curZoom * factor));
+      const newPps = 8 * newZoom;
+      const newOffset = mouseTime - (mouseX - LABEL_WIDTH) / newPps;
+      setScrollOffset(Math.max(0, newOffset));
+      setZoom(newZoom);
+    };
+
+    canvas.addEventListener('wheel', onWheel, { passive: false });
+    return () => canvas.removeEventListener('wheel', onWheel);
+  }, [setZoom]);
 
   return (
     <div ref={containerRef} className="bg-surface-900 w-full h-full relative select-none">
@@ -289,7 +334,6 @@ export default function Timeline() {
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
-        onWheel={handleWheel}
       />
     </div>
   );
