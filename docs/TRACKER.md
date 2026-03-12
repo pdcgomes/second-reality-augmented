@@ -141,7 +141,7 @@ The following maps to the actual Second Reality demo sequence. Each effect has a
 - [ ] `dots/effect.remastered.js`
 
 ### Part 19 — WATER (Mirror Ball Scroller)
-- [ ] `water/effect.js` — sword on water background scroller (TRUG)
+- [x] `water/effect.js` — sword on water background scroller (TRUG)
 - [ ] `water/effect.remastered.js`
 
 ### Part 20 — COMAN (3D Sinusfield)
