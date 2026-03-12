@@ -54,10 +54,16 @@ export default function App() {
       const t = modPlayer.currentTime();
       const region = getRegionAtTime(t);
 
-      if (region && region.music !== modPlayer.activeIndex) {
+      // The audio engine sets reachedBoundary when the S3M player crosses
+      // the region's stop position. This is sample-accurate and happens
+      // before the rAF loop would normally detect the region mismatch.
+      if (modPlayer.reachedBoundary || (region && region.music !== modPlayer.activeIndex)) {
         const target = timeToMusicPos(t);
-        modPlayer.changeMusic(target.music, target.position, target.row);
-        clock.seek(t);
+        if (target.music !== modPlayer.activeIndex ||
+            modPlayer.reachedBoundary) {
+          modPlayer.changeMusic(target.music, target.position, target.row);
+          clock.seek(t);
+        }
       }
 
       useEditorStore.setState({ playheadSeconds: t });

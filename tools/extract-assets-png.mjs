@@ -276,6 +276,31 @@ async function extractBeglogo() {
   writePNG(resolve(out, 'title.png'), width, height, rgba);
 }
 
+// ── GLENZ_TRANSITION assets ──────────────────────────────────────
+
+async function extractGlenzTransition() {
+  console.log('\nGLENZ_TRANSITION:');
+  const out = effectDir('glenz-transition');
+  const { CHECKERBOARD_B64 } = await import('../src/effects/glenzTransition/data.js');
+
+  const W = 320, H = 200;
+  const src = b64ToUint8(CHECKERBOARD_B64);
+
+  const k = 255 / 63;
+  const rgba = new Uint8Array(W * H * 4);
+  for (let i = 0; i < W * H; i++) {
+    const idx = src[16 + 768 + i];
+    const r = Math.round(src[16 + idx * 3] * k);
+    const g = Math.round(src[16 + idx * 3 + 1] * k);
+    const b = Math.round(src[16 + idx * 3 + 2] * k);
+    rgba[i * 4]     = r;
+    rgba[i * 4 + 1] = g;
+    rgba[i * 4 + 2] = b;
+    rgba[i * 4 + 3] = 255;
+  }
+  writePNG(resolve(out, 'checkerboard.png'), W, H, rgba);
+}
+
 // ── Run all ─────────────────────────────────────────────────────
 
 console.log('Extracting visual assets from implemented effects...');
@@ -283,4 +308,5 @@ await extractAlku();
 await extractPam();
 await extractU2a();
 await extractBeglogo();
+await extractGlenzTransition();
 console.log('\nDone.');

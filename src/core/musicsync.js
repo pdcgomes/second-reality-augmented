@@ -327,3 +327,28 @@ export function getRegionAtTime(seconds) {
   }
   return null;
 }
+
+/**
+ * Return the stop boundary { position, row } for a given region index (0, 1, 2).
+ * This is used by modplayer to set the sample-accurate cutoff on the S3M engine.
+ */
+export function getRegionStopBoundary(regionIndex) {
+  if (regionIndex < 0 || regionIndex >= REGION_DEFS.length) return null;
+  const rd = REGION_DEFS[regionIndex];
+  return { position: rd.endPos, row: rd.endRow };
+}
+
+/**
+ * Given a music index and current position/row, find the containing region index.
+ */
+export function findRegionIndex(music, position, row) {
+  const absRow = position * 64 + row;
+  for (let i = 0; i < REGION_DEFS.length; i++) {
+    const rd = REGION_DEFS[i];
+    if (rd.music !== music) continue;
+    const start = rd.startPos * 64 + rd.startRow;
+    const end = rd.endPos * 64 + rd.endRow;
+    if (absRow >= start && absRow <= end) return i;
+  }
+  return -1;
+}

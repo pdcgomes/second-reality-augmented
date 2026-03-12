@@ -85,7 +85,7 @@ The following maps to the actual Second Reality demo sequence. Each effect has a
 - [ ] `beglogo/effect.remastered.js`
 
 ### Part 5 — GLENZ_TRANSITION (Checkerboard Fall)
-- [ ] `glenzTransition/effect.js` — checkerboard tile fall transition (PSI)
+- [x] `glenzTransition/effect.js` — checkerboard tile fall transition (PSI)
 - [ ] `glenzTransition/effect.remastered.js`
 
 ### Part 6 — GLENZ_3D (Glenz Vectors)

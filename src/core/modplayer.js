@@ -14,7 +14,7 @@
  */
 
 import { Modplayer as RawModplayer, buildTimeMap } from '../../lib/webaudio-mod-player/index.js';
-import { musicPosToTime, timeToMusicPos, SPEED_GAIN, setTimeMaps } from './musicsync.js';
+import { musicPosToTime, timeToMusicPos, SPEED_GAIN, setTimeMaps, getRegionStopBoundary, findRegionIndex } from './musicsync.js';
 
 export class ModPlayer {
   constructor() {
@@ -59,6 +59,15 @@ export class ModPlayer {
 
   get _activePlayer() {
     return this._activeIndex >= 0 ? this._players[this._activeIndex] : null;
+  }
+
+  /**
+   * True when the audio engine has reached the region's stop boundary.
+   * The tick loop in App.jsx polls this to trigger the music switch.
+   */
+  get reachedBoundary() {
+    const p = this._activePlayer;
+    return p ? p.reachedBoundary : false;
   }
 
   /**
@@ -112,6 +121,7 @@ export class ModPlayer {
     const mp = this._players[target.music];
     if (mp) mp.seek(target.position, target.row);
     this._timeOffset = seconds;
+    this._setStopBoundary(target.music, target.position, target.row);
   }
 
   /**
@@ -185,6 +195,8 @@ export class ModPlayer {
     if (position > 0 || row > 0) {
       mp.seek(position, row);
     }
+
+    this._setStopBoundary(musicIndex, position, row);
   }
 
   /**
@@ -208,6 +220,8 @@ export class ModPlayer {
     if (position > 0 || row > 0) {
       mp.seek(position, row);
     }
+
+    this._setStopBoundary(musicIndex, position, row);
   }
 
   pause() {
@@ -238,6 +252,16 @@ export class ModPlayer {
   seek(position, row = 0) {
     const p = this._activePlayer;
     if (p) p.seek(position, row);
+  }
+
+  _setStopBoundary(musicIndex, position, row) {
+    const ri = findRegionIndex(musicIndex, position, row);
+    const mp = this._players[musicIndex];
+    if (ri >= 0 && mp) {
+      mp.setStopBoundary(getRegionStopBoundary(ri));
+    } else if (mp) {
+      mp.setStopBoundary(null);
+    }
   }
 
   _stopAll() {
