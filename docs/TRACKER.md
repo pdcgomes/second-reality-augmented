@@ -89,7 +89,7 @@ The following maps to the actual Second Reality demo sequence. Each effect has a
 - [ ] `glenzTransition/effect.remastered.js`
 
 ### Part 6 — GLENZ_3D (Glenz Vectors)
-- [x] `glenzVectors/effect.js` — translucent rotating polyhedra (PSI)
+- [x] `glenzVectors/effect.js` — translucent rotating polyhedra (PSI) [REWRITTEN: full 1:1 port]
 - [ ] `glenzVectors/effect.remastered.js`
 
 ### Part 7 — TUNNELI (Dot Tunnel)
@@ -191,3 +191,6 @@ These are additional effects developed for creative use in the editor. Not part 
 - [ ] Beat map editor (tap tool, per-beat nudge)
 - [ ] Video export (MediaRecorder → WebM)
 - [ ] Tracker panel (read-only S3M pattern viewer, synced to playhead)
+- [ ] Preview pane modes — cycle between layouts with a keyboard shortcut:
+  - **Tracker mode** (current): Preview + S3M pattern viewer side by side
+  - **Compare mode**: Classic (original) + Remastered canvases side by side, fully synced to the same clock position
