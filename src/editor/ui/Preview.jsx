@@ -11,7 +11,9 @@ export default function Preview() {
   const canvasRef = useRef(null);
   const rafRef = useRef(null);
   const effectsRef = useRef({});
+  const fpsRef = useRef({ frames: 0, lastTime: performance.now() });
   const [status, setStatus] = useState('Initializing...');
+  const [fps, setFps] = useState(0);
 
   const previewFit = useEditorStore((s) => s.previewFit);
   const togglePreviewFit = useEditorStore((s) => s.togglePreviewFit);
@@ -45,6 +47,15 @@ export default function Preview() {
     }
 
     function frame() {
+      fpsRef.current.frames++;
+      const now = performance.now();
+      const elapsed = now - fpsRef.current.lastTime;
+      if (elapsed >= 1000) {
+        setFps(Math.round((fpsRef.current.frames * 1000) / elapsed));
+        fpsRef.current.frames = 0;
+        fpsRef.current.lastTime = now;
+      }
+
       const { project, playheadSeconds } = useEditorStore.getState();
       gl.clear(gl.COLOR_BUFFER_BIT);
 
@@ -100,6 +111,9 @@ export default function Preview() {
             : { width: INTERNAL_WIDTH, height: INTERNAL_HEIGHT }),
         }}
       />
+      <span className="absolute top-1 left-1 text-[10px] font-mono text-green-400/80 pointer-events-none select-none">
+        {fps} fps
+      </span>
       {/* Overlay controls */}
       <div className="absolute bottom-1 right-1 flex items-center gap-2">
         <span className="text-text-dim text-[10px] font-mono opacity-60">{status}</span>
