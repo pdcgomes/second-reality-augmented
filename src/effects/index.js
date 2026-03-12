@@ -33,7 +33,7 @@ import plasmaClassic from './plasma/effect.js';
 import plzCubeClassic from './plzCube/effect.js';
 import dotsClassic from './dots/effect.js';
 import waterClassic from './water/effect.js';
-import voxelLandscapeClassic from './voxelLandscape/effect.js';
+import comanClassic from './coman/effect.js';
 import jplogoClassic from './jplogo/effect.js';
 import u2eClassic from './u2e/effect.js';
 import endlogoClassic from './endlogo/effect.js';
@@ -72,7 +72,7 @@ registerEffect('PLZ_PLASMA', plasmaClassic);
 registerEffect('PLZ_CUBE', plzCubeClassic);
 registerEffect('DOTS', dotsClassic);
 registerEffect('WATER', waterClassic);
-registerEffect('COMAN', voxelLandscapeClassic);
+registerEffect('COMAN', comanClassic);
 registerEffect('JPLOGO', jplogoClassic);
 registerEffect('U2E', u2eClassic);
 registerEffect('ENDLOGO', endlogoClassic);
@@ -111,6 +111,11 @@ export function listEffects() {
 
 export function listDemoEffects() {
   return listEffects().filter((e) => !e.bonus);
+}
+
+export function getEffectParams(name, variant = 'classic') {
+  const mod = getEffect(name, variant);
+  return mod?.params ?? [];
 }
 
 export function hasEffect(name) {

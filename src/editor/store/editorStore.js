@@ -74,6 +74,25 @@ export const useEditorStore = create((set, get) => ({
     set({ isPlaying: false, playheadSeconds: 0 });
   },
 
+  setClipParam: (clipId, key, value) => {
+    const { project } = get();
+    if (!project?.clips) return;
+    const clip = project.clips.find((c) => c.id === clipId);
+    if (!clip) return;
+    if (!clip.params) clip.params = {};
+    clip.params[key] = value;
+    set({ project: { ...project } });
+  },
+
+  resetClipParam: (clipId, key) => {
+    const { project } = get();
+    if (!project?.clips) return;
+    const clip = project.clips.find((c) => c.id === clipId);
+    if (!clip?.params) return;
+    delete clip.params[key];
+    set({ project: { ...project } });
+  },
+
   selectClip: (clipId) => set({ selectedClipId: clipId }),
   setZoom: (zoomLevel) => set({ zoomLevel: Math.max(0.25, Math.min(16, zoomLevel)) }),
   toggleSnap: () => set((s) => ({ snapToBeat: !s.snapToBeat })),

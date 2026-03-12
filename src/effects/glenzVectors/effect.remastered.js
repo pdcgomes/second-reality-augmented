@@ -53,6 +53,7 @@ uniform float uAlpha;
 uniform float uSpecularPower;
 uniform float uBeat;
 uniform float uFade;
+uniform float uFresnelExp;
 uniform bool uIsBackFace;
 
 out vec4 fragColor;
@@ -70,7 +71,7 @@ void main() {
   float specPow = uSpecularPower + beatPulse * 32.0;
   float spec = pow(max(dot(N, H), 0.0), specPow);
 
-  float fresnel = pow(1.0 - max(dot(N, V), 0.0), 3.0);
+  float fresnel = pow(1.0 - max(dot(N, V), 0.0), uFresnelExp);
   float alpha = mix(uAlpha * 0.4, uAlpha, fresnel);
   if (uIsBackFace) alpha *= 0.35;
 
@@ -155,7 +156,9 @@ uniform sampler2D uBloomTight;
 uniform sampler2D uBloomWide;
 uniform float uBloomTightStr;
 uniform float uBloomWideStr;
+uniform float uBeatBloom;
 uniform float uBeat;
+uniform float uScanlineStr;
 
 void main() {
   vec3 scene = texture(uScene, vUV).rgb;
@@ -164,10 +167,10 @@ void main() {
 
   float beatPulse = pow(1.0 - uBeat, 6.0);
   vec3 color = scene
-    + tight * (uBloomTightStr + beatPulse * 0.25)
-    + wide  * (uBloomWideStr  + beatPulse * 0.15);
+    + tight * (uBloomTightStr + beatPulse * uBeatBloom)
+    + wide  * (uBloomWideStr  + beatPulse * uBeatBloom * 0.6);
 
-  float scanline = 0.95 + 0.05 * sin(gl_FragCoord.y * 3.14159);
+  float scanline = (1.0 - uScanlineStr) + uScanlineStr * sin(gl_FragCoord.y * 3.14159);
   color *= scanline;
 
   fragColor = vec4(color, 1.0);
@@ -417,6 +420,17 @@ let mu = {}, gu = {}, beu = {}, blu = {}, cu = {};
 export default {
   label: 'glenzVectors (remastered)',
 
+  params: [
+    { key: 'bloomThreshold', label: 'Bloom Threshold', type: 'float', min: 0, max: 1, step: 0.01, default: 0.2 },
+    { key: 'bloomTightStr', label: 'Bloom Tight', type: 'float', min: 0, max: 2, step: 0.01, default: 0.5 },
+    { key: 'bloomWideStr', label: 'Bloom Wide', type: 'float', min: 0, max: 2, step: 0.01, default: 0.35 },
+    { key: 'specularPower', label: 'Specular', type: 'float', min: 4, max: 256, step: 1, default: 64 },
+    { key: 'fresnelExp', label: 'Fresnel', type: 'float', min: 0.5, max: 8, step: 0.1, default: 3.0 },
+    { key: 'scanlineStr', label: 'Scanlines', type: 'float', min: 0, max: 0.5, step: 0.01, default: 0.05 },
+    { key: 'beatScale', label: 'Beat Scale', type: 'float', min: 0, max: 0.2, step: 0.005, default: 0.02 },
+    { key: 'beatBloom', label: 'Beat Bloom', type: 'float', min: 0, max: 1, step: 0.01, default: 0.25 },
+  ],
+
   init(gl) {
     meshProg = createProgram(gl, MESH_VERT, MESH_FRAG);
     groundProg = createProgram(gl, FULLSCREEN_VERT, GROUND_FRAG);
@@ -435,6 +449,7 @@ export default {
       specularPower: gl.getUniformLocation(meshProg, 'uSpecularPower'),
       beat: gl.getUniformLocation(meshProg, 'uBeat'),
       fade: gl.getUniformLocation(meshProg, 'uFade'),
+      fresnelExp: gl.getUniformLocation(meshProg, 'uFresnelExp'),
       isBackFace: gl.getUniformLocation(meshProg, 'uIsBackFace'),
     };
 
@@ -460,7 +475,9 @@ export default {
       bloomWide: gl.getUniformLocation(compositeProg, 'uBloomWide'),
       bloomTightStr: gl.getUniformLocation(compositeProg, 'uBloomTightStr'),
       bloomWideStr: gl.getUniformLocation(compositeProg, 'uBloomWideStr'),
+      beatBloom: gl.getUniformLocation(compositeProg, 'uBeatBloom'),
       beat: gl.getUniformLocation(compositeProg, 'uBeat'),
+      scanlineStr: gl.getUniformLocation(compositeProg, 'uScanlineStr'),
     };
 
     g1Mesh = buildMeshData(G1_VERTS, G1_FACES);
@@ -477,7 +494,8 @@ export default {
     msaaSamples = Math.min(4, gl.getParameter(gl.MAX_SAMPLES));
   },
 
-  render(gl, t, beat, _params) {
+  render(gl, t, beat, params) {
+    const p = (k, d) => params[k] ?? d;
     const sw = gl.drawingBufferWidth;
     const sh = gl.drawingBufferHeight;
 
@@ -512,7 +530,7 @@ export default {
     if (intFrame > 2069) fade = clamp((2069 + 64 - intFrame) / 64, 0, 1);
 
     const beatPulse = Math.pow(1.0 - beat, 6.0);
-    const scaleBeat = 1.0 + beatPulse * 0.02;
+    const scaleBeat = 1.0 + beatPulse * p('beatScale', 0.02);
 
     const projection = mat4ClassicProjection(100, 80000);
 
@@ -546,9 +564,11 @@ export default {
     }
 
     // Objects
+    const specPow = p('specularPower', 64);
     gl.useProgram(meshProg);
     gl.uniformMatrix4fv(mu.projection, false, projection);
     gl.uniform1f(mu.beat, beat);
+    gl.uniform1f(mu.fresnelExp, p('fresnelExp', 3.0));
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
@@ -567,7 +587,7 @@ export default {
 
       gl.uniformMatrix4fv(mu.modelView, false, mv2);
       gl.uniformMatrix3fv(mu.normalMatrix, false, nm2);
-      gl.uniform1f(mu.specularPower, 48.0);
+      gl.uniform1f(mu.specularPower, specPow * 0.75);
       gl.uniform1f(mu.fade, fade);
 
       const sorted2 = sortFacesByDepth(G2_FACES, G2_VERTS, mv2);
@@ -605,7 +625,7 @@ export default {
 
       gl.uniformMatrix4fv(mu.modelView, false, mv1);
       gl.uniformMatrix3fv(mu.normalMatrix, false, nm1);
-      gl.uniform1f(mu.specularPower, 64.0);
+      gl.uniform1f(mu.specularPower, specPow);
       gl.uniform1f(mu.fade, fade);
 
       const sorted1 = sortFacesByDepth(G1_FACES, G1_VERTS, mv1);
@@ -650,7 +670,7 @@ export default {
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, sceneFBO.tex);
     gl.uniform1i(beu.scene, 0);
-    gl.uniform1f(beu.threshold, 0.2);
+    gl.uniform1f(beu.threshold, p('bloomThreshold', 0.2));
     quad.draw();
 
     // Tight bloom: 3 iterations of H+V blur at half-res
@@ -706,9 +726,11 @@ export default {
     gl.activeTexture(gl.TEXTURE2);
     gl.bindTexture(gl.TEXTURE_2D, bloomWideFBO1.tex);
     gl.uniform1i(cu.bloomWide, 2);
-    gl.uniform1f(cu.bloomTightStr, 0.5);
-    gl.uniform1f(cu.bloomWideStr, 0.35);
+    gl.uniform1f(cu.bloomTightStr, p('bloomTightStr', 0.5));
+    gl.uniform1f(cu.bloomWideStr, p('bloomWideStr', 0.35));
+    gl.uniform1f(cu.beatBloom, p('beatBloom', 0.25));
     gl.uniform1f(cu.beat, beat);
+    gl.uniform1f(cu.scanlineStr, p('scanlineStr', 0.05));
     quad.draw();
   },
 
