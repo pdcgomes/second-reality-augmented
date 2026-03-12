@@ -57,15 +57,15 @@
 ## Phase 2 — Amiga Opener Effects
 
 - [x] `copperBars` — copper gradient sky (fragment shader, palette cycling)
-- [ ] `starfield` — two-layer parallax point sprites, warp mode
-- [ ] `scrolltext` — sine wave displaced scrolling text
+- [x] `starfield` — two-layer parallax point sprites, warp mode
+- [x] `scrolltext` — sine wave displaced scrolling text
 
 ## Phase 3 — Mid-Tier Effects
 
-- [ ] `plasma` — sin-sum fragment shader, rotating color palette
-- [ ] `rotozoom` — UV rotation + scale matrix, beat zoom pulse
-- [ ] `fire` — ping-pong framebuffer propagation, heat palette
-- [ ] `tunnel` — atan2/length UV mapping, scrolling texture
+- [x] `plasma` — sin-sum fragment shader, rotating color palette
+- [x] `rotozoom` — UV rotation + scale matrix, beat zoom pulse
+- [x] `fire` — procedural noise fire, heat palette
+- [x] `tunnel` — atan2/length UV mapping, scrolling texture
 
 ## Phase 4 — 3D Vector Objects
 

@@ -14,11 +14,22 @@
  */
 
 import copperBarsClassic from './copperBars/effect.js';
+import starfieldClassic from './starfield/effect.js';
+import scrolltextClassic from './scrolltext/effect.js';
+import plasmaClassic from './plasma/effect.js';
+import rotozoomClassic from './rotozoom/effect.js';
+import fireClassic from './fire/effect.js';
+import tunnelClassic from './tunnel/effect.js';
 
 const registry = {};
 
-// Auto-register built-in effects
 registerEffect('copperBars', copperBarsClassic);
+registerEffect('starfield', starfieldClassic);
+registerEffect('scrolltext', scrolltextClassic);
+registerEffect('plasma', plasmaClassic);
+registerEffect('rotozoom', rotozoomClassic);
+registerEffect('fire', fireClassic);
+registerEffect('tunnel', tunnelClassic);
 
 export function registerEffect(name, classic, remastered = null) {
   registry[name] = { classic, remastered };
