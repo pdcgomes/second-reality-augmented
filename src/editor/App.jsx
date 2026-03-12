@@ -5,6 +5,7 @@ import Timeline from './ui/Timeline';
 import EffectLibrary from './ui/EffectLibrary';
 import ClipProperties from './ui/ClipProperties';
 import { useEditorStore } from './store/editorStore';
+import { getRegionAtTime, timeToMusicPos } from '../core/musicsync.js';
 
 export default function App() {
   const { setProject, setMusicLoaded, setMusicError, togglePlayback, stopPlayback, nudgePlayhead, jumpToClip, isPlaying, clock, modPlayer } =
@@ -36,9 +37,8 @@ export default function App() {
       });
   }, [modPlayer, setMusicLoaded, setMusicError]);
 
-  // Playback tick — uses sample-counted elapsed time (immune to tempo
-  // changes in the S3M data). Detects position-based region boundaries
-  // for automatic music switching (MUSIC0 → MUSIC1 → MUSIC0).
+  // Playback tick — sample-counted time when music is active, clock during
+  // silent gaps. Automatically stops/starts music at cue boundaries.
   useEffect(() => {
     if (!isPlaying) return;
     let raf;
@@ -51,12 +51,33 @@ export default function App() {
         return;
       }
 
-      const boundary = modPlayer.checkBoundary();
-      if (boundary) {
-        modPlayer.changeMusic(boundary.nextMusic, boundary.nextPos, 0);
+      // During silence the sample counter is frozen — use the clock instead
+      const t = modPlayer.activeIndex >= 0
+        ? modPlayer.currentTime()
+        : clock.currentTime();
+
+      const region = getRegionAtTime(t);
+
+      if (!region && modPlayer.activeIndex >= 0) {
+        // Crossed into a silent gap — sync clock, then stop music
+        clock.seek(t);
+        modPlayer.enterSilence(t);
+      } else if (region && modPlayer.activeIndex < 0) {
+        // Exiting a gap — start the next music region
+        const target = timeToMusicPos(t);
+        if (!target.silent) {
+          modPlayer.play(target.music, target.position, target.row, t);
+          clock.seek(t);
+        }
+      } else if (region && modPlayer.activeIndex >= 0 && region.music !== modPlayer.activeIndex) {
+        // Direct region switch (different music index)
+        const target = timeToMusicPos(t);
+        if (!target.silent) {
+          modPlayer.changeMusic(target.music, target.position, target.row);
+          clock.seek(t);
+        }
       }
 
-      const t = modPlayer.currentTime();
       useEditorStore.setState({ playheadSeconds: t });
       raf = requestAnimationFrame(tick);
     }

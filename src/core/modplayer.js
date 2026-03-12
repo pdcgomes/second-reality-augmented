@@ -14,7 +14,7 @@
  */
 
 import { Modplayer as RawModplayer } from '../../lib/webaudio-mod-player/index.js';
-import { musicPosToTime, timeToMusicPos, SPEED_GAIN, REGION_SWITCH } from './musicsync.js';
+import { musicPosToTime, timeToMusicPos, SPEED_GAIN } from './musicsync.js';
 
 export class ModPlayer {
   constructor() {
@@ -64,7 +64,7 @@ export class ModPlayer {
   /**
    * Authoritative elapsed time — derived from actual audio samples processed,
    * not from the constant-BPM formula. Immune to tempo/speed changes in the
-   * S3M pattern data.
+   * S3M pattern data. During silent gaps, returns the frozen offset.
    */
   currentTime() {
     if (this._activeIndex < 0) return this._timeOffset;
@@ -85,28 +85,18 @@ export class ModPlayer {
   }
 
   /**
-   * Check whether the player has crossed a region boundary (e.g. MUSIC0
-   * position reaching 14). Returns the REGION_SWITCH entry if a switch
-   * is needed, or null.
-   */
-  checkBoundary() {
-    if (this._activeIndex < 0) return null;
-    const p = this._activePlayer;
-    if (!p || !p.player) return null;
-    const pos = p.player.position;
-    for (const b of REGION_SWITCH) {
-      if (this._activeIndex === b.music && pos >= b.endPos) return b;
-    }
-    return null;
-  }
-
-  /**
    * Seek the player to the S3M position/row that corresponds to the given
-   * absolute demo time. The time offset is set to the requested time so
-   * that currentTime() continues accurately from that point.
+   * absolute demo time. Handles silent gaps by stopping music. The time
+   * offset is set to the requested time so currentTime() continues
+   * accurately from that point.
    */
   seekToTime(seconds) {
     const target = timeToMusicPos(seconds);
+
+    if (target.silent) {
+      this.enterSilence(seconds);
+      return;
+    }
 
     if (this._activeIndex !== target.music) {
       this._stopAll();
@@ -122,6 +112,17 @@ export class ModPlayer {
     const mp = this._players[target.music];
     if (mp) mp.seek(target.position, target.row);
     this._timeOffset = seconds;
+  }
+
+  /**
+   * Stop all music and freeze time at the given offset — used during
+   * silent gaps between music regions (BEGLOGO, JPLOGO transitions).
+   */
+  enterSilence(atTime = null) {
+    if (atTime === null) atTime = this.currentTime();
+    this._stopAll();
+    this._activeIndex = -1;
+    this._timeOffset = atTime;
   }
 
   async loadBoth(music0ArrayBuffer, music1ArrayBuffer) {
@@ -150,13 +151,20 @@ export class ModPlayer {
     this._loaded = true;
   }
 
-  play(musicIndex = 0, position = 0, row = 0) {
+  /**
+   * Start playback of the given music at position/row. Uses the musicsync
+   * formula for the initial time offset (approximate). Pass `timeOffset`
+   * to override with an exact value (e.g. from the clock during gap exit).
+   */
+  play(musicIndex = 0, position = 0, row = 0, timeOffset = null) {
     this._stopAll();
     this._activeIndex = musicIndex;
     const mp = this._players[musicIndex];
     if (!mp) return;
 
-    this._timeOffset = musicPosToTime(musicIndex, position, row);
+    this._timeOffset = timeOffset !== null
+      ? timeOffset
+      : musicPosToTime(musicIndex, position, row);
     mp.play();
 
     if (mp.context && mp.context.state === 'suspended') {

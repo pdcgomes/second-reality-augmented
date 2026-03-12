@@ -1,16 +1,14 @@
 /**
- * Music sync — approximate mapping between absolute demo time (seconds)
- * and S3M player position (musicIndex, position, row).
+ * Music sync — mapping between absolute demo time (seconds) and S3M player
+ * position (musicIndex, position, row).
  *
- * Used for SEEKING only — scrubbing to a time and finding the approximate
- * S3M position. During live playback the authoritative time source is the
- * S3M engine's actual sample count (see ModPlayer.currentTime), so the
- * constant-BPM approximation here doesn't cause audible drift.
+ * Region boundaries are set from the original demo's music cue points —
+ * the demo stops each S3M file partway through (it does NOT play all
+ * patterns). Gaps between regions are silent transitions (BEGLOGO, JPLOGO).
  *
- * The original Second Reality uses two S3M files played back-to-back:
- *   MUSIC0: positions 0–13  (intro → beglogo)
- *   MUSIC1: positions 0–84  (glenz → jplogo)
- *   MUSIC0: positions 14–39 (u2e → end)
+ * During live playback the authoritative time source is the S3M engine's
+ * sample counter (ModPlayer.currentTime). The constant-BPM formula here
+ * is only used for SEEKING (scrubbing to a time → approximate position).
  *
  * Approximate time per row: msPerRow = (2500 / (bpm * speedGain)) * speed
  */
@@ -24,19 +22,19 @@ const ROWS_PER_PATTERN = 64;
 export const SPEED_GAIN = [1.00370, 1.00231];
 
 /**
- * Position boundaries for automatic music switching during playback.
- * When the S3M player's position reaches endPos for the current music,
- * the tick switches to the next music file.
+ * Cue-aligned regions with absolute time boundaries from the original demo.
+ * Gaps between regions represent silent transitions.
+ *
+ *   0.0–85.0   MUSIC0 positions 0–~10  (intro → beglogo)
+ *   85.0–93.0   silence                 (BEGLOGO transition)
+ *   93.0–600.0  MUSIC1 positions 0–~66  (glenz → jplogo)
+ *   600.0–605.0 silence                 (JPLOGO transition)
+ *   605.0–750.0 MUSIC0 positions 14–~32 (u2e → end)
  */
-export const REGION_SWITCH = [
-  { music: 0, endPos: 14, nextMusic: 1, nextPos: 0 },
-  { music: 1, endPos: 85, nextMusic: 0, nextPos: 14 },
-];
-
 const MUSIC_REGIONS = [
-  { music: 0, startPos: 0,  endPos: 14, bpm: 120, speed: 6 },
-  { music: 1, startPos: 0,  endPos: 85, bpm: 125, speed: 6 },
-  { music: 0, startPos: 14, endPos: 40, bpm: 120, speed: 6 },
+  { music: 0, startPos: 0,  absStart: 0.0,   absEnd: 85.0,  bpm: 120, speed: 6 },
+  { music: 1, startPos: 0,  absStart: 93.0,  absEnd: 600.0, bpm: 125, speed: 6 },
+  { music: 0, startPos: 14, absStart: 605.0, absEnd: 750.0, bpm: 120, speed: 6 },
 ];
 
 let _regionCache = null;
@@ -44,37 +42,34 @@ let _regionCache = null;
 function buildRegions() {
   if (_regionCache) return _regionCache;
 
-  const regions = [];
-  let absTime = 0;
-
-  for (const r of MUSIC_REGIONS) {
+  const regions = MUSIC_REGIONS.map((r) => {
     const effectiveBpm = r.bpm * SPEED_GAIN[r.music];
     const msPerRow = (2500 / effectiveBpm) * r.speed;
-    const totalRows = (r.endPos - r.startPos) * ROWS_PER_PATTERN;
-    const duration = (totalRows * msPerRow) / 1000;
+    const durationMs = (r.absEnd - r.absStart) * 1000;
+    const totalRows = Math.round(durationMs / msPerRow);
+    const endPos = r.startPos + Math.ceil(totalRows / ROWS_PER_PATTERN);
 
-    regions.push({
+    return {
       music: r.music,
       startPos: r.startPos,
-      endPos: r.endPos,
+      endPos,
       bpm: r.bpm,
       speed: r.speed,
       effectiveBpm,
       msPerRow,
-      absStart: absTime,
-      absEnd: absTime + duration,
+      absStart: r.absStart,
+      absEnd: r.absEnd,
       totalRows,
-    });
-
-    absTime += duration;
-  }
+    };
+  });
 
   _regionCache = regions;
   return regions;
 }
 
 /**
- * Convert absolute demo time (seconds) to { music, position, row }.
+ * Convert absolute demo time (seconds) to { music, position, row, silent }.
+ * `silent` is true when the time falls in a gap between music regions.
  * This is an approximation (assumes constant BPM); used for seeking.
  */
 export function timeToMusicPos(seconds) {
@@ -83,17 +78,24 @@ export function timeToMusicPos(seconds) {
 
   for (const r of regions) {
     if (t >= r.absStart && t < r.absEnd) {
-      const elapsed = t - r.absStart;
-      const totalRows = Math.round((elapsed * 1000) / r.msPerRow);
+      const elapsedMs = (t - r.absStart) * 1000;
+      const totalRows = Math.round(elapsedMs / r.msPerRow);
       const position = r.startPos + Math.floor(totalRows / ROWS_PER_PATTERN);
       const row = totalRows % ROWS_PER_PATTERN;
-      return { music: r.music, position, row };
+      return { music: r.music, position, row, silent: false };
+    }
+  }
+
+  // Gap between regions — no music plays
+  for (let i = 0; i < regions.length - 1; i++) {
+    if (t >= regions[i].absEnd && t < regions[i + 1].absStart) {
+      return { music: -1, position: 0, row: 0, silent: true };
     }
   }
 
   // Past all regions — clamp to end of last region
   const last = regions[regions.length - 1];
-  return { music: last.music, position: last.endPos - 1, row: ROWS_PER_PATTERN - 1 };
+  return { music: last.music, position: last.endPos - 1, row: ROWS_PER_PATTERN - 1, silent: false };
 }
 
 /**
@@ -135,7 +137,8 @@ export function getTotalDuration() {
 }
 
 /**
- * Get the music region active at a given absolute time, or null if past end.
+ * Get the music region active at a given absolute time, or null for gaps
+ * and past-end times.
  */
 export function getRegionAtTime(seconds) {
   const regions = buildRegions();
