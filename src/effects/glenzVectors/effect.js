@@ -94,43 +94,35 @@ function fillConvexOR(fb, verts, color) {
   const n = verts.length;
   if (n < 3) return;
 
-  let topIdx = 0, botIdx = 0;
-  for (let i = 1; i < n; i++) {
-    if (verts[i].y < verts[topIdx].y) topIdx = i;
-    if (verts[i].y > verts[botIdx].y) botIdx = i;
+  let yMin = Infinity, yMax = -Infinity;
+  for (let i = 0; i < n; i++) {
+    if (verts[i].y < yMin) yMin = verts[i].y;
+    if (verts[i].y > yMax) yMax = verts[i].y;
   }
 
-  const yStart = Math.max(0, Math.ceil(verts[topIdx].y));
-  const yEnd = Math.min(H - 1, Math.floor(verts[botIdx].y));
-  if (yStart > yEnd) return;
+  const yStart = Math.max(0, Math.ceil(yMin));
+  const yEnd = Math.min(H - 1, Math.floor(yMax));
 
-  // Build left/right edge chains from topIdx
-  const leftEdges = [], rightEdges = [];
-  for (let idx = topIdx; idx !== botIdx;) {
-    const next = (idx - 1 + n) % n;
-    leftEdges.push([verts[idx], verts[next]]);
-    idx = next;
-  }
-  for (let idx = topIdx; idx !== botIdx;) {
-    const next = (idx + 1) % n;
-    rightEdges.push([verts[idx], verts[next]]);
-    idx = next;
-  }
-
-  let lEdge = 0, rEdge = 0;
   for (let y = yStart; y <= yEnd; y++) {
-    while (lEdge < leftEdges.length - 1 && y >= leftEdges[lEdge][1].y) lEdge++;
-    while (rEdge < rightEdges.length - 1 && y >= rightEdges[rEdge][1].y) rEdge++;
-
-    const [la, lb] = leftEdges[lEdge];
-    const [ra, rb] = rightEdges[rEdge];
-    const ldy = lb.y - la.y;
-    const rdy = rb.y - ra.y;
-    const lx = ldy !== 0 ? la.x + (y - la.y) * (lb.x - la.x) / ldy : la.x;
-    const rx = rdy !== 0 ? ra.x + (y - ra.y) * (rb.x - ra.x) / rdy : ra.x;
-
-    let x0 = Math.max(0, Math.round(Math.min(lx, rx)));
-    let x1 = Math.min(W - 1, Math.round(Math.max(lx, rx)));
+    let xMin = W, xMax = -1;
+    for (let i = 0; i < n; i++) {
+      const a = verts[i], b = verts[(i + 1) % n];
+      if ((a.y <= y && b.y >= y) || (b.y <= y && a.y >= y)) {
+        const dy = b.y - a.y;
+        if (dy === 0) {
+          if (a.x < xMin) xMin = a.x;
+          if (a.x > xMax) xMax = a.x;
+          if (b.x < xMin) xMin = b.x;
+          if (b.x > xMax) xMax = b.x;
+        } else {
+          const x = a.x + (y - a.y) * (b.x - a.x) / dy;
+          if (x < xMin) xMin = x;
+          if (x > xMax) xMax = x;
+        }
+      }
+    }
+    const x0 = Math.max(0, Math.round(xMin));
+    const x1 = Math.min(W - 1, Math.round(xMax));
     const base = y * W;
     for (let x = x0; x < x1; x++) fb[base + x] |= color;
   }
