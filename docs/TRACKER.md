@@ -129,7 +129,7 @@ The following maps to the actual Second Reality demo sequence. Each effect has a
 - [ ] `rotozoom/effect.remastered.js`
 
 ### Part 16 — PLZ_PLASMA (Plasma)
-- [x] `plasma/effect.js` — colorful plasma/smoke waves (WILDFIRE)
+- [x] `plasma/effect.js` — colorful plasma/smoke waves (WILDFIRE) [REWRITTEN: full 1:1 port]
 - [ ] `plasma/effect.remastered.js`
 
 ### Part 17 — PLZ_CUBE (Plasma Cube)
