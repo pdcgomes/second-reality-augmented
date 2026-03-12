@@ -246,14 +246,14 @@ function renderTextScreen(screen, font) {
     // Handle special Dolby logo height
     const isDolbyUpper = line.text === '[';
     const charHeight = isDolbyUpper ? 19 : FONT_H;
-    const scaledCharH = Math.floor(charHeight * yScale);
+    const scaledCharH = Math.ceil(charHeight * yScale);
 
     for (let i = 0; i < line.text.length; i++) {
       const ch = font.chars[line.text.charCodeAt(i)];
       if (!ch) { cx += 18; continue; }
 
       const scaledW = Math.max(1, Math.floor(ch.w * (DISPLAY_W / 320)));
-      const renderH = Math.min(scaledCharH, Math.floor(FONT_H * yScale));
+      const renderH = Math.min(scaledCharH, Math.ceil(FONT_H * yScale));
 
       for (let fy = 0; fy < renderH; fy++) {
         const srcY = Math.floor(fy / yScale);
