@@ -117,7 +117,7 @@ The following maps to the actual Second Reality demo sequence. Each effect has a
 - [ ] `forest/effect.remastered.js`
 
 ### Part 13 — LENS_TRANSITION (Lens Slide-In)
-- [ ] `lensTransition/effect.js` — face picture slides in (PSI)
+- [x] `lensTransition/effect.js` — face picture slides in (PSI)
 - [ ] `lensTransition/effect.remastered.js`
 
 ### Part 14 — LENS_LENS (Bouncing Crystal Ball)
