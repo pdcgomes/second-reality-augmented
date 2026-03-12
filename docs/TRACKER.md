@@ -137,7 +137,7 @@ The following maps to the actual Second Reality demo sequence. Each effect has a
 - [ ] `plzCube/effect.remastered.js`
 
 ### Part 18 — DOTS (Mini Vector Balls)
-- [x] `dots/effect.js` — 1024 mini vector balls with gravity (PSI)
+- [x] `dots/effect.js` — 512 mini vector balls with gravity (PSI) [REWRITTEN: full 1:1 port]
 - [ ] `dots/effect.remastered.js`
 
 ### Part 19 — WATER (Mirror Ball Scroller)
