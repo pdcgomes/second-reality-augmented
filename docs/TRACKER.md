@@ -149,7 +149,7 @@ The following maps to the actual Second Reality demo sequence. Each effect has a
 - [ ] `voxelLandscape/effect.remastered.js`
 
 ### Part 21 — JPLOGO (Jelly Logo)
-- [ ] `jplogo/effect.js` — jelly-distorted Future Crew logo (PSI)
+- [x] `jplogo/effect.js` — jelly-distorted Future Crew logo (PSI) [REWRITTEN: full 1:1 port]
 - [ ] `jplogo/effect.remastered.js`
 
 ### Part 22 — U2E (3D City Flyover)
