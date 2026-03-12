@@ -301,6 +301,52 @@ async function extractGlenzTransition() {
   writePNG(resolve(out, 'checkerboard.png'), W, H, rgba);
 }
 
+async function extractTechnoCircles() {
+  console.log('\nTECHNO_CIRCLES:');
+  const out = effectDir('techno-circles');
+  const { CIRCLE1_B64, CIRCLE2_B64 } = await import('../src/effects/technoCircles/data.js');
+
+  const raw1 = b64ToUint8(CIRCLE1_B64);
+  const raw2 = b64ToUint8(CIRCLE2_B64);
+
+  // Circle1: 320×200 with 3 bit planes → 8 colors. Export quarter at native res.
+  const W = 320, H1 = 200;
+  const rgba1 = new Uint8Array(W * H1 * 4);
+  const grays = [0, 36, 73, 109, 146, 182, 219, 255];
+  for (let y = 0; y < H1; y++) {
+    for (let x = 0; x < W; x++) {
+      const lineStart = 40 * y * 3;
+      const byteIdx = x >> 3;
+      const bitIdx = 7 - (x & 7);
+      let color = 0;
+      for (let plane = 0; plane < 3; plane++) {
+        color |= ((raw1[lineStart + plane * 40 + byteIdx] >> bitIdx) & 1) << plane;
+      }
+      const v = grays[color];
+      const p = (y * W + x) * 4;
+      rgba1[p] = rgba1[p + 1] = rgba1[p + 2] = v;
+      rgba1[p + 3] = 255;
+    }
+  }
+  writePNG(resolve(out, 'circle1-quarter.png'), W, H1, rgba1);
+
+  // Circle2: 320×200 with 1 bit plane. Export quarter.
+  const rgba2 = new Uint8Array(W * H1 * 4);
+  for (let y = 0; y < H1; y++) {
+    for (let x = 0; x < W; x++) {
+      const lineStart = 40 * y;
+      const byteIdx = x >> 3;
+      const bitIdx = 7 - (x & 7);
+      const bit = (raw2[lineStart + byteIdx] >> bitIdx) & 1;
+      const v = bit * 255;
+      const p = (y * W + x) * 4;
+      rgba2[p] = rgba2[p + 1] = rgba2[p + 2] = v;
+      rgba2[p + 3] = 255;
+    }
+  }
+  writePNG(resolve(out, 'circle2-quarter.png'), W, H1, rgba2);
+}
+
 // ── Run all ─────────────────────────────────────────────────────
 
 console.log('Extracting visual assets from implemented effects...');
@@ -309,4 +355,5 @@ await extractPam();
 await extractU2a();
 await extractBeglogo();
 await extractGlenzTransition();
+await extractTechnoCircles();
 console.log('\nDone.');

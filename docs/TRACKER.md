@@ -97,7 +97,7 @@ The following maps to the actual Second Reality demo sequence. Each effect has a
 - [ ] `tunneli/effect.remastered.js`
 
 ### Part 8 — TECHNO_CIRCLES (Circle Interference)
-- [ ] `technoCircles/effect.js` — circle interference Moire patterns (PSI)
+- [x] `technoCircles/effect.js` — circle interference Moire patterns (PSI) [REWRITTEN: full 1:1 port]
 - [ ] `technoCircles/effect.remastered.js`
 
 ### Part 9 — TECHNO_BARS_TRANSITION (Bars Transition)
