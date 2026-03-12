@@ -84,7 +84,7 @@ const SYNC_TABLE = [
  */
 const REGION_DEFS = [
   { music: 0, startPos: 0,  startRow: 0,  endPos: 13, endRow: 42, bpm: 120, speed: 6 },
-  { music: 1, startPos: 0,  startRow: 0,  endPos: 84, endRow: 0,  bpm: 125, speed: 6 },
+  { music: 1, startPos: 0,  startRow: 0,  endPos: 84, endRow: 0,  bpm: 130, speed: 3 },
   { music: 0, startPos: 14, startRow: 5,  endPos: 39, endRow: 0,  bpm: 120, speed: 6 },
 ];
 
