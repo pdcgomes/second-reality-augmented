@@ -2,22 +2,26 @@
  * MOD/S3M player — wraps webaudio-mod-player for S3M playback.
  *
  * Manages two S3M songs (MUSIC0 + MUSIC1) matching the original demo's
- * dual-music architecture. Exposes position/row for sync point queries.
+ * dual-music architecture.
+ *
+ * Time tracking: uses the S3M engine's actual sample count for elapsed time,
+ * not the constant-BPM formula from musicsync. This means playback time
+ * stays perfectly accurate even when the S3M files contain Axx (speed)
+ * or Txx (tempo) changes mid-song.
  *
  * Delegates audio setup entirely to the vendored library's own
  * createContext() and play() methods to avoid subtle mismatches.
  */
 
 import { Modplayer as RawModplayer } from '../../lib/webaudio-mod-player/index.js';
-import { musicPosToTime, timeToMusicPos } from './musicsync.js';
-
-const SPEED_GAIN = [1.00370, 1.00231];
+import { musicPosToTime, timeToMusicPos, SPEED_GAIN, REGION_SWITCH } from './musicsync.js';
 
 export class ModPlayer {
   constructor() {
     this._players = [null, null];
     this._activeIndex = -1;
     this._loaded = false;
+    this._timeOffset = 0;
   }
 
   get audioContext() {
@@ -58,8 +62,20 @@ export class ModPlayer {
   }
 
   /**
-   * Returns absolute demo time (seconds) derived from the currently playing
-   * S3M position/row. This is the authoritative time source during playback.
+   * Authoritative elapsed time — derived from actual audio samples processed,
+   * not from the constant-BPM formula. Immune to tempo/speed changes in the
+   * S3M pattern data.
+   */
+  currentTime() {
+    if (this._activeIndex < 0) return this._timeOffset;
+    const mp = this._activePlayer;
+    if (!mp) return this._timeOffset;
+    return this._timeOffset + mp._samplesProcessed / mp.samplerate;
+  }
+
+  /**
+   * Legacy position-based time (approximate). Used only for offset estimation
+   * when the sample counter isn't available (e.g. right after a seek).
    */
   currentTimeFromPosition() {
     if (this._activeIndex < 0) return 0;
@@ -69,8 +85,25 @@ export class ModPlayer {
   }
 
   /**
+   * Check whether the player has crossed a region boundary (e.g. MUSIC0
+   * position reaching 14). Returns the REGION_SWITCH entry if a switch
+   * is needed, or null.
+   */
+  checkBoundary() {
+    if (this._activeIndex < 0) return null;
+    const p = this._activePlayer;
+    if (!p || !p.player) return null;
+    const pos = p.player.position;
+    for (const b of REGION_SWITCH) {
+      if (this._activeIndex === b.music && pos >= b.endPos) return b;
+    }
+    return null;
+  }
+
+  /**
    * Seek the player to the S3M position/row that corresponds to the given
-   * absolute demo time. Handles music-index switching automatically.
+   * absolute demo time. The time offset is set to the requested time so
+   * that currentTime() continues accurately from that point.
    */
   seekToTime(seconds) {
     const target = timeToMusicPos(seconds);
@@ -88,6 +121,7 @@ export class ModPlayer {
 
     const mp = this._players[target.music];
     if (mp) mp.seek(target.position, target.row);
+    this._timeOffset = seconds;
   }
 
   async loadBoth(music0ArrayBuffer, music1ArrayBuffer) {
@@ -122,10 +156,9 @@ export class ModPlayer {
     const mp = this._players[musicIndex];
     if (!mp) return;
 
-    // Use the library's own play() which handles createContext() internally
+    this._timeOffset = musicPosToTime(musicIndex, position, row);
     mp.play();
 
-    // Resume AudioContext if browser autoplay policy suspended it
     if (mp.context && mp.context.state === 'suspended') {
       mp.context.resume().catch(() => {});
     }
@@ -135,9 +168,27 @@ export class ModPlayer {
     }
   }
 
+  /**
+   * Switch to a different music file at the given position. Preserves the
+   * current elapsed time as the new offset so currentTime() is continuous.
+   */
   changeMusic(musicIndex, position = 0, row = 0) {
+    const t = this.currentTime();
     this._stopAll();
-    this.play(musicIndex, position, row);
+    this._activeIndex = musicIndex;
+    const mp = this._players[musicIndex];
+    if (!mp) return;
+
+    this._timeOffset = t;
+    mp.play();
+
+    if (mp.context && mp.context.state === 'suspended') {
+      mp.context.resume().catch(() => {});
+    }
+
+    if (position > 0 || row > 0) {
+      mp.seek(position, row);
+    }
   }
 
   pause() {
@@ -162,6 +213,7 @@ export class ModPlayer {
   stop() {
     this._stopAll();
     this._activeIndex = -1;
+    this._timeOffset = 0;
   }
 
   seek(position, row = 0) {
@@ -187,5 +239,6 @@ export class ModPlayer {
     this._players = [null, null];
     this._activeIndex = -1;
     this._loaded = false;
+    this._timeOffset = 0;
   }
 }

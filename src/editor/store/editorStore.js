@@ -54,7 +54,7 @@ export const useEditorStore = create((set, get) => ({
     if (isPlaying) {
       clock.pause();
       if (musicLoaded) modPlayer.pause();
-      const t = musicLoaded ? modPlayer.currentTimeFromPosition() : clock.currentTime();
+      const t = musicLoaded ? modPlayer.currentTime() : clock.currentTime();
       set({ isPlaying: false, playheadSeconds: t });
     } else {
       clock.seek(playheadSeconds);

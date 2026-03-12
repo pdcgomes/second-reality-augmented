@@ -1,19 +1,37 @@
 /**
- * Music sync — bidirectional mapping between absolute demo time (seconds)
+ * Music sync — approximate mapping between absolute demo time (seconds)
  * and S3M player position (musicIndex, position, row).
  *
- * The original Second Reality uses two S3M files:
- *   MUSIC0: plays positions 0–13 (intro through beglogo)
- *   MUSIC1: plays positions 0–84 (glenz through jplogo)
- *   MUSIC0: resumes at position 14 (u2e through end)
+ * Used for SEEKING only — scrubbing to a time and finding the approximate
+ * S3M position. During live playback the authoritative time source is the
+ * S3M engine's actual sample count (see ModPlayer.currentTime), so the
+ * constant-BPM approximation here doesn't cause audible drift.
  *
- * Time calculation: msPerRow = (2500 / bpm) * speed
- * At constant speed/tempo (which is approximate but close enough):
- *   MUSIC0 at 120 BPM, speed 6 → 125ms/row, 8.0s/pattern
- *   MUSIC1 at 125 BPM, speed 6 → 120ms/row, 7.68s/pattern
+ * The original Second Reality uses two S3M files played back-to-back:
+ *   MUSIC0: positions 0–13  (intro → beglogo)
+ *   MUSIC1: positions 0–84  (glenz → jplogo)
+ *   MUSIC0: positions 14–39 (u2e → end)
+ *
+ * Approximate time per row: msPerRow = (2500 / (bpm * speedGain)) * speed
  */
 
 const ROWS_PER_PATTERN = 64;
+
+/**
+ * Speed correction factors the S3M engine applies to BPM during playback.
+ * Exported so modplayer.js can set them on the raw player instances.
+ */
+export const SPEED_GAIN = [1.00370, 1.00231];
+
+/**
+ * Position boundaries for automatic music switching during playback.
+ * When the S3M player's position reaches endPos for the current music,
+ * the tick switches to the next music file.
+ */
+export const REGION_SWITCH = [
+  { music: 0, endPos: 14, nextMusic: 1, nextPos: 0 },
+  { music: 1, endPos: 85, nextMusic: 0, nextPos: 14 },
+];
 
 const MUSIC_REGIONS = [
   { music: 0, startPos: 0,  endPos: 14, bpm: 120, speed: 6 },
@@ -30,7 +48,8 @@ function buildRegions() {
   let absTime = 0;
 
   for (const r of MUSIC_REGIONS) {
-    const msPerRow = (2500 / r.bpm) * r.speed;
+    const effectiveBpm = r.bpm * SPEED_GAIN[r.music];
+    const msPerRow = (2500 / effectiveBpm) * r.speed;
     const totalRows = (r.endPos - r.startPos) * ROWS_PER_PATTERN;
     const duration = (totalRows * msPerRow) / 1000;
 
@@ -40,6 +59,7 @@ function buildRegions() {
       endPos: r.endPos,
       bpm: r.bpm,
       speed: r.speed,
+      effectiveBpm,
       msPerRow,
       absStart: absTime,
       absEnd: absTime + duration,
@@ -55,6 +75,7 @@ function buildRegions() {
 
 /**
  * Convert absolute demo time (seconds) to { music, position, row }.
+ * This is an approximation (assumes constant BPM); used for seeking.
  */
 export function timeToMusicPos(seconds) {
   const regions = buildRegions();
@@ -77,6 +98,7 @@ export function timeToMusicPos(seconds) {
 
 /**
  * Convert { music, position, row } to absolute demo time (seconds).
+ * Approximation — used for seek offset estimation.
  */
 export function musicPosToTime(music, position, row = 0) {
   const regions = buildRegions();
@@ -86,6 +108,19 @@ export function musicPosToTime(music, position, row = 0) {
       const rowsFromRegionStart = (position - r.startPos) * ROWS_PER_PATTERN + row;
       return r.absStart + (rowsFromRegionStart * r.msPerRow) / 1000;
     }
+  }
+
+  // Position overshot — find the closest matching region and clamp
+  let best = null;
+  for (const r of regions) {
+    if (r.music === music && position >= r.startPos) {
+      if (!best || r.startPos > best.startPos) best = r;
+    }
+  }
+  if (best) {
+    const rowsFromRegionStart = (position - best.startPos) * ROWS_PER_PATTERN + row;
+    const extrapolated = best.absStart + (rowsFromRegionStart * best.msPerRow) / 1000;
+    return Math.min(extrapolated, best.absEnd);
   }
 
   return 0;
@@ -100,12 +135,12 @@ export function getTotalDuration() {
 }
 
 /**
- * Get the music region active at a given absolute time.
+ * Get the music region active at a given absolute time, or null if past end.
  */
 export function getRegionAtTime(seconds) {
   const regions = buildRegions();
   for (const r of regions) {
     if (seconds >= r.absStart && seconds < r.absEnd) return r;
   }
-  return regions[regions.length - 1];
+  return null;
 }

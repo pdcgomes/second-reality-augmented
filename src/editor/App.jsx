@@ -36,17 +36,27 @@ export default function App() {
       });
   }, [modPlayer, setMusicLoaded, setMusicError]);
 
-  // Playback tick — derive playhead from S3M player position when music is
-  // loaded, falling back to the clock otherwise. This keeps the timeline
-  // perfectly in sync with the tracker's actual playback position.
+  // Playback tick — uses sample-counted elapsed time (immune to tempo
+  // changes in the S3M data). Detects position-based region boundaries
+  // for automatic music switching (MUSIC0 → MUSIC1 → MUSIC0).
   useEffect(() => {
     if (!isPlaying) return;
     let raf;
     function tick() {
       const { musicLoaded } = useEditorStore.getState();
-      const t = musicLoaded
-        ? modPlayer.currentTimeFromPosition()
-        : clock.currentTime();
+
+      if (!musicLoaded) {
+        useEditorStore.setState({ playheadSeconds: clock.currentTime() });
+        raf = requestAnimationFrame(tick);
+        return;
+      }
+
+      const boundary = modPlayer.checkBoundary();
+      if (boundary) {
+        modPlayer.changeMusic(boundary.nextMusic, boundary.nextPos, 0);
+      }
+
+      const t = modPlayer.currentTime();
       useEditorStore.setState({ playheadSeconds: t });
       raf = requestAnimationFrame(tick);
     }

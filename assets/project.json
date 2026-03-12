@@ -3,7 +3,7 @@
   "note": "Second Reality demo sequence — 25 visual parts matching the original. Timings are approximate estimates derived from the JS port sync table (MusicPlayer.js) and will be fine-tuned during music integration.",
   "audioFiles": ["MUSIC0.S3M", "MUSIC1.S3M"],
   "musicSyncTable": {
-    "note": "Approximate mapping of music positions to absolute demo time. Music 0 plays positions 0-13 (~0-109s), then music 1 plays positions 0-84 (~115-660s), then music 0 resumes at position 14 (~665s onward).",
+    "note": "Approximate mapping of music positions to absolute demo time. Music 0 plays positions 0-13 (~0-112s), then music 1 plays positions 0-84 (~112-763s), then music 0 resumes at position 14 (~763s onward). Actual times vary due to Axx/Txx tempo changes in the S3M pattern data; live playback uses sample-counted elapsed time for accuracy.",
     "music0TempoPatched": true,
     "music0BPM": 120,
     "music1BPM": 125
@@ -187,11 +187,12 @@
   ],
   "cues": {
     "music0Start": 0.0,
-    "music0Stop": 85.0,
-    "music1Start": 93.0,
-    "music1Stop": 600.0,
-    "music0Resume": 605.0,
-    "musicFadeOut": 730.0
+    "music0Stop": 111.6,
+    "music1Start": 111.6,
+    "music1Stop": 762.9,
+    "music0Resume": 762.9,
+    "musicFadeOut": 930.0,
+    "_note": "Approximate — computed from pattern counts at constant BPM + speedGain. Actual boundaries may shift slightly due to Axx/Txx tempo changes in the S3M data."
   },
   "beatMap": {
     "track0BPM": 120,
