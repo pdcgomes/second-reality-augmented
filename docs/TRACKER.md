@@ -161,7 +161,7 @@ The following maps to the actual Second Reality demo sequence. Each effect has a
 - [ ] `endlogo/effect.remastered.js`
 
 ### Part 24 — CREDITS (Scrolling Credits)
-- [ ] `credits/effect.js` — scrolling credits with demo screenshots
+- [x] `credits/effect.js` — scrolling credits with demo screenshots [REWRITTEN: full 1:1 port]
 - [ ] `credits/effect.remastered.js`
 
 ### Part 25 — ENDSCRL (Greetings Scroll)
