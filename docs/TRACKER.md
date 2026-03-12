@@ -105,7 +105,7 @@ The following maps to the actual Second Reality demo sequence. Each effect has a
 - [ ] `technoBarsTransition/effect.remastered.js`
 
 ### Part 10 — TECHNO_BARS (Rotating Bars)
-- [ ] `technoBars/effect.js` — rotating layered bars with palette pulse (PSI)
+- [x] `technoBars/effect.js` — rotating layered bars with palette pulse (PSI)
 - [ ] `technoBars/effect.remastered.js`
 
 ### Part 11 — TECHNO_TROLL (Troll Picture)
