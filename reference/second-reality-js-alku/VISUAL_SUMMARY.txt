@@ -1,0 +1,455 @@
+================================================================================
+    SECOND REALITY - ALKU EFFECT - VISUAL SUMMARY
+================================================================================
+
+                    ╔════════════════════════════════╗
+                    ║  ALKU Opening Credits Effect   ║
+                    ║  Future Crew, 1993             ║
+                    ║  Coder: WILDFIRE               ║
+                    ╚════════════════════════════════╝
+
+
+WHAT YOU SEE:
+═════════════
+
+    ┌────────────────────────────────────────────────┐
+    │                    Sky                         │
+    │                                                │
+    ├────────────────────────────────────────────────┤
+    │              Distant Mountains                 │
+    ├────────────────────────────────────────────────┤
+    │                                                │
+    │         ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓        │
+    │       ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓      │
+    │     ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓    │
+    │   ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  │
+    │ ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ │
+    │▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓│
+    │                                                │
+    │          Graphics: Marvel, Pixel               │
+    │                                                │
+    └────────────────────────────────────────────────┘
+                    ← Scrolling left
+
+
+HOW IT WORKS:
+═════════════
+
+NOT THIS (Voxel Rendering):          THIS (Column Heightmap):
+┌─────────────────────────┐          ┌─────────────────────────┐
+│ For each screen pixel:  │          │ For each column:        │
+│   Cast ray into terrain │          │   Read height value     │
+│   Find intersection     │          │   Fill from bottom up   │
+│   Sample texture        │          │   Use flat color        │
+│   Calculate distance    │          │   Hardware scroll       │
+│   Draw pixel            │          │   Draw 4 pixels/plane   │
+│                         │          │                         │
+│ Complex, slow (~20fps)  │          │ Simple, fast (70fps)    │
+└─────────────────────────┘          └─────────────────────────┘
+
+
+RENDERING PIPELINE:
+═══════════════════
+
+    ┌─────────────┐
+    │  HOI.IN0    │  Heightmap data
+    │  HOI.IN1    │  Color data
+    └──────┬──────┘
+           │
+           ↓
+    ┌─────────────────────────────────────┐
+    │  outline() - Render one column      │
+    │  ┌───────────────────────────────┐  │
+    │  │ For each of 4 VGA planes:     │  │
+    │  │   Select plane                │  │
+    │  │   Fill 150 pixels vertically  │  │
+    │  │   Write to both buffers       │  │
+    │  └───────────────────────────────┘  │
+    └──────┬──────────────────────────────┘
+           │
+           ↓
+    ┌─────────────────────────────────────┐
+    │  VGA Memory (planar mode)           │
+    │  ┌───┬───┬───┬───┐                  │
+    │  │ P │ P │ P │ P │  4 planes        │
+    │  │ 0 │ 1 │ 2 │ 3 │  = 4 pixels      │
+    │  └───┴───┴───┴───┘  at once         │
+    └──────┬──────────────────────────────┘
+           │
+           ↓
+    ┌─────────────────────────────────────┐
+    │  Hardware Scroll (copper1)          │
+    │  - Update CRTC registers            │
+    │  - Set pixel panning                │
+    │  - No memory copying!               │
+    └──────┬──────────────────────────────┘
+           │
+           ↓
+    ┌─────────────────────────────────────┐
+    │  Text Overlay (ascrolltext)         │
+    │  - Apply XOR deltas                 │
+    │  - Only changed pixels              │
+    └──────┬──────────────────────────────┘
+           │
+           ↓
+    ┌─────────────────────────────────────┐
+    │  Palette Effects (copper2/3)        │
+    │  - Update colors during VBlank      │
+    │  - Smooth fading                    │
+    └──────┬──────────────────────────────┘
+           │
+           ↓
+       Display!
+
+
+VGA MEMORY LAYOUT:
+══════════════════
+
+Logical View (what you see):
+┌────────────────────────────────────┐ Line 0
+│          Background Image          │
+│        (Horizon, Mountains)        │
+├────────────────────────────────────┤ Line 50
+│                                    │
+│       Scrolling Terrain Area       │
+│                                    │
+│    ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓    │
+│  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  │
+│▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ │
+├────────────────────────────────────┤ Line 200
+│                                    │
+│         Text Overlay Buffer        │
+│    (Credits, semi-transparent)     │
+│                                    │
+└────────────────────────────────────┘ Line 400
+
+Physical Memory (planar mode):
+┌────────────────────────────────────┐
+│ Plane 0: ████████████████████████  │ Pixel 0,4,8,12...
+│ Plane 1: ████████████████████████  │ Pixel 1,5,9,13...
+│ Plane 2: ████████████████████████  │ Pixel 2,6,10,14...
+│ Plane 3: ████████████████████████  │ Pixel 3,7,11,15...
+└────────────────────────────────────┘
+         ↑ All accessed through 0xA0000
+
+
+SCROLLING MECHANISM:
+════════════════════
+
+Frame 0:                Frame 1:                Frame 2:
+┌──────────────┐       ┌──────────────┐       ┌──────────────┐
+│ [Viewport]   │       │  [Viewport]  │       │   [Viewport] │
+│ ████████████ │       │ ████████████ │       │ ████████████ │
+│ ████████████ │       │ ████████████ │       │ ████████████ │
+│ ████████████ │  →    │ ████████████ │  →    │ ████████████ │
+│ ████████████ │       │ ████████████ │       │ ████████████ │
+└──────────────┘       └──────────────┘       └──────────────┘
+                                ↑
+                        New column rendered here
+
+Hardware scroll register moves viewport
+No memory copying needed!
+
+
+TEXT OVERLAY SYSTEM:
+════════════════════
+
+Step 1: Pre-compute deltas
+┌─────────────────────────────────────┐
+│ Text Buffer (tbuf):                 │
+│   0  0  0  0  0  0  0  0           │
+│   0  0 64 64 64  0  0  0           │
+│   0  0 64 64 64  0  0  0           │
+│   0  0  0  0  0  0  0  0           │
+└─────────────────────────────────────┘
+         ↓ Compute differences
+┌─────────────────────────────────────┐
+│ Delta Table (dtau):                 │
+│   [offset: 2, xor: 64]              │
+│   [offset: 3, xor: 0]               │
+│   [offset: 4, xor: 0]               │
+│   [offset: 5, xor: 64]              │
+│   [-1, -1]  ← End marker            │
+└─────────────────────────────────────┘
+
+Step 2: Apply deltas with XOR
+┌─────────────────────────────────────┐
+│ For each delta:                     │
+│   screen[offset] ^= value           │
+│                                     │
+│ XOR is reversible:                  │
+│   0 ^ 64 = 64  (turn on)            │
+│   64 ^ 64 = 0  (turn off)           │
+└─────────────────────────────────────┘
+
+
+PALETTE SYSTEM:
+═══════════════
+
+256 colors divided into 4 banks:
+
+┌────────────────────────────────────┐
+│ 0-63:   Terrain Colors             │
+│         ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓   │
+│         Browns, greens, grays      │
+├────────────────────────────────────┤
+│ 64-127: Text Layer 1               │
+│         ░░░░░░░░░░░░░░░░░░░░░░░░   │
+│         Blended with terrain       │
+├────────────────────────────────────┤
+│ 128-191: Text Layer 2              │
+│         ░░░░░░░░░░░░░░░░░░░░░░░░   │
+│         Different blend            │
+├────────────────────────────────────┤
+│ 192-255: Text Layer 3              │
+│         ░░░░░░░░░░░░░░░░░░░░░░░░   │
+│         Additional effects         │
+└────────────────────────────────────┘
+
+Blending creates semi-transparent text!
+
+
+COPPER SYSTEM:
+══════════════
+
+Named after Amiga's Copper coprocessor
+
+VGA Frame (70 Hz):
+┌────────────────────────────────────┐
+│                                    │
+│  Visible Area (200 lines)          │
+│  ┌──────────────────────────────┐  │
+│  │                              │  │
+│  │  ← copper1() called here     │  │
+│  │    Updates scroll registers  │  │
+│  │                              │  │
+│  │  Rendering happens here      │  │
+│  │                              │  │
+│  └──────────────────────────────┘  │
+│                                    │
+│  Vertical Blank (200 lines)        │
+│  ┌──────────────────────────────┐  │
+│  │  ← copper2() called here     │  │
+│  │    Updates palette           │  │
+│  │                              │  │
+│  │  ← copper3() called here     │  │
+│  │    Fades palette             │  │
+│  └──────────────────────────────┘  │
+│                                    │
+└────────────────────────────────────┘
+         ↓
+    Next frame
+
+
+PERFORMANCE BREAKDOWN:
+══════════════════════
+
+Per Frame (14.3ms @ 70 Hz):
+
+CPU Usage:
+████████████████████████████████████████████░░░░░░░░░░░░░░░░░░░░░░░░  45%
+                                            ↑
+                                    Plenty of headroom!
+
+Time Budget:
+┌────────────────────────────────────────────────────────────┐
+│ VBlank Wait:    ████████████████████████████████  56%      │
+│ Idle:           ████████████████████  38%                  │
+│ Music:          ███  5%                                    │
+│ Rendering:      █  1%                                      │
+└────────────────────────────────────────────────────────────┘
+
+Memory Bandwidth:
+████  1% of VGA capability
+      ↑
+  Very efficient!
+
+
+DATA FLOW:
+══════════
+
+HOI.IN0 ──┐
+          ├──→ outline() ──→ VGA Memory ──→ copper1() ──┐
+HOI.IN1 ──┘                                              │
+                                                         ├──→ Display
+FONA.INC ──→ maketext() ──→ dtau[] ──→ ascrolltext() ──┤
+                                                         │
+palette[] ──────────────────→ copper2() ─────────────────┤
+                              copper3() ─────────────────┘
+
+
+SYNCHRONIZATION:
+════════════════
+
+Music Timeline:
+┌────────────────────────────────────────────────────────┐
+│ dis_sync() = 1: "Future Crew" screen                   │
+│              ↓ Fade in, wait, fade out                 │
+├────────────────────────────────────────────────────────┤
+│ dis_sync() = 2: "Assembly 93" screen                   │
+│              ↓ Fade in, wait, fade out                 │
+├────────────────────────────────────────────────────────┤
+│ dis_sync() = 3: Start scrolling terrain                │
+│              ↓ Smooth horizontal movement              │
+├────────────────────────────────────────────────────────┤
+│ dis_sync() = 4: Graphics credits                       │
+│              ↓ "Marvel, Pixel"                         │
+├────────────────────────────────────────────────────────┤
+│ dis_sync() = 5: Music credits                          │
+│              ↓ "Purple Motion, Skaven"                 │
+├────────────────────────────────────────────────────────┤
+│ dis_sync() = 6: Code credits                           │
+│              ↓ "Psi, Trug, Wildfire"                   │
+├────────────────────────────────────────────────────────┤
+│ dis_sync() = 7: Additional design                      │
+│              ↓ "Abyss, Gore"                           │
+├────────────────────────────────────────────────────────┤
+│ dis_sync() = 8: Exit to next part                      │
+└────────────────────────────────────────────────────────┘
+
+
+KEY OPTIMIZATIONS:
+══════════════════
+
+1. Planar Rendering
+   ┌───┬───┬───┬───┐
+   │ P │ P │ P │ P │  = 4 pixels in one operation
+   │ 0 │ 1 │ 2 │ 3 │
+   └───┴───┴───┴───┘
+
+2. Hardware Scrolling
+   No memory copying!
+   Just update CRTC registers
+
+3. Delta Encoding
+   Store only changes:
+   Full buffer: 65KB
+   Delta table: ~5KB
+
+4. XOR Operations
+   Single cycle, reversible
+   Perfect for text overlay
+
+5. Loop Unrolling
+   REPT 75
+     mov al, [ds:si+ccc*640]
+     mov [es:di+ccc*352], al
+     ccc=ccc+1
+   ENDM
+   = No loop overhead!
+
+6. Fixed-Point Math
+   16.8 format:
+   [Integer][Fraction]
+   No floating point needed!
+
+7. Double Buffering
+   Two terrain buffers
+   No tearing artifacts
+
+8. Pre-computed Tables
+   Font positions
+   Text deltas
+   Fade increments
+
+
+COMPARISON:
+═══════════
+
+ALKU vs. True Voxel Renderer:
+
+                    ALKU          Comanche
+                    ────          ────────
+Algorithm:          Heightmap     Voxel ray-cast
+Rendering:          Column fill   Per-pixel trace
+Movement:           2D scroll     Full 3D
+Perspective:        None          Yes
+Textures:           Flat colors   Mapped
+Frame rate:         70 fps        20 fps
+Platform:           386           486
+Complexity:         Low           High
+Visual quality:     Good          Better
+Performance:        Excellent     Moderate
+
+
+THE GENIUS:
+═══════════
+
+┌────────────────────────────────────────────────────────┐
+│                                                        │
+│  "Make it look like a voxel renderer                   │
+│   without actually being one."                         │
+│                                                        │
+│  Simple algorithm + VGA hardware tricks                │
+│  = Impressive visual effect                            │
+│    with minimal CPU usage                              │
+│                                                        │
+│  This is the demo scene philosophy:                    │
+│  Maximum impact, minimum resources.                    │
+│                                                        │
+└────────────────────────────────────────────────────────┘
+
+
+CREDITS:
+════════
+
+ALKU Effect:
+  Code: WILDFIRE
+  Part of: Second Reality
+  Group: Future Crew
+  Year: 1993
+  Platform: MS-DOS, 386+, VGA
+
+Second Reality:
+  Graphics: Marvel, Pixel
+  Music: Purple Motion, Skaven
+  Code: Psi, Trug, Wildfire
+  Additional Design: Abyss, Gore
+
+Released: Assembly 1993
+Legacy: One of the most influential PC demos ever made
+
+
+RESOURCES:
+══════════
+
+Source Code:
+  https://github.com/mtuomi/SecondReality/tree/master/ALKU
+
+Analysis:
+  https://fabiensanglard.net/second_reality/
+
+Video:
+  https://www.youtube.com/watch?v=KTjnt_WSJu8
+
+Documentation:
+  See ALKU_ANALYSIS.md (detailed technical analysis)
+  See ALKU_RENDERING_DIAGRAM.md (visual explanations)
+  See ALKU_CODE_DETAILS.md (code walkthrough)
+  See QUICK_REFERENCE.md (quick lookup)
+
+
+FINAL THOUGHTS:
+═══════════════
+
+The ALKU effect demonstrates that:
+
+  ✓ Simple algorithms can create impressive visuals
+  ✓ Hardware knowledge is more valuable than complex code
+  ✓ Optimization is an art form
+  ✓ Constraints breed creativity
+  ✓ Polish makes everything look better
+
+These lessons remain relevant today, whether you're
+programming GPUs, embedded systems, or web applications.
+
+The demo scene represents some of the finest examples
+of optimization and creative programming in computing history.
+
+ALKU is a perfect case study in doing more with less.
+
+
+================================================================================
+                    "The impossible is just undiscovered."
+                              - Demo scene motto
+================================================================================

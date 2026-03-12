@@ -73,7 +73,7 @@ The following maps to the actual Second Reality demo sequence. Each effect has a
 - [ ] `alku/effect.remastered.js`
 
 ### Part 2 — U2A (3D Ships Flyover)
-- [ ] `u2a/effect.js` — polygon 3D ships flyover (PSI)
+- [x] `u2a/effect.js` — polygon 3D ships flyover (PSI)
 - [ ] `u2a/effect.remastered.js`
 
 ### Part 3 — PAM (Explosion)
