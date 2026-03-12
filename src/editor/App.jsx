@@ -7,7 +7,7 @@ import ClipProperties from './ui/ClipProperties';
 import { useEditorStore } from './store/editorStore';
 
 export default function App() {
-  const { setProject, togglePlayback, stopPlayback, nudgePlayhead, jumpToClip, isPlaying, clock } =
+  const { setProject, setMusicLoaded, togglePlayback, stopPlayback, nudgePlayhead, jumpToClip, isPlaying, clock, modPlayer } =
     useEditorStore();
 
   useEffect(() => {
@@ -19,6 +19,19 @@ export default function App() {
       })
       .catch((e) => console.warn('Could not load project.json:', e.message));
   }, [setProject]);
+
+  useEffect(() => {
+    Promise.all([
+      fetch('/MUSIC0.S3M').then((r) => r.arrayBuffer()),
+      fetch('/MUSIC1.S3M').then((r) => r.arrayBuffer()),
+    ])
+      .then(([m0, m1]) => modPlayer.loadBoth(m0, m1))
+      .then(() => {
+        setMusicLoaded(true);
+        console.log('S3M music loaded (MUSIC0 + MUSIC1)');
+      })
+      .catch((e) => console.warn('Could not load S3M music:', e.message));
+  }, [modPlayer, setMusicLoaded]);
 
   // Playback tick — update playheadSeconds from clock while playing
   useEffect(() => {

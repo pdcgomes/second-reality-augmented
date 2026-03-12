@@ -1,8 +1,10 @@
 import { create } from 'zustand';
 import { Clock } from '@core/clock.js';
 import { nearestBeat } from '@core/beatmap.js';
+import { ModPlayer } from '@core/modplayer.js';
 
 const clock = new Clock();
+const modPlayer = new ModPlayer();
 
 export const useEditorStore = create((set, get) => ({
   project: null,
@@ -14,8 +16,12 @@ export const useEditorStore = create((set, get) => ({
   variant: 'classic',
   previewFit: 'fill',
   clock,
+  modPlayer,
+  musicLoaded: false,
 
   setProject: (project) => set({ project }),
+
+  setMusicLoaded: (loaded) => set({ musicLoaded: loaded }),
 
   setPlayhead: (seconds) => {
     const { project, snapToBeat } = get();
@@ -34,12 +40,14 @@ export const useEditorStore = create((set, get) => ({
   },
 
   togglePlayback: () => {
-    const { isPlaying } = get();
+    const { isPlaying, musicLoaded } = get();
     if (isPlaying) {
       clock.pause();
+      if (musicLoaded) modPlayer.pause();
       set({ isPlaying: false, playheadSeconds: clock.currentTime() });
     } else {
       clock.play();
+      if (musicLoaded) modPlayer.play(0);
       set({ isPlaying: true });
     }
   },
@@ -47,6 +55,7 @@ export const useEditorStore = create((set, get) => ({
   stopPlayback: () => {
     clock.pause();
     clock.seek(0);
+    if (get().musicLoaded) modPlayer.stop();
     set({ isPlaying: false, playheadSeconds: 0 });
   },
 

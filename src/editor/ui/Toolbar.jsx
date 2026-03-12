@@ -7,6 +7,8 @@ export default function Toolbar() {
     snapToBeat,
     variant,
     project,
+    musicLoaded,
+    modPlayer,
     togglePlayback,
     stopPlayback,
     toggleSnap,
@@ -16,6 +18,7 @@ export default function Toolbar() {
   } = useEditorStore();
 
   const bpm = project?.beatMap?.track0BPM ?? project?.beatMap?.bpm ?? '—';
+  const musicPos = musicLoaded && modPlayer ? `P${modPlayer.position}:R${modPlayer.row}` : null;
   const timecode = formatTimecode(playheadSeconds);
 
   return (
@@ -40,6 +43,8 @@ export default function Toolbar() {
       <div className="text-accent-cyan tabular-nums w-28">{timecode}</div>
 
       <div className="text-text-secondary">BPM: {bpm}</div>
+      {musicPos && <div className="text-accent-green text-xs tabular-nums">{musicPos}</div>}
+      {!musicLoaded && <div className="text-text-dim text-xs">S3M loading...</div>}
 
       <button
         onClick={toggleSnap}
