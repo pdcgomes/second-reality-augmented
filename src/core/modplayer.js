@@ -4,7 +4,8 @@
  * Manages two S3M songs (MUSIC0 + MUSIC1) matching the original demo's
  * dual-music architecture. Exposes position/row for sync point queries.
  *
- * AudioContext.currentTime is the master clock.
+ * Delegates audio setup entirely to the vendored library's own
+ * createContext() and play() methods to avoid subtle mismatches.
  */
 
 import { Modplayer as RawModplayer } from '../../lib/webaudio-mod-player/index.js';
@@ -15,12 +16,12 @@ export class ModPlayer {
   constructor() {
     this._players = [null, null];
     this._activeIndex = -1;
-    this._audioCtx = null;
     this._loaded = false;
   }
 
   get audioContext() {
-    return this._audioCtx;
+    const p = this._activePlayer;
+    return p ? p.context : null;
   }
 
   get loaded() {
@@ -82,39 +83,18 @@ export class ModPlayer {
   }
 
   play(musicIndex = 0, position = 0, row = 0) {
-    this._pauseAll();
+    this._stopAll();
     this._activeIndex = musicIndex;
     const mp = this._players[musicIndex];
     if (!mp) return;
 
-    if (!mp.context) {
-      if (!this._audioCtx) {
-        this._audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      }
-      mp.context = this._audioCtx;
-      mp.samplerate = this._audioCtx.sampleRate;
-      mp.bufferlen = mp.samplerate > 44100 ? 2048 : 1024;
-      mp.mixerNode = this._audioCtx.createScriptProcessor(mp.bufferlen, 1, 2);
-      mp.mixerNode.module = mp;
-      mp.mixerNode.onaudioprocess = RawModplayer.prototype.mix;
-      mp.mixerNode.connect(this._audioCtx.destination);
-    }
+    // Use the library's own play() which handles createContext() internally
+    mp.play();
 
-    if (this._audioCtx.state === 'suspended') {
-      this._audioCtx.resume().catch(() => {});
+    // Resume AudioContext if browser autoplay policy suspended it
+    if (mp.context && mp.context.state === 'suspended') {
+      mp.context.resume().catch(() => {});
     }
-
-    mp.player.samplerate = mp.samplerate;
-    mp.player.speedGain = mp.speedGain;
-    mp.endofsong = false;
-    mp.player.endofsong = false;
-    mp.player.paused = false;
-    mp.player.initialize();
-    mp.player.flags = 1 + 2;
-    mp.player.playing = true;
-    mp.playing = true;
-    mp.chvu = new Float32Array(mp.player.channels);
-    mp.player.delayfirst = mp.bufferstodelay;
 
     if (position > 0 || row > 0) {
       mp.seek(position, row);
@@ -122,13 +102,15 @@ export class ModPlayer {
   }
 
   changeMusic(musicIndex, position = 0, row = 0) {
-    this._pauseAll();
+    this._stopAll();
     this.play(musicIndex, position, row);
   }
 
   pause() {
     const p = this._activePlayer;
-    if (p && p.player && !p.player.paused) p.player.paused = true;
+    if (p && p.player && !p.player.paused) {
+      p.player.paused = true;
+    }
   }
 
   resume() {
@@ -138,13 +120,13 @@ export class ModPlayer {
     p.player.paused = false;
     p.playing = true;
 
-    if (this._audioCtx && this._audioCtx.state === 'suspended') {
-      this._audioCtx.resume().catch(() => {});
+    if (p.context && p.context.state === 'suspended') {
+      p.context.resume().catch(() => {});
     }
   }
 
   stop() {
-    this._pauseAll();
+    this._stopAll();
     this._activeIndex = -1;
   }
 
@@ -153,21 +135,20 @@ export class ModPlayer {
     if (p) p.seek(position, row);
   }
 
-  _pauseAll() {
+  _stopAll() {
     for (const mp of this._players) {
-      if (mp && mp.player) {
-        mp.player.paused = true;
+      if (mp && mp.playing) {
+        mp.stop();
       }
     }
   }
 
   destroy() {
+    this._stopAll();
     for (const mp of this._players) {
-      if (mp) mp.stop();
-    }
-    if (this._audioCtx) {
-      this._audioCtx.close();
-      this._audioCtx = null;
+      if (mp && mp.context) {
+        mp.context.close().catch(() => {});
+      }
     }
     this._players = [null, null];
     this._activeIndex = -1;
