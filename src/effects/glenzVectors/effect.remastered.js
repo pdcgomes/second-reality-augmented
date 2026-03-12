@@ -151,16 +151,21 @@ precision highp float;
 in vec2 vUV;
 out vec4 fragColor;
 uniform sampler2D uScene;
-uniform sampler2D uBloom;
-uniform float uBloomStrength;
+uniform sampler2D uBloomTight;
+uniform sampler2D uBloomWide;
+uniform float uBloomTightStr;
+uniform float uBloomWideStr;
 uniform float uBeat;
 
 void main() {
   vec3 scene = texture(uScene, vUV).rgb;
-  vec3 bloom = texture(uBloom, vUV).rgb;
+  vec3 tight = texture(uBloomTight, vUV).rgb;
+  vec3 wide  = texture(uBloomWide, vUV).rgb;
+
   float beatPulse = pow(1.0 - uBeat, 6.0);
-  float strength = uBloomStrength + beatPulse * 0.15;
-  vec3 color = scene + bloom * strength;
+  vec3 color = scene
+    + tight * (uBloomTightStr + beatPulse * 0.25)
+    + wide  * (uBloomWideStr  + beatPulse * 0.15);
 
   float scanline = 0.95 + 0.05 * sin(gl_FragCoord.y * 3.14159);
   color *= scanline;
@@ -401,7 +406,7 @@ let meshProg, groundProg, bloomExtractProg, blurProg, compositeProg;
 let quad;
 let g1Mesh, g2Mesh, g1VAO, g2VAO;
 let checkerTex;
-let msaaFBO, sceneFBO, bloomFBO1, bloomFBO2;
+let msaaFBO, sceneFBO, bloomFBO1, bloomFBO2, bloomWideFBO1, bloomWideFBO2;
 let fboW = 0, fboH = 0, msaaSamples = 4;
 let checkerPal8;
 
@@ -451,8 +456,10 @@ export default {
 
     cu = {
       scene: gl.getUniformLocation(compositeProg, 'uScene'),
-      bloom: gl.getUniformLocation(compositeProg, 'uBloom'),
-      bloomStrength: gl.getUniformLocation(compositeProg, 'uBloomStrength'),
+      bloomTight: gl.getUniformLocation(compositeProg, 'uBloomTight'),
+      bloomWide: gl.getUniformLocation(compositeProg, 'uBloomWide'),
+      bloomTightStr: gl.getUniformLocation(compositeProg, 'uBloomTightStr'),
+      bloomWideStr: gl.getUniformLocation(compositeProg, 'uBloomWideStr'),
       beat: gl.getUniformLocation(compositeProg, 'uBeat'),
     };
 
@@ -479,10 +486,14 @@ export default {
       if (sceneFBO) { gl.deleteFramebuffer(sceneFBO.fb); gl.deleteTexture(sceneFBO.tex); }
       if (bloomFBO1) { gl.deleteFramebuffer(bloomFBO1.fb); gl.deleteTexture(bloomFBO1.tex); }
       if (bloomFBO2) { gl.deleteFramebuffer(bloomFBO2.fb); gl.deleteTexture(bloomFBO2.tex); }
+      if (bloomWideFBO1) { gl.deleteFramebuffer(bloomWideFBO1.fb); gl.deleteTexture(bloomWideFBO1.tex); }
+      if (bloomWideFBO2) { gl.deleteFramebuffer(bloomWideFBO2.fb); gl.deleteTexture(bloomWideFBO2.tex); }
       msaaFBO = createMSAAFBO(gl, sw, sh, msaaSamples);
       sceneFBO = createFBO(gl, sw, sh);
       bloomFBO1 = createFBO(gl, sw >> 1, sh >> 1);
       bloomFBO2 = createFBO(gl, sw >> 1, sh >> 1);
+      bloomWideFBO1 = createFBO(gl, sw >> 2, sh >> 2);
+      bloomWideFBO2 = createFBO(gl, sw >> 2, sh >> 2);
       fboW = sw;
       fboH = sh;
     }
@@ -627,35 +638,59 @@ export default {
     gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, sceneFBO.fb);
     gl.blitFramebuffer(0, 0, sw, sh, 0, 0, sw, sh, gl.COLOR_BUFFER_BIT, gl.NEAREST);
 
-    // ── Bloom pipeline ───────────────────────────────────────────
+    // ── Bloom pipeline (dual-tier) ─────────────────────────────────
 
     const hw = sw >> 1, hh = sh >> 1;
+    const qw = sw >> 2, qh = sh >> 2;
 
-    // Extract bright pixels
+    // Extract bright pixels → half-res
     gl.bindFramebuffer(gl.FRAMEBUFFER, bloomFBO1.fb);
     gl.viewport(0, 0, hw, hh);
     gl.useProgram(bloomExtractProg);
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, sceneFBO.tex);
     gl.uniform1i(beu.scene, 0);
-    gl.uniform1f(beu.threshold, 0.5);
+    gl.uniform1f(beu.threshold, 0.2);
     quad.draw();
 
-    // Horizontal blur
-    gl.bindFramebuffer(gl.FRAMEBUFFER, bloomFBO2.fb);
+    // Tight bloom: 3 iterations of H+V blur at half-res
     gl.useProgram(blurProg);
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, bloomFBO1.tex);
     gl.uniform1i(blu.tex, 0);
-    gl.uniform2f(blu.direction, 1.0, 0.0);
     gl.uniform2f(blu.resolution, hw, hh);
+    for (let i = 0; i < 3; i++) {
+      gl.bindFramebuffer(gl.FRAMEBUFFER, bloomFBO2.fb);
+      gl.bindTexture(gl.TEXTURE_2D, bloomFBO1.tex);
+      gl.uniform2f(blu.direction, 1.0, 0.0);
+      quad.draw();
+      gl.bindFramebuffer(gl.FRAMEBUFFER, bloomFBO1.fb);
+      gl.bindTexture(gl.TEXTURE_2D, bloomFBO2.tex);
+      gl.uniform2f(blu.direction, 0.0, 1.0);
+      quad.draw();
+    }
+
+    // Downsample tight bloom → quarter-res for wide bloom
+    gl.bindFramebuffer(gl.FRAMEBUFFER, bloomWideFBO1.fb);
+    gl.viewport(0, 0, qw, qh);
+    gl.bindTexture(gl.TEXTURE_2D, bloomFBO1.tex);
+    gl.useProgram(bloomExtractProg);
+    gl.uniform1i(beu.scene, 0);
+    gl.uniform1f(beu.threshold, 0.0);
     quad.draw();
 
-    // Vertical blur
-    gl.bindFramebuffer(gl.FRAMEBUFFER, bloomFBO1.fb);
-    gl.bindTexture(gl.TEXTURE_2D, bloomFBO2.tex);
-    gl.uniform2f(blu.direction, 0.0, 1.0);
-    quad.draw();
+    // Wide bloom: 3 iterations of H+V blur at quarter-res
+    gl.useProgram(blurProg);
+    gl.uniform1i(blu.tex, 0);
+    gl.uniform2f(blu.resolution, qw, qh);
+    for (let i = 0; i < 3; i++) {
+      gl.bindFramebuffer(gl.FRAMEBUFFER, bloomWideFBO2.fb);
+      gl.bindTexture(gl.TEXTURE_2D, bloomWideFBO1.tex);
+      gl.uniform2f(blu.direction, 1.0, 0.0);
+      quad.draw();
+      gl.bindFramebuffer(gl.FRAMEBUFFER, bloomWideFBO1.fb);
+      gl.bindTexture(gl.TEXTURE_2D, bloomWideFBO2.tex);
+      gl.uniform2f(blu.direction, 0.0, 1.0);
+      quad.draw();
+    }
 
     // ── Composite to screen ──────────────────────────────────────
 
@@ -667,8 +702,12 @@ export default {
     gl.uniform1i(cu.scene, 0);
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, bloomFBO1.tex);
-    gl.uniform1i(cu.bloom, 1);
-    gl.uniform1f(cu.bloomStrength, 0.35);
+    gl.uniform1i(cu.bloomTight, 1);
+    gl.activeTexture(gl.TEXTURE2);
+    gl.bindTexture(gl.TEXTURE_2D, bloomWideFBO1.tex);
+    gl.uniform1i(cu.bloomWide, 2);
+    gl.uniform1f(cu.bloomTightStr, 0.5);
+    gl.uniform1f(cu.bloomWideStr, 0.35);
     gl.uniform1f(cu.beat, beat);
     quad.draw();
   },
@@ -695,12 +734,14 @@ export default {
     if (sceneFBO) { gl.deleteFramebuffer(sceneFBO.fb); gl.deleteTexture(sceneFBO.tex); }
     if (bloomFBO1) { gl.deleteFramebuffer(bloomFBO1.fb); gl.deleteTexture(bloomFBO1.tex); }
     if (bloomFBO2) { gl.deleteFramebuffer(bloomFBO2.fb); gl.deleteTexture(bloomFBO2.tex); }
+    if (bloomWideFBO1) { gl.deleteFramebuffer(bloomWideFBO1.fb); gl.deleteTexture(bloomWideFBO1.tex); }
+    if (bloomWideFBO2) { gl.deleteFramebuffer(bloomWideFBO2.fb); gl.deleteTexture(bloomWideFBO2.tex); }
     meshProg = groundProg = bloomExtractProg = blurProg = compositeProg = null;
     quad = null;
     g1VAO = g2VAO = null;
     g1Mesh = g2Mesh = null;
     checkerTex = null;
-    msaaFBO = sceneFBO = bloomFBO1 = bloomFBO2 = null;
+    msaaFBO = sceneFBO = bloomFBO1 = bloomFBO2 = bloomWideFBO1 = bloomWideFBO2 = null;
     fboW = fboH = 0;
     checkerPal8 = null;
   },
