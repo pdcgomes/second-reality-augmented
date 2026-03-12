@@ -2,7 +2,7 @@ import { useRef, useEffect, useCallback, useState } from 'react';
 import { useEditorStore } from '../store/editorStore';
 
 const LABEL_WIDTH = 56;
-const ROW_LABELS = ['CLIPS', 'AUDIO', 'BEATS', 'CUES'];
+const ROW_LABELS = ['PARTS', 'AUDIO', 'BEATS', 'CUES'];
 
 const CLIP_COLORS = [
   '#4a7cff', '#8855ff', '#00ccaa', '#ff6b4a', '#ffaa00',
