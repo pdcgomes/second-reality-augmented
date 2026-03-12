@@ -69,7 +69,7 @@
 The following maps to the actual Second Reality demo sequence. Each effect has a "classic" variant (faithful 320×256) and an optional "remastered" variant (4K enhanced).
 
 ### Part 1 — ALKU (Opening Credits)
-- [ ] `alku/effect.js` — scrolling landscape with credits text overlay (WILDFIRE)
+- [x] `alku/effect.js` — scrolling landscape with credits text overlay (WILDFIRE)
 - [ ] `alku/effect.remastered.js`
 
 ### Part 2 — U2A (3D Ships Flyover)
