@@ -82,18 +82,12 @@ export default function Preview() {
         ref={canvasRef}
         width={INTERNAL_WIDTH}
         height={INTERNAL_HEIGHT}
+        className={isFill ? '' : 'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 border border-border'}
         style={{
           imageRendering: 'pixelated',
           ...(isFill
             ? { width: '100%', height: '100%', objectFit: 'contain' }
-            : {
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                width: INTERNAL_WIDTH * 3,
-                height: INTERNAL_HEIGHT * 3,
-              }),
+            : { width: INTERNAL_WIDTH, height: INTERNAL_HEIGHT }),
         }}
       />
       {/* Overlay controls */}
