@@ -13,5 +13,8 @@ second-reality-demo.html
 *.swp
 *.swo
 
+# External reference sources (JS port extracts)
+reference/
+
 # OS
 Thumbs.db
