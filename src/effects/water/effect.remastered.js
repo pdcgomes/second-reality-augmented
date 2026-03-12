@@ -35,7 +35,6 @@ uniform float uScrollOffset;
 uniform vec2 uResolution;
 uniform sampler2D uSwordTex;
 
-// Scene params
 uniform float uBobAmplitude;
 uniform float uBobSpeed;
 uniform float uRippleFreq;
@@ -49,14 +48,21 @@ uniform float uSwordBrightness;
 uniform float uBeatScale;
 uniform float uCameraHeight;
 uniform float uCameraAngle;
+uniform float uSwordX;
+uniform float uSwordY;
+uniform float uSwordZ;
+uniform float uSwordPitch;
+uniform float uSwordYaw;
+uniform float uSwordRoll;
+uniform float uSwordTilt;
+uniform float uSwordWidth;
+uniform float uSwordHeight;
 
 #define MAX_STEPS 80
 #define MAX_DIST 50.0
 #define SURF_DIST 0.002
 #define PI 3.14159265
 
-// Sphere definitions: xyz = position, w = radius
-// Derived from POS table analysis of original scene
 const vec4 SPHERE_BASE[3] = vec4[3](
   vec4(-1.8,  0.85, -0.5, 1.3),
   vec4( 0.0,  0.55,  0.8, 0.45),
@@ -65,8 +71,17 @@ const vec4 SPHERE_BASE[3] = vec4[3](
 
 vec3 spherePos[3];
 float beatPulse;
+float swordBottom;
 
-void computeSpherePositions() {
+// Sword plane frame: origin + two tangent axes + normal
+vec3 swordOrigin;
+vec3 swordN;
+vec3 swordU;
+vec3 swordV;
+float swordHalfW;
+float swordH;
+
+void computeState() {
   beatPulse = pow(1.0 - uBeat, 6.0);
   float bobScale = 1.0 + beatPulse * uBeatScale;
   for (int i = 0; i < 3; i++) {
@@ -78,6 +93,50 @@ void computeSpherePositions() {
     base.y += (bob - 0.5) * uBobAmplitude * bobScale;
     spherePos[i] = base;
   }
+
+  swordHalfW = uSwordWidth * 0.5;
+  swordH = uSwordHeight;
+
+  // Sword rises: bottom edge moves upward over the first ~4 seconds
+  float rise = clamp(uTime * 0.25, 0.0, 1.0);
+  rise = rise * rise * (3.0 - 2.0 * rise);
+  swordBottom = mix(-swordH * 0.15, -swordH * 0.8, rise);
+
+  // Build oriented sword plane from pitch/yaw.
+  // Pitch tilts the top toward the camera (positive = lean forward).
+  // Yaw rotates around Y axis.
+  float pitch = uSwordPitch * PI / 180.0;
+  float yaw   = uSwordYaw   * PI / 180.0;
+  float cp = cos(pitch), sp = sin(pitch);
+  float cy = cos(yaw),   sy = sin(yaw);
+
+  // Base normal (0, sin(pitch), -cos(pitch)) → points up-and-toward-camera
+  vec3 n = vec3(0.0, sp, -cp);
+  swordN = vec3(n.x * cy + n.z * sy, n.y, -n.x * sy + n.z * cy);
+
+  // Horizontal tangent
+  vec3 baseU = vec3(cy, 0.0, -sy);
+
+  // Vertical tangent (up direction on the tilted plane)
+  vec3 bv = vec3(0.0, cp, sp);
+  vec3 baseV = vec3(bv.x * cy + bv.z * sy, bv.y, -bv.x * sy + bv.z * cy);
+
+  // Roll: rotate U/V around the plane normal so the sword image can spin.
+  // At roll=0 the wide axis is horizontal; at roll=90 it points upward.
+  float roll = uSwordRoll * PI / 180.0;
+  float cro = cos(roll), sro = sin(roll);
+  swordU = baseU * cro + baseV * sro;
+  swordV = -baseU * sro + baseV * cro;
+
+  // Tilt: rotate V and N around the sword's own U (long) axis
+  float tilt = uSwordTilt * PI / 180.0;
+  float ct = cos(tilt), st = sin(tilt);
+  vec3 tiltedV = swordV * ct + swordN * st;
+  vec3 tiltedN = -swordV * st + swordN * ct;
+  swordV = tiltedV;
+  swordN = tiltedN;
+
+  swordOrigin = vec3(uSwordX, uSwordY, uSwordZ);
 }
 
 float rippleHeight(vec2 xz) {
@@ -89,6 +148,8 @@ float rippleHeight(vec2 xz) {
                + 0.5 * sin(dist * uRippleFreq * 1.7 - uTime * uRippleSpeed * 1.3 + float(i) * 2.7);
     h += wave * uRippleAmp * proximity / (1.0 + dist * 1.5);
   }
+  float swordDist = abs(xz.y - swordOrigin.z);
+  h += sin(swordDist * 12.0 - uTime * uRippleSpeed * 1.5) * uRippleAmp * 0.4 / (1.0 + swordDist * 3.0);
   h += sin(xz.x * 3.0 + uTime * 0.4) * sin(xz.y * 2.5 - uTime * 0.3) * uRippleAmp * 0.15;
   return h;
 }
@@ -117,15 +178,6 @@ int hitObject(vec3 p) {
   return id;
 }
 
-vec3 calcNormal(vec3 p) {
-  vec2 e = vec2(0.001, 0.0);
-  return normalize(vec3(
-    sceneSDF(p + e.xyy) - sceneSDF(p - e.xyy),
-    sceneSDF(p + e.yxy) - sceneSDF(p - e.yxy),
-    sceneSDF(p + e.yyx) - sceneSDF(p - e.yyx)
-  ));
-}
-
 vec3 waterNormal(vec3 p) {
   vec2 e = vec2(0.002, 0.0);
   float h  = rippleHeight(p.xz);
@@ -150,28 +202,62 @@ float march(vec3 ro, vec3 rd, out int objId) {
   return -1.0;
 }
 
-vec3 sampleSword(vec3 reflDir) {
-  float u = reflDir.x * 0.35 + 0.5;
-  float v = reflDir.y * 0.8 + 0.5;
-  u = u - uScrollOffset / float(${FONT_W});
-  v = clamp(v, 0.0, 1.0);
-  if (u < 0.0 || u > 1.0) return vec3(0.0);
-  vec4 s = texture(uSwordTex, vec2(u, 1.0 - v));
+// Analytical ray vs oriented plane for the sword billboard.
+// The plane is defined by swordOrigin, swordN, swordU, swordV (computed in computeState).
+// Dark/black pixels are treated as transparent.
+float hitSword(vec3 ro, vec3 rd, out vec3 outCol) {
+  outCol = vec3(0.0);
+  float denom = dot(rd, swordN);
+  if (abs(denom) < 0.0001) return -1.0;
+  float t = dot(swordOrigin - ro, swordN) / denom;
+  if (t <= 0.001) return -1.0;
+  vec3 p = ro + rd * t;
+  vec3 rel = p - swordOrigin;
+  float lu = dot(rel, swordU);
+  float lv = dot(rel, swordV);
+  if (abs(lu) > swordHalfW) return -1.0;
+  if (lv < swordBottom || lv > swordBottom + swordH) return -1.0;
+
+  float scrollNorm = uScrollOffset / float(${FONT_W});
+  float u = (lu + swordHalfW) / (swordHalfW * 2.0);
+  u = fract(u * 0.8 - scrollNorm);
+  float v = (lv - swordBottom) / swordH;
+  vec4 s = texture(uSwordTex, vec2(1.0 - u, v));
   float lum = dot(s.rgb, vec3(0.299, 0.587, 0.114));
-  if (lum < 0.02) return vec3(0.0);
-  return s.rgb * uSwordBrightness;
+  if (lum < 0.015) return -1.0;
+  outCol = s.rgb * uSwordBrightness;
+  return t;
 }
 
 vec3 lighting(vec3 p, vec3 N, vec3 V, vec3 baseColor, float specMul) {
-  vec3 L = normalize(vec3(0.4, 0.8, -0.3));
-  float diff = max(dot(N, L), 0.0);
-  vec3 H = normalize(L + V);
+  vec3 L1 = normalize(vec3(0.4, 0.8, -0.3));
+  vec3 L2 = normalize(vec3(-0.6, 0.3, 0.5));
+  float diff1 = max(dot(N, L1), 0.0);
+  float diff2 = max(dot(N, L2), 0.0) * 0.25;
+  vec3 H = normalize(L1 + V);
+
+  // Tight primary specular (subtle, small hotspot)
   float specPow = uSpecularPower + beatPulse * 32.0;
-  float spec = pow(max(dot(N, H), 0.0), specPow) * specMul;
-  vec3 ambient = baseColor * 0.08;
-  vec3 diffuse = baseColor * diff * 0.4;
-  vec3 specular = vec3(0.9, 0.92, 1.0) * spec;
-  return ambient + diffuse + specular;
+  float spec = pow(max(dot(N, H), 0.0), specPow) * specMul * 0.6;
+
+  // Broad secondary glow: wide, soft highlight with a warm-blue tint
+  float glow = pow(max(dot(N, H), 0.0), specPow * 0.08) * specMul * 0.35;
+  vec3 glowColor = vec3(0.25, 0.35, 0.8) * glow;
+
+  float rim = pow(1.0 - max(dot(N, V), 0.0), 4.0) * 0.25;
+  vec3 ambient = baseColor * 0.15;
+  vec3 diffuse = baseColor * (diff1 * 0.6 + diff2 * 0.2);
+  vec3 specular = vec3(0.7, 0.75, 1.0) * spec;
+  vec3 rimColor = vec3(0.1, 0.12, 0.3) * rim;
+  return ambient + diffuse + specular + glowColor + rimColor;
+}
+
+// Check reflected ray for sword hit, return sword color or fallback
+vec3 reflectSword(vec3 ro, vec3 rd) {
+  vec3 sc;
+  float st = hitSword(ro, rd, sc);
+  if (st > 0.0) return sc;
+  return vec3(0.0);
 }
 
 vec3 shade(vec3 ro, vec3 rd, float t, int objId) {
@@ -183,54 +269,71 @@ vec3 shade(vec3 ro, vec3 rd, float t, int objId) {
     vec3 N = normalize(p - spherePos[si]);
     vec3 R = reflect(rd, N);
     float fresnel = pow(1.0 - max(dot(N, V), 0.0), uFresnelExp);
+    fresnel = clamp(fresnel, 0.15, 1.0);
 
-    vec3 chromeColor = vec3(0.12, 0.14, 0.35);
-    vec3 lit = lighting(p, N, V, chromeColor, 2.0);
+    vec3 chromeColor = vec3(0.06, 0.08, 0.35);
+    vec3 lit = lighting(p, N, V, chromeColor, 2.5);
 
-    vec3 envColor = sampleSword(R);
-
+    // Reflected ray: check sword first, then scene
+    vec3 envColor = vec3(0.0);
+    vec3 swordRef;
+    float swordRT = hitSword(p + N * 0.01, R, swordRef);
     int rId;
     float rt = march(p + N * 0.01, R, rId);
-    if (rt > 0.0 && rId == 0) {
+
+    if (swordRT > 0.0 && (rt < 0.0 || swordRT < rt)) {
+      envColor = swordRef;
+    } else if (rt > 0.0 && rId == 0) {
       vec3 rp = p + N * 0.01 + R * rt;
       vec3 wN = waterNormal(rp);
-      vec3 waterCol = vec3(0.02, 0.04, 0.12) * (1.0 - uWaterDarkness * 0.5);
-      envColor += waterCol * 0.3;
+      vec3 waterCol = vec3(0.02, 0.03, 0.12) * (1.0 - uWaterDarkness * 0.5);
+      vec3 wR = reflect(R, wN);
+      envColor = waterCol + reflectSword(rp + wN * 0.01, wR) * 0.5;
+    } else if (rt > 0.0 && rId >= 1) {
+      int si2 = rId - 1;
+      vec3 rp = p + N * 0.01 + R * rt;
+      vec3 sN = normalize(rp - spherePos[si2]);
+      envColor = lighting(rp, sN, -R, vec3(0.06, 0.08, 0.35), 1.5);
     }
 
     vec3 reflection = envColor * uChromeReflect;
     return mix(lit, lit + reflection, fresnel);
   }
 
+  // Water shading
   vec3 N = waterNormal(p);
   float fresnel = pow(1.0 - max(dot(N, V), 0.0), uFresnelExp * 0.7);
-  fresnel = clamp(fresnel, 0.05, 1.0);
+  fresnel = clamp(fresnel, 0.08, 1.0);
 
-  vec3 waterBase = vec3(0.01, 0.02, 0.08) * (1.0 - uWaterDarkness * 0.5);
-  vec3 lit = lighting(p, N, V, waterBase, 1.0);
+  vec3 waterBase = vec3(0.015, 0.025, 0.1) * (1.0 - uWaterDarkness * 0.5);
+  vec3 lit = lighting(p, N, V, waterBase, 1.2);
 
   vec3 R = reflect(rd, N);
   vec3 reflColor = vec3(0.0);
 
+  // Reflected ray from water: check sword first, then scene
+  vec3 swordRef;
+  float swordRT = hitSword(p + N * 0.01, R, swordRef);
   int rId;
   float rt = march(p + N * 0.01, R, rId);
-  if (rt > 0.0 && rId >= 1) {
+
+  if (swordRT > 0.0 && (rt < 0.0 || swordRT < rt)) {
+    reflColor = swordRef;
+  } else if (rt > 0.0 && rId >= 1) {
     int si = rId - 1;
     vec3 rp = p + N * 0.01 + R * rt;
     vec3 sN = normalize(rp - spherePos[si]);
     vec3 sR = reflect(R, sN);
-    vec3 sphereChrome = vec3(0.15, 0.18, 0.4);
-    reflColor = lighting(rp, sN, -R, sphereChrome, 1.5);
-    reflColor += sampleSword(sR) * uChromeReflect * 0.6;
-  } else {
-    reflColor = sampleSword(R) * 0.4;
+    vec3 sphereChrome = vec3(0.06, 0.08, 0.35);
+    reflColor = lighting(rp, sN, -R, sphereChrome, 2.0);
+    reflColor += reflectSword(rp + sN * 0.01, sR) * uChromeReflect * 0.5;
   }
 
-  return mix(lit, reflColor, fresnel * 0.85);
+  return mix(lit, lit + reflColor, fresnel);
 }
 
 void main() {
-  computeSpherePositions();
+  computeState();
 
   vec2 uv = (gl_FragCoord.xy - uResolution * 0.5) / uResolution.y;
 
@@ -248,14 +351,20 @@ void main() {
 
   vec3 rd = normalize(fwd2 + right * uv.x + up2 * uv.y);
 
+  // Check sword billboard (analytical) vs scene (raymarched)
+  vec3 swordCol;
+  float swordT = hitSword(ro, rd, swordCol);
+
   int objId;
-  float t = march(ro, rd, objId);
+  float sceneT = march(ro, rd, objId);
 
   vec3 col;
-  if (t > 0.0) {
-    col = shade(ro, rd, t, objId);
+  if (swordT > 0.0 && (sceneT < 0.0 || swordT < sceneT)) {
+    col = swordCol;
+  } else if (sceneT > 0.0) {
+    col = shade(ro, rd, sceneT, objId);
   } else {
-    col = vec3(0.005, 0.008, 0.025);
+    col = vec3(0.005, 0.008, 0.03);
   }
 
   col *= uFade;
@@ -401,8 +510,17 @@ export default {
     { key: 'waterDarkness', label: 'Water Darkness', type: 'float', min: 0, max: 1, step: 0.01, default: 0.5 },
     { key: 'specularPower', label: 'Specular Power', type: 'float', min: 8, max: 512, step: 1, default: 128 },
     { key: 'fresnelExp', label: 'Fresnel Exponent', type: 'float', min: 0.5, max: 10, step: 0.1, default: 3.5 },
-    { key: 'chromeReflect', label: 'Chrome Reflectivity', type: 'float', min: 0, max: 3, step: 0.05, default: 1.5 },
-    { key: 'swordBrightness', label: 'Sword Brightness', type: 'float', min: 0.2, max: 4, step: 0.05, default: 1.8 },
+    { key: 'chromeReflect', label: 'Chrome Reflectivity', type: 'float', min: 0, max: 4, step: 0.05, default: 2.0 },
+    { key: 'swordBrightness', label: 'Sword Brightness', type: 'float', min: 0.2, max: 6, step: 0.05, default: 2.0 },
+    { key: 'swordX', label: 'Sword X', type: 'float', min: -4, max: 4, step: 0.1, default: -0.1 },
+    { key: 'swordY', label: 'Sword Y', type: 'float', min: -1, max: 3, step: 0.05, default: 0.20 },
+    { key: 'swordZ', label: 'Sword Z', type: 'float', min: -3, max: 3, step: 0.1, default: -1.6 },
+    { key: 'swordPitch', label: 'Sword Pitch', type: 'float', min: -90, max: 90, step: 1, default: -7 },
+    { key: 'swordYaw', label: 'Sword Yaw', type: 'float', min: -45, max: 45, step: 1, default: 0 },
+    { key: 'swordRoll', label: 'Sword Roll', type: 'float', min: -180, max: 180, step: 1, default: 63 },
+    { key: 'swordTilt', label: 'Sword Tilt', type: 'float', min: -90, max: 90, step: 1, default: -48 },
+    { key: 'swordWidth', label: 'Sword Width', type: 'float', min: 2, max: 16, step: 0.5, default: 10.0 },
+    { key: 'swordHeight', label: 'Sword Height', type: 'float', min: 0.2, max: 3, step: 0.05, default: 0.7 },
     { key: 'cameraHeight', label: 'Camera Height', type: 'float', min: 0.5, max: 5.0, step: 0.1, default: 2.2 },
     { key: 'cameraAngle', label: 'Camera Angle', type: 'float', min: -30, max: 30, step: 0.5, default: 5.0 },
     { key: 'beatScale', label: 'Beat Bob Scale', type: 'float', min: 0, max: 1, step: 0.01, default: 0.15 },
@@ -438,6 +556,15 @@ export default {
       fresnelExp: gl.getUniformLocation(sceneProg, 'uFresnelExp'),
       chromeReflect: gl.getUniformLocation(sceneProg, 'uChromeReflect'),
       swordBrightness: gl.getUniformLocation(sceneProg, 'uSwordBrightness'),
+      swordX: gl.getUniformLocation(sceneProg, 'uSwordX'),
+      swordY: gl.getUniformLocation(sceneProg, 'uSwordY'),
+      swordZ: gl.getUniformLocation(sceneProg, 'uSwordZ'),
+      swordPitch: gl.getUniformLocation(sceneProg, 'uSwordPitch'),
+      swordYaw: gl.getUniformLocation(sceneProg, 'uSwordYaw'),
+      swordRoll: gl.getUniformLocation(sceneProg, 'uSwordRoll'),
+      swordTilt: gl.getUniformLocation(sceneProg, 'uSwordTilt'),
+      swordWidth: gl.getUniformLocation(sceneProg, 'uSwordWidth'),
+      swordHeight: gl.getUniformLocation(sceneProg, 'uSwordHeight'),
       beatScale: gl.getUniformLocation(sceneProg, 'uBeatScale'),
       cameraHeight: gl.getUniformLocation(sceneProg, 'uCameraHeight'),
       cameraAngle: gl.getUniformLocation(sceneProg, 'uCameraAngle'),
@@ -525,8 +652,17 @@ export default {
     gl.uniform1f(su.waterDarkness, p('waterDarkness', 0.5));
     gl.uniform1f(su.specularPower, p('specularPower', 128));
     gl.uniform1f(su.fresnelExp, p('fresnelExp', 3.5));
-    gl.uniform1f(su.chromeReflect, p('chromeReflect', 1.5));
-    gl.uniform1f(su.swordBrightness, p('swordBrightness', 1.8));
+    gl.uniform1f(su.chromeReflect, p('chromeReflect', 2.0));
+    gl.uniform1f(su.swordBrightness, p('swordBrightness', 2.0));
+    gl.uniform1f(su.swordX, p('swordX', -0.1));
+    gl.uniform1f(su.swordY, p('swordY', 0.20));
+    gl.uniform1f(su.swordZ, p('swordZ', -1.6));
+    gl.uniform1f(su.swordPitch, p('swordPitch', -7));
+    gl.uniform1f(su.swordYaw, p('swordYaw', 0));
+    gl.uniform1f(su.swordRoll, p('swordRoll', 63));
+    gl.uniform1f(su.swordTilt, p('swordTilt', -48));
+    gl.uniform1f(su.swordWidth, p('swordWidth', 10.0));
+    gl.uniform1f(su.swordHeight, p('swordHeight', 0.7));
     gl.uniform1f(su.beatScale, p('beatScale', 0.15));
     gl.uniform1f(su.cameraHeight, p('cameraHeight', 2.2));
     gl.uniform1f(su.cameraAngle, p('cameraAngle', 5.0));
