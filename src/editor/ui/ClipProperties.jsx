@@ -37,7 +37,7 @@ export default function ClipProperties() {
 
       {paramDefs.length > 0 && (
         <>
-          <div className="flex items-center justify-between mt-4 mb-2">
+          <div className="flex items-center gap-3 mt-4 mb-2">
             <h3 className="text-text-dim text-xs font-bold tracking-widest">EFFECT PARAMS</h3>
             <CopyParamsButton paramDefs={paramDefs} clipParams={clipParams} />
           </div>
@@ -129,10 +129,12 @@ function CopyParamsButton({ paramDefs, clipParams }) {
   return (
     <button
       onClick={handleCopy}
-      className="text-[10px] text-text-dim hover:text-accent-cyan px-1.5 py-0.5 border border-border rounded transition-colors"
+      className={`px-2 py-1 rounded text-xs transition-colors ${
+        copied ? 'bg-accent-purple/30 text-accent-purple' : 'bg-surface-600 text-text-dim'
+      }`}
       title="Copy all parameter values to clipboard"
     >
-      {copied ? 'Copied!' : 'Copy'}
+      {copied ? '✓ Copied' : '⎘ Copy'}
     </button>
   );
 }
