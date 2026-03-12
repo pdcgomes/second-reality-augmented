@@ -2,6 +2,7 @@ import { useRef, useEffect, useState } from 'react';
 import { useEditorStore } from '../store/editorStore';
 import { getEffect, listEffects } from '@effects/index.js';
 import { getBeatPosition } from '@core/beatmap.js';
+import { getTransitionProgress, renderTransitionOverlay, destroyTransitions } from '@core/transitions.js';
 
 const INTERNAL_WIDTH = 320;
 const INTERNAL_HEIGHT = 256;
@@ -58,6 +59,14 @@ export default function Preview() {
             const beat = getBeatPosition(playheadSeconds, project.beatMap);
             mod.render(gl, localT, beat, clip.params ?? {});
           }
+
+          const { inProgress, outProgress } = getTransitionProgress(clip, playheadSeconds);
+          if (clip.transitionIn && inProgress !== null) {
+            renderTransitionOverlay(gl, clip.transitionIn.type, inProgress);
+          }
+          if (clip.transitionOut && outProgress !== null) {
+            renderTransitionOverlay(gl, clip.transitionOut.type, outProgress);
+          }
         }
       }
 
@@ -71,6 +80,7 @@ export default function Preview() {
         if (mod.destroy) mod.destroy(gl);
       }
       effectsRef.current = {};
+      destroyTransitions(gl);
     };
   }, []);
 
