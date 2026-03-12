@@ -53,22 +53,28 @@ function fxStr(cmd, data) {
   return letter + data.toString(16).toUpperCase().padStart(2, '0');
 }
 
-function getPlayerData(modPlayer) {
-  if (!modPlayer || modPlayer.activeIndex < 0) return null;
-  const mp = modPlayer._players[modPlayer.activeIndex];
+function getPlayerData(modPlayer, overrides = null) {
+  const musicIdx = overrides ? overrides.music : modPlayer.activeIndex;
+  if (!modPlayer || musicIdx < 0) return null;
+  const mp = modPlayer._players[musicIdx];
   if (!mp || !mp.player) return null;
   const p = mp.player;
+
+  const position = overrides ? overrides.position : p.position;
+  const row = overrides ? overrides.row : p.row;
+  const patternNum = p.patterntable[position];
+
   return {
     player: p,
     wrapper: mp,
-    title: mp.title || `MUSIC${modPlayer.activeIndex}.S3M`,
-    position: p.position,
-    row: p.row,
+    title: mp.title || `MUSIC${musicIdx}.S3M`,
+    position,
+    row,
     speed: p.speed,
     bpm: p.bpm,
     channels: p.channels,
-    patternNum: p.patterntable[p.position],
-    patternData: p.pattern[p.patterntable[p.position]],
+    patternNum,
+    patternData: p.pattern[patternNum],
     chvu: mp.chvu,
     samples: p.sample,
   };
@@ -133,7 +139,8 @@ export default function Tracker() {
         return;
       }
 
-      const data = getPlayerData(modPlayer);
+      const posOverrides = !isPlaying ? timeToMusicPos(playheadSeconds) : null;
+      const data = getPlayerData(modPlayer, posOverrides);
       if (!data) {
         ctx.fillStyle = COL_TEXT;
         ctx.font = '11px monospace';
