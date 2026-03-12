@@ -3,8 +3,7 @@
   "note": "Handcrafted placeholder — will be replaced by Phase 0 extraction from MUSIC0.S3M + MUSIC1.S3M",
   "audioFiles": ["MUSIC0.S3M", "MUSIC1.S3M"],
   "clips": [
-    { "id": "c1",  "effect": "introScroll",    "start": 0.000,   "end": 14.400,  "params": {} },
-    { "id": "c2",  "effect": "copperBars",      "start": 14.400,  "end": 30.720,  "params": {} },
+    { "id": "c1",  "effect": "copperBars",      "start": 0.000,   "end": 30.720,  "params": {} },
     { "id": "c3",  "effect": "starfield",       "start": 30.720,  "end": 52.800,  "params": {} },
     { "id": "c4",  "effect": "scrolltext",      "start": 52.800,  "end": 72.000,  "params": {} },
     { "id": "c5",  "effect": "plasma",          "start": 72.000,  "end": 96.000,  "params": { "speed": 1.0, "palette": "amiga32" } },

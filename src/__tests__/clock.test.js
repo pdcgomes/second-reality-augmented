@@ -25,8 +25,10 @@ describe('Clock', () => {
     expect(clock.currentTime()).toBe(0);
   });
 
-  it('play/pause cycle preserves time without audioCtx', () => {
-    const clock = new Clock();
+  it('play/pause cycle preserves time', () => {
+    let acTime = 0;
+    const audioCtx = { currentTime: acTime, state: 'running', resume: () => {} };
+    const clock = new Clock(audioCtx);
     clock.seek(5);
     clock.play();
     expect(clock.playing).toBe(true);
@@ -37,7 +39,7 @@ describe('Clock', () => {
 
   it('computes time relative to AudioContext.currentTime', () => {
     let acTime = 100;
-    const audioCtx = { get currentTime() { return acTime; } };
+    const audioCtx = { get currentTime() { return acTime; }, state: 'running', resume: () => {} };
     const clock = new Clock(audioCtx);
 
     clock.seek(0);
@@ -52,7 +54,7 @@ describe('Clock', () => {
 
   it('seek while playing recalculates offset', () => {
     let acTime = 50;
-    const audioCtx = { get currentTime() { return acTime; } };
+    const audioCtx = { get currentTime() { return acTime; }, state: 'running', resume: () => {} };
     const clock = new Clock(audioCtx);
 
     clock.play();
@@ -68,7 +70,7 @@ describe('Clock', () => {
 
   it('pause freezes time', () => {
     let acTime = 0;
-    const audioCtx = { get currentTime() { return acTime; } };
+    const audioCtx = { get currentTime() { return acTime; }, state: 'running', resume: () => {} };
     const clock = new Clock(audioCtx);
 
     clock.play();

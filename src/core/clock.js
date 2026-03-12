@@ -2,6 +2,10 @@
  * Master clock — wraps AudioContext.currentTime.
  * Handles play, pause, and seek state.
  * All times are in seconds.
+ *
+ * If no AudioContext is provided, one is auto-created on first play().
+ * AudioContext.currentTime ticks even without audio output, so this
+ * gives us a hardware-accurate clock in all cases.
  */
 export class Clock {
   constructor(audioCtx = null) {
@@ -15,7 +19,10 @@ export class Clock {
     return this._playing;
   }
 
-  /** Current demo time in seconds. */
+  get audioContext() {
+    return this._audioCtx;
+  }
+
   currentTime() {
     if (!this._playing) return this._pausedAt;
     if (!this._audioCtx) return this._pausedAt;
@@ -24,8 +31,10 @@ export class Clock {
 
   play() {
     if (this._playing) return;
-    if (this._audioCtx) {
-      this._startOffset = this._audioCtx.currentTime - this._pausedAt;
+    this._ensureAudioContext();
+    this._startOffset = this._audioCtx.currentTime - this._pausedAt;
+    if (this._audioCtx.state === 'suspended') {
+      this._audioCtx.resume();
     }
     this._playing = true;
   }
@@ -44,6 +53,15 @@ export class Clock {
   }
 
   setAudioContext(audioCtx) {
+    const wasPlaying = this._playing;
+    if (wasPlaying) this.pause();
     this._audioCtx = audioCtx;
+    if (wasPlaying) this.play();
+  }
+
+  _ensureAudioContext() {
+    if (!this._audioCtx) {
+      this._audioCtx = new AudioContext();
+    }
   }
 }
