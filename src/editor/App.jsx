@@ -1,18 +1,78 @@
+import { useEffect } from 'react';
 import Toolbar from './ui/Toolbar';
 import Preview from './ui/Preview';
 import Timeline from './ui/Timeline';
 import EffectLibrary from './ui/EffectLibrary';
 import ClipProperties from './ui/ClipProperties';
+import { useEditorStore } from './store/editorStore';
 
 export default function App() {
+  const { setProject, togglePlayback, stopPlayback, nudgePlayhead, jumpToClip, isPlaying, clock } =
+    useEditorStore();
+
+  useEffect(() => {
+    fetch('/project.json')
+      .then((r) => r.json())
+      .then((data) => {
+        setProject(data);
+        console.log(`Project loaded: ${data.clips?.length} clips`);
+      })
+      .catch((e) => console.warn('Could not load project.json:', e.message));
+  }, [setProject]);
+
+  // Playback tick — update playheadSeconds from clock while playing
+  useEffect(() => {
+    if (!isPlaying) return;
+    let raf;
+    function tick() {
+      useEditorStore.setState({ playheadSeconds: clock.currentTime() });
+      raf = requestAnimationFrame(tick);
+    }
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [isPlaying, clock]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    function onKey(e) {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      switch (e.code) {
+        case 'Space':
+          e.preventDefault();
+          togglePlayback();
+          break;
+        case 'ArrowLeft':
+          e.preventDefault();
+          nudgePlayhead(e.shiftKey ? -4 : -1);
+          break;
+        case 'ArrowRight':
+          e.preventDefault();
+          nudgePlayhead(e.shiftKey ? 4 : 1);
+          break;
+        case 'BracketLeft':
+          e.preventDefault();
+          jumpToClip(-1);
+          break;
+        case 'BracketRight':
+          e.preventDefault();
+          jumpToClip(1);
+          break;
+        case 'Home':
+          e.preventDefault();
+          stopPlayback();
+          break;
+      }
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [togglePlayback, stopPlayback, nudgePlayhead, jumpToClip]);
+
   return (
     <div className="h-screen w-screen grid grid-rows-[auto_1fr_240px_1fr] grid-cols-[1fr_1fr] gap-px bg-border">
-      {/* Row 1: Toolbar — spans full width */}
       <div className="col-span-2">
         <Toolbar />
       </div>
 
-      {/* Row 2: Preview + Tracker placeholder */}
       <div className="bg-surface-900 flex items-center justify-center">
         <Preview />
       </div>
@@ -20,12 +80,10 @@ export default function App() {
         <span className="text-text-dim text-sm font-mono">TRACKER (Phase 1f)</span>
       </div>
 
-      {/* Row 3: Timeline — spans full width */}
       <div className="col-span-2">
         <Timeline />
       </div>
 
-      {/* Row 4: Effect Library + Clip Properties */}
       <div className="bg-surface-900 overflow-y-auto">
         <EffectLibrary />
       </div>

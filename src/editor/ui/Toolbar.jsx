@@ -1,48 +1,73 @@
 import { useEditorStore } from '../store/editorStore';
 
 export default function Toolbar() {
-  const { isPlaying, playheadSeconds, snapToBeat, variant, setPlaying, toggleSnap, setVariant } =
-    useEditorStore();
+  const {
+    isPlaying,
+    playheadSeconds,
+    snapToBeat,
+    variant,
+    project,
+    togglePlayback,
+    stopPlayback,
+    toggleSnap,
+    setVariant,
+    zoomLevel,
+    setZoom,
+  } = useEditorStore();
 
+  const bpm = project?.beatMap?.track0BPM ?? project?.beatMap?.bpm ?? '—';
   const timecode = formatTimecode(playheadSeconds);
 
   return (
     <div className="bg-surface-800 border-b border-border px-4 py-2 flex items-center gap-4 text-sm font-mono">
-      {/* Transport controls */}
       <div className="flex items-center gap-1">
         <button
-          onClick={() => setPlaying(!isPlaying)}
+          onClick={togglePlayback}
           className="px-3 py-1 rounded bg-surface-600 hover:bg-accent-blue/30 text-text-primary transition-colors"
+          title="Play/Pause (Space)"
         >
           {isPlaying ? '⏸' : '▶'}
         </button>
         <button
-          onClick={() => setPlaying(false)}
+          onClick={stopPlayback}
           className="px-3 py-1 rounded bg-surface-600 hover:bg-accent-blue/30 text-text-primary transition-colors"
+          title="Stop (Home)"
         >
           ⏹
         </button>
       </div>
 
-      {/* Timecode */}
-      <div className="text-accent-cyan tabular-nums">{timecode}</div>
+      <div className="text-accent-cyan tabular-nums w-28">{timecode}</div>
 
-      {/* BPM display */}
-      <div className="text-text-secondary">BPM: 125</div>
+      <div className="text-text-secondary">BPM: {bpm}</div>
 
-      {/* Beat snap */}
       <button
         onClick={toggleSnap}
         className={`px-2 py-1 rounded text-xs transition-colors ${
           snapToBeat ? 'bg-accent-purple/30 text-accent-purple' : 'bg-surface-600 text-text-dim'
         }`}
+        title="Beat Snap"
       >
         ♩ SNAP
       </button>
 
+      {/* Zoom slider */}
+      <div className="flex items-center gap-1 text-text-dim text-xs">
+        <span>ZOOM</span>
+        <input
+          type="range"
+          min="0.25"
+          max="16"
+          step="0.25"
+          value={zoomLevel}
+          onChange={(e) => setZoom(parseFloat(e.target.value))}
+          className="w-20 accent-accent-blue"
+        />
+        <span className="w-8 text-right">{zoomLevel.toFixed(1)}×</span>
+      </div>
+
       <div className="flex-1" />
 
-      {/* Variant toggle */}
       <div className="flex items-center gap-2">
         <button
           onClick={() => setVariant('classic')}
@@ -66,7 +91,6 @@ export default function Toolbar() {
         </button>
       </div>
 
-      {/* File ops */}
       <button className="px-3 py-1 rounded bg-surface-600 hover:bg-accent-blue/30 text-text-secondary text-xs transition-colors">
         SAVE
       </button>
