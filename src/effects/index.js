@@ -20,6 +20,10 @@ import plasmaClassic from './plasma/effect.js';
 import rotozoomClassic from './rotozoom/effect.js';
 import fireClassic from './fire/effect.js';
 import tunnelClassic from './tunnel/effect.js';
+import wireframe3dClassic from './wireframe3d/effect.js';
+import vectorBallsClassic from './vectorBalls/effect.js';
+import dotsClassic from './dots/effect.js';
+import lensClassic from './lens/effect.js';
 
 const registry = {};
 
@@ -30,6 +34,10 @@ registerEffect('plasma', plasmaClassic);
 registerEffect('rotozoom', rotozoomClassic);
 registerEffect('fire', fireClassic);
 registerEffect('tunnel', tunnelClassic);
+registerEffect('wireframe3d', wireframe3dClassic);
+registerEffect('vectorBalls', vectorBallsClassic);
+registerEffect('dots', dotsClassic);
+registerEffect('lens', lensClassic);
 
 export function registerEffect(name, classic, remastered = null) {
   registry[name] = { classic, remastered };

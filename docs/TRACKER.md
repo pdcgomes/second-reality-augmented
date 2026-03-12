@@ -69,8 +69,8 @@
 
 ## Phase 4 — 3D Vector Objects
 
-- [ ] `wireframe3d` — rotating wireframe objects, Gouraud shading
-- [ ] `vectorBalls` — sphere billboard sprites, Lissajous formations
+- [x] `wireframe3d` — raymarched wireframe objects, morphing cube/torus
+- [x] `vectorBalls` — raymarched chrome spheres, Lissajous formations
 
 ## Phase 5 — Showpiece Effects
 
@@ -89,9 +89,9 @@
 
 ## Additional Effects (from original demo)
 
-- [ ] `dots` — particle formations, sine wave 3D motion
+- [x] `dots` — particle formations, sine wave 3D motion
 - [ ] `grid` — morphing grid / deformation
-- [ ] `lens` — magnification distortion (UV warp)
+- [x] `lens` — magnification distortion (UV warp)
 - [ ] `glenzVectors` — transparent/glassy 3D objects (XOR/additive blending)
 - [ ] `creature` — 3D Commander scene (texture-mapped character)
 - [ ] `introScroll` — opening intro scroll
