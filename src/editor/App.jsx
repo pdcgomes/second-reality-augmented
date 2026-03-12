@@ -36,17 +36,23 @@ export default function App() {
       });
   }, [modPlayer, setMusicLoaded, setMusicError]);
 
-  // Playback tick — update playheadSeconds from clock while playing
+  // Playback tick — derive playhead from S3M player position when music is
+  // loaded, falling back to the clock otherwise. This keeps the timeline
+  // perfectly in sync with the tracker's actual playback position.
   useEffect(() => {
     if (!isPlaying) return;
     let raf;
     function tick() {
-      useEditorStore.setState({ playheadSeconds: clock.currentTime() });
+      const { musicLoaded } = useEditorStore.getState();
+      const t = musicLoaded
+        ? modPlayer.currentTimeFromPosition()
+        : clock.currentTime();
+      useEditorStore.setState({ playheadSeconds: t });
       raf = requestAnimationFrame(tick);
     }
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [isPlaying, clock]);
+  }, [isPlaying, clock, modPlayer]);
 
   // Keyboard shortcuts
   useEffect(() => {

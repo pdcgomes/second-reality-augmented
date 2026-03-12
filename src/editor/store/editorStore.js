@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { Clock } from '@core/clock.js';
 import { nearestBeat } from '@core/beatmap.js';
 import { ModPlayer } from '@core/modplayer.js';
+import { timeToMusicPos } from '@core/musicsync.js';
 
 const clock = new Clock();
 const modPlayer = new ModPlayer();
@@ -26,38 +27,41 @@ export const useEditorStore = create((set, get) => ({
   setMusicError: (err) => set({ musicError: err }),
 
   setPlayhead: (seconds) => {
-    const { project, snapToBeat } = get();
+    const { project, snapToBeat, isPlaying, musicLoaded } = get();
     let t = Math.max(0, seconds);
     if (snapToBeat && project?.beatMap) {
       t = nearestBeat(t, project.beatMap);
     }
     clock.seek(t);
+    if (isPlaying && musicLoaded) {
+      modPlayer.seekToTime(t);
+    }
     set({ playheadSeconds: t });
   },
 
   setPlayheadRaw: (seconds) => {
+    const { isPlaying, musicLoaded } = get();
     const t = Math.max(0, seconds);
     clock.seek(t);
+    if (isPlaying && musicLoaded) {
+      modPlayer.seekToTime(t);
+    }
     set({ playheadSeconds: t });
   },
 
-  musicStarted: false,
-
   togglePlayback: () => {
-    const { isPlaying, musicLoaded, musicStarted } = get();
+    const { isPlaying, musicLoaded, playheadSeconds } = get();
     if (isPlaying) {
       clock.pause();
       if (musicLoaded) modPlayer.pause();
-      set({ isPlaying: false, playheadSeconds: clock.currentTime() });
+      const t = musicLoaded ? modPlayer.currentTimeFromPosition() : clock.currentTime();
+      set({ isPlaying: false, playheadSeconds: t });
     } else {
+      clock.seek(playheadSeconds);
       clock.play();
       if (musicLoaded) {
-        if (!musicStarted) {
-          modPlayer.play(0);
-          set({ musicStarted: true });
-        } else {
-          modPlayer.resume();
-        }
+        const target = timeToMusicPos(playheadSeconds);
+        modPlayer.play(target.music, target.position, target.row);
       }
       set({ isPlaying: true });
     }
@@ -67,7 +71,7 @@ export const useEditorStore = create((set, get) => ({
     clock.pause();
     clock.seek(0);
     if (get().musicLoaded) modPlayer.stop();
-    set({ isPlaying: false, playheadSeconds: 0, musicStarted: false });
+    set({ isPlaying: false, playheadSeconds: 0 });
   },
 
   selectClip: (clipId) => set({ selectedClipId: clipId }),
@@ -89,11 +93,14 @@ export const useEditorStore = create((set, get) => ({
   },
 
   nudgePlayhead: (beats) => {
-    const { project, playheadSeconds } = get();
+    const { project, playheadSeconds, isPlaying, musicLoaded } = get();
     const bpm = project?.beatMap?.track0BPM ?? project?.beatMap?.bpm ?? 125;
     const beatDuration = 60 / bpm;
     const t = Math.max(0, playheadSeconds + beats * beatDuration);
     clock.seek(t);
+    if (isPlaying && musicLoaded) {
+      modPlayer.seekToTime(t);
+    }
     set({ playheadSeconds: t });
   },
 

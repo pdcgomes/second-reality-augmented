@@ -9,6 +9,7 @@
  */
 
 import { Modplayer as RawModplayer } from '../../lib/webaudio-mod-player/index.js';
+import { musicPosToTime, timeToMusicPos } from './musicsync.js';
 
 const SPEED_GAIN = [1.00370, 1.00231];
 
@@ -54,6 +55,39 @@ export class ModPlayer {
 
   get _activePlayer() {
     return this._activeIndex >= 0 ? this._players[this._activeIndex] : null;
+  }
+
+  /**
+   * Returns absolute demo time (seconds) derived from the currently playing
+   * S3M position/row. This is the authoritative time source during playback.
+   */
+  currentTimeFromPosition() {
+    if (this._activeIndex < 0) return 0;
+    const p = this._activePlayer;
+    if (!p || !p.player) return 0;
+    return musicPosToTime(this._activeIndex, p.player.position, p.player.row);
+  }
+
+  /**
+   * Seek the player to the S3M position/row that corresponds to the given
+   * absolute demo time. Handles music-index switching automatically.
+   */
+  seekToTime(seconds) {
+    const target = timeToMusicPos(seconds);
+
+    if (this._activeIndex !== target.music) {
+      this._stopAll();
+      this._activeIndex = target.music;
+      const mp = this._players[target.music];
+      if (!mp) return;
+      mp.play();
+      if (mp.context && mp.context.state === 'suspended') {
+        mp.context.resume().catch(() => {});
+      }
+    }
+
+    const mp = this._players[target.music];
+    if (mp) mp.seek(target.position, target.row);
   }
 
   async loadBoth(music0ArrayBuffer, music1ArrayBuffer) {
