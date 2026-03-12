@@ -133,7 +133,7 @@ The following maps to the actual Second Reality demo sequence. Each effect has a
 - [ ] `plasma/effect.remastered.js`
 
 ### Part 17 — PLZ_CUBE (Plasma Cube)
-- [ ] `plzCube/effect.js` — texture-mapped rotating 3D cube (WILDFIRE)
+- [x] `plzCube/effect.js` — texture-mapped rotating 3D cube (WILDFIRE)
 - [ ] `plzCube/effect.remastered.js`
 
 ### Part 18 — DOTS (Mini Vector Balls)
