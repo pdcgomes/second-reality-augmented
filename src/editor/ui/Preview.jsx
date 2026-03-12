@@ -72,8 +72,6 @@ export default function Preview() {
         if (mod.destroy) mod.destroy(gl);
       }
       effectsRef.current = {};
-      const ext = gl.getExtension('WEBGL_lose_context');
-      if (ext) ext.loseContext();
     };
   }, []);
 
