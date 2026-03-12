@@ -1,0 +1,27 @@
+# README Maintenance
+
+## When to Update
+
+Update `README.md` whenever any of the following changes:
+
+- A new classic effect is completed (update the progress table)
+- A new remastered effect is completed (update the progress table and Remastered Effects section)
+- A new learning guide is added to `docs/learning/` (update the Learning Guides section)
+- A new design doc is added to `docs/effects/` (update the Design Documents table)
+- A new pattern doc is added to `docs/patterns/` (update the Additional docs table)
+- The project structure changes meaningfully (new top-level directories, new tools)
+- A bonus effect is added (update the Bonus Effects list)
+
+## What to Keep in Sync
+
+1. **Progress table** — the Classic/Remastered columns must reflect the actual state of `src/effects/`
+2. **Remastered Effects section** — list each completed remastered variant with its key techniques
+3. **Learning Guides section** — full table of contents for every guide in `docs/learning/`
+4. **Design Documents table** — one row per doc in `docs/effects/` and `docs/patterns/`
+5. **Bonus Effects list** — all non-original-demo effects
+
+## What NOT to Change
+
+- Do not update the README for minor internal refactors, test additions, or rule changes
+- Do not add work-in-progress items — only reflect completed work
+- Do not duplicate content from TRACKER.md — the README is a polished public-facing summary
