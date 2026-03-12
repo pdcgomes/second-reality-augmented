@@ -24,6 +24,10 @@ import wireframe3dClassic from './wireframe3d/effect.js';
 import vectorBallsClassic from './vectorBalls/effect.js';
 import dotsClassic from './dots/effect.js';
 import lensClassic from './lens/effect.js';
+import voxelLandscapeClassic from './voxelLandscape/effect.js';
+import glenzVectorsClassic from './glenzVectors/effect.js';
+import gridClassic from './grid/effect.js';
+import bouncingBitmapClassic from './bouncingBitmap/effect.js';
 
 const registry = {};
 
@@ -38,6 +42,10 @@ registerEffect('wireframe3d', wireframe3dClassic);
 registerEffect('vectorBalls', vectorBallsClassic);
 registerEffect('dots', dotsClassic);
 registerEffect('lens', lensClassic);
+registerEffect('voxelLandscape', voxelLandscapeClassic);
+registerEffect('glenzVectors', glenzVectorsClassic);
+registerEffect('grid', gridClassic);
+registerEffect('bouncingBitmap', bouncingBitmapClassic);
 
 export function registerEffect(name, classic, remastered = null) {
   registry[name] = { classic, remastered };

@@ -74,7 +74,7 @@
 
 ## Phase 5 — Showpiece Effects
 
-- [ ] `voxelLandscape` — heightmap raycast in fragment shader, distance fog
+- [x] `voxelLandscape` — heightmap raycast in fragment shader, distance fog
 - [ ] `textured3d` — full WebGL rasterizer, perspective-correct texturing
 
 ## Phase 6 — Polish
@@ -90,13 +90,13 @@
 ## Additional Effects (from original demo)
 
 - [x] `dots` — particle formations, sine wave 3D motion
-- [ ] `grid` — morphing grid / deformation
+- [x] `grid` — morphing neon grid, perspective floor
 - [x] `lens` — magnification distortion (UV warp)
-- [ ] `glenzVectors` — transparent/glassy 3D objects (XOR/additive blending)
+- [x] `glenzVectors` — transparent/glassy 3D objects (additive blending)
 - [ ] `creature` — 3D Commander scene (texture-mapped character)
 - [ ] `introScroll` — opening intro scroll
 - [ ] `jpLogo` — JP logo sequence
 - [ ] `credits` — end credits
 - [ ] `endScroll` — end scrolltext
 - [ ] `raytracing` — FCP raytracing section
-- [ ] `bouncingBitmap` — bouncing bitmap (PICS section)
+- [x] `bouncingBitmap` — bouncing bitmap (PICS section)
