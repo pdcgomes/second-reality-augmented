@@ -57,17 +57,16 @@ uniform float uSwordRoll;
 uniform float uSwordTilt;
 uniform float uSwordWidth;
 uniform float uSwordHeight;
+uniform vec4 uSphere0;
+uniform vec4 uSphere1;
+uniform vec4 uSphere2;
 
 #define MAX_STEPS 80
 #define MAX_DIST 50.0
 #define SURF_DIST 0.002
 #define PI 3.14159265
 
-const vec4 SPHERE_BASE[3] = vec4[3](
-  vec4(-1.8,  0.85, -0.5, 1.3),
-  vec4( 0.0,  0.55,  0.8, 0.45),
-  vec4( 2.5,  0.7,  -0.3, 1.1)
-);
+vec4 SPHERE_BASE[3];
 
 vec3 spherePos[3];
 float beatPulse;
@@ -82,6 +81,9 @@ float swordHalfW;
 float swordH;
 
 void computeState() {
+  SPHERE_BASE[0] = uSphere0;
+  SPHERE_BASE[1] = uSphere1;
+  SPHERE_BASE[2] = uSphere2;
   beatPulse = pow(1.0 - uBeat, 6.0);
   float bobScale = 1.0 + beatPulse * uBeatScale;
   for (int i = 0; i < 3; i++) {
@@ -238,11 +240,11 @@ vec3 lighting(vec3 p, vec3 N, vec3 V, vec3 baseColor, float specMul) {
 
   // Tight primary specular (subtle, small hotspot)
   float specPow = uSpecularPower + beatPulse * 32.0;
-  float spec = pow(max(dot(N, H), 0.0), specPow) * specMul * 0.6;
+  float spec = pow(max(dot(N, H), 0.0), specPow) * specMul * 0.4;
 
   // Broad secondary glow: wide, soft highlight with a warm-blue tint
-  float glow = pow(max(dot(N, H), 0.0), specPow * 0.08) * specMul * 0.35;
-  vec3 glowColor = vec3(0.25, 0.35, 0.8) * glow;
+  float glow = pow(max(dot(N, H), 0.0), specPow * 0.06) * specMul * 0.2;
+  vec3 glowColor = vec3(0.15, 0.2, 0.5) * glow;
 
   float rim = pow(1.0 - max(dot(N, V), 0.0), 4.0) * 0.25;
   vec3 ambient = baseColor * 0.15;
@@ -508,25 +510,37 @@ export default {
     { key: 'rippleSpeed', label: 'Ripple Speed', type: 'float', min: 0.2, max: 6.0, step: 0.1, default: 2.0 },
     { key: 'rippleAmp', label: 'Ripple Amplitude', type: 'float', min: 0.001, max: 0.15, step: 0.001, default: 0.03 },
     { key: 'waterDarkness', label: 'Water Darkness', type: 'float', min: 0, max: 1, step: 0.01, default: 0.5 },
-    { key: 'specularPower', label: 'Specular Power', type: 'float', min: 8, max: 512, step: 1, default: 128 },
-    { key: 'fresnelExp', label: 'Fresnel Exponent', type: 'float', min: 0.5, max: 10, step: 0.1, default: 3.5 },
-    { key: 'chromeReflect', label: 'Chrome Reflectivity', type: 'float', min: 0, max: 4, step: 0.05, default: 2.0 },
-    { key: 'swordBrightness', label: 'Sword Brightness', type: 'float', min: 0.2, max: 6, step: 0.05, default: 2.0 },
-    { key: 'swordX', label: 'Sword X', type: 'float', min: -4, max: 4, step: 0.1, default: -0.1 },
-    { key: 'swordY', label: 'Sword Y', type: 'float', min: -1, max: 3, step: 0.05, default: 0.20 },
-    { key: 'swordZ', label: 'Sword Z', type: 'float', min: -3, max: 3, step: 0.1, default: -1.6 },
-    { key: 'swordPitch', label: 'Sword Pitch', type: 'float', min: -90, max: 90, step: 1, default: -7 },
+    { key: 'specularPower', label: 'Specular Power', type: 'float', min: 8, max: 512, step: 1, default: 256 },
+    { key: 'fresnelExp', label: 'Fresnel Exponent', type: 'float', min: 0.5, max: 10, step: 0.1, default: 3.0 },
+    { key: 'chromeReflect', label: 'Chrome Reflectivity', type: 'float', min: 0, max: 4, step: 0.05, default: 2.5 },
+    { key: 'swordBrightness', label: 'Sword Brightness', type: 'float', min: 0.2, max: 6, step: 0.05, default: 1.3 },
+    { key: 'swordX', label: 'Sword X', type: 'float', min: -4, max: 4, step: 0.1, default: 0.0 },
+    { key: 'swordY', label: 'Sword Y', type: 'float', min: -1, max: 3, step: 0.05, default: 0.05 },
+    { key: 'swordZ', label: 'Sword Z', type: 'float', min: -3, max: 3, step: 0.1, default: 0.0 },
+    { key: 'swordPitch', label: 'Sword Pitch', type: 'float', min: -90, max: 90, step: 1, default: -5 },
     { key: 'swordYaw', label: 'Sword Yaw', type: 'float', min: -45, max: 45, step: 1, default: 0 },
-    { key: 'swordRoll', label: 'Sword Roll', type: 'float', min: -180, max: 180, step: 1, default: 63 },
-    { key: 'swordTilt', label: 'Sword Tilt', type: 'float', min: -90, max: 90, step: 1, default: -48 },
+    { key: 'swordRoll', label: 'Sword Roll', type: 'float', min: -180, max: 180, step: 1, default: 35 },
+    { key: 'swordTilt', label: 'Sword Tilt', type: 'float', min: -90, max: 90, step: 1, default: -25 },
     { key: 'swordWidth', label: 'Sword Width', type: 'float', min: 2, max: 16, step: 0.5, default: 10.0 },
-    { key: 'swordHeight', label: 'Sword Height', type: 'float', min: 0.2, max: 3, step: 0.05, default: 0.7 },
+    { key: 'swordHeight', label: 'Sword Height', type: 'float', min: 0.2, max: 3, step: 0.05, default: 0.45 },
+    { key: 'sphere0X', label: 'Sphere L X', type: 'float', min: -5, max: 5, step: 0.1, default: -1.8 },
+    { key: 'sphere0Y', label: 'Sphere L Y', type: 'float', min: -1, max: 4, step: 0.05, default: 0.85 },
+    { key: 'sphere0Z', label: 'Sphere L Z', type: 'float', min: -3, max: 3, step: 0.1, default: -0.5 },
+    { key: 'sphere0R', label: 'Sphere L Radius', type: 'float', min: 0.2, max: 3, step: 0.05, default: 1.3 },
+    { key: 'sphere1X', label: 'Sphere C X', type: 'float', min: -5, max: 5, step: 0.1, default: 0.0 },
+    { key: 'sphere1Y', label: 'Sphere C Y', type: 'float', min: -1, max: 4, step: 0.05, default: 0.55 },
+    { key: 'sphere1Z', label: 'Sphere C Z', type: 'float', min: -3, max: 3, step: 0.1, default: 0.8 },
+    { key: 'sphere1R', label: 'Sphere C Radius', type: 'float', min: 0.1, max: 2, step: 0.05, default: 0.45 },
+    { key: 'sphere2X', label: 'Sphere R X', type: 'float', min: -5, max: 5, step: 0.1, default: 2.5 },
+    { key: 'sphere2Y', label: 'Sphere R Y', type: 'float', min: -1, max: 4, step: 0.05, default: 0.7 },
+    { key: 'sphere2Z', label: 'Sphere R Z', type: 'float', min: -3, max: 3, step: 0.1, default: -0.3 },
+    { key: 'sphere2R', label: 'Sphere R Radius', type: 'float', min: 0.2, max: 3, step: 0.05, default: 1.1 },
     { key: 'cameraHeight', label: 'Camera Height', type: 'float', min: 0.5, max: 5.0, step: 0.1, default: 2.2 },
     { key: 'cameraAngle', label: 'Camera Angle', type: 'float', min: -30, max: 30, step: 0.5, default: 5.0 },
     { key: 'beatScale', label: 'Beat Bob Scale', type: 'float', min: 0, max: 1, step: 0.01, default: 0.15 },
-    { key: 'bloomThreshold', label: 'Bloom Threshold', type: 'float', min: 0, max: 1, step: 0.01, default: 0.25 },
-    { key: 'bloomTightStr', label: 'Bloom Tight', type: 'float', min: 0, max: 3, step: 0.01, default: 0.6 },
-    { key: 'bloomWideStr', label: 'Bloom Wide', type: 'float', min: 0, max: 3, step: 0.01, default: 0.4 },
+    { key: 'bloomThreshold', label: 'Bloom Threshold', type: 'float', min: 0, max: 1, step: 0.01, default: 0.45 },
+    { key: 'bloomTightStr', label: 'Bloom Tight', type: 'float', min: 0, max: 3, step: 0.01, default: 0.3 },
+    { key: 'bloomWideStr', label: 'Bloom Wide', type: 'float', min: 0, max: 3, step: 0.01, default: 0.2 },
     { key: 'scanlineStr', label: 'Scanlines', type: 'float', min: 0, max: 0.5, step: 0.01, default: 0.03 },
     { key: 'beatBloom', label: 'Beat Bloom', type: 'float', min: 0, max: 1.5, step: 0.01, default: 0.35 },
   ],
@@ -566,6 +580,9 @@ export default {
       swordWidth: gl.getUniformLocation(sceneProg, 'uSwordWidth'),
       swordHeight: gl.getUniformLocation(sceneProg, 'uSwordHeight'),
       beatScale: gl.getUniformLocation(sceneProg, 'uBeatScale'),
+      sphere0: gl.getUniformLocation(sceneProg, 'uSphere0'),
+      sphere1: gl.getUniformLocation(sceneProg, 'uSphere1'),
+      sphere2: gl.getUniformLocation(sceneProg, 'uSphere2'),
       cameraHeight: gl.getUniformLocation(sceneProg, 'uCameraHeight'),
       cameraAngle: gl.getUniformLocation(sceneProg, 'uCameraAngle'),
     };
@@ -650,20 +667,23 @@ export default {
     gl.uniform1f(su.rippleSpeed, p('rippleSpeed', 2.0));
     gl.uniform1f(su.rippleAmp, p('rippleAmp', 0.03));
     gl.uniform1f(su.waterDarkness, p('waterDarkness', 0.5));
-    gl.uniform1f(su.specularPower, p('specularPower', 128));
-    gl.uniform1f(su.fresnelExp, p('fresnelExp', 3.5));
-    gl.uniform1f(su.chromeReflect, p('chromeReflect', 2.0));
-    gl.uniform1f(su.swordBrightness, p('swordBrightness', 2.0));
-    gl.uniform1f(su.swordX, p('swordX', -0.1));
-    gl.uniform1f(su.swordY, p('swordY', 0.20));
-    gl.uniform1f(su.swordZ, p('swordZ', -1.6));
-    gl.uniform1f(su.swordPitch, p('swordPitch', -7));
+    gl.uniform1f(su.specularPower, p('specularPower', 256));
+    gl.uniform1f(su.fresnelExp, p('fresnelExp', 3.0));
+    gl.uniform1f(su.chromeReflect, p('chromeReflect', 2.5));
+    gl.uniform1f(su.swordBrightness, p('swordBrightness', 1.3));
+    gl.uniform1f(su.swordX, p('swordX', 0.0));
+    gl.uniform1f(su.swordY, p('swordY', 0.05));
+    gl.uniform1f(su.swordZ, p('swordZ', 0.0));
+    gl.uniform1f(su.swordPitch, p('swordPitch', -5));
     gl.uniform1f(su.swordYaw, p('swordYaw', 0));
-    gl.uniform1f(su.swordRoll, p('swordRoll', 63));
-    gl.uniform1f(su.swordTilt, p('swordTilt', -48));
+    gl.uniform1f(su.swordRoll, p('swordRoll', 35));
+    gl.uniform1f(su.swordTilt, p('swordTilt', -25));
     gl.uniform1f(su.swordWidth, p('swordWidth', 10.0));
-    gl.uniform1f(su.swordHeight, p('swordHeight', 0.7));
+    gl.uniform1f(su.swordHeight, p('swordHeight', 0.45));
     gl.uniform1f(su.beatScale, p('beatScale', 0.15));
+    gl.uniform4f(su.sphere0, p('sphere0X', -1.8), p('sphere0Y', 0.85), p('sphere0Z', -0.5), p('sphere0R', 1.3));
+    gl.uniform4f(su.sphere1, p('sphere1X', 0.0), p('sphere1Y', 0.55), p('sphere1Z', 0.8), p('sphere1R', 0.45));
+    gl.uniform4f(su.sphere2, p('sphere2X', 2.5), p('sphere2Y', 0.7), p('sphere2Z', -0.3), p('sphere2R', 1.1));
     gl.uniform1f(su.cameraHeight, p('cameraHeight', 2.2));
     gl.uniform1f(su.cameraAngle, p('cameraAngle', 5.0));
 
@@ -680,7 +700,7 @@ export default {
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, sceneFBO.tex);
     gl.uniform1i(beu.scene, 0);
-    gl.uniform1f(beu.threshold, p('bloomThreshold', 0.25));
+    gl.uniform1f(beu.threshold, p('bloomThreshold', 0.45));
     quad.draw();
 
     gl.useProgram(blurProg);
@@ -733,8 +753,8 @@ export default {
     gl.activeTexture(gl.TEXTURE2);
     gl.bindTexture(gl.TEXTURE_2D, bloomWideFBO1.tex);
     gl.uniform1i(cu.bloomWide, 2);
-    gl.uniform1f(cu.bloomTightStr, p('bloomTightStr', 0.6));
-    gl.uniform1f(cu.bloomWideStr, p('bloomWideStr', 0.4));
+    gl.uniform1f(cu.bloomTightStr, p('bloomTightStr', 0.3));
+    gl.uniform1f(cu.bloomWideStr, p('bloomWideStr', 0.2));
     gl.uniform1f(cu.beatBloom, p('beatBloom', 0.35));
     gl.uniform1f(cu.beat, beat);
     gl.uniform1f(cu.scanlineStr, p('scanlineStr', 0.03));
