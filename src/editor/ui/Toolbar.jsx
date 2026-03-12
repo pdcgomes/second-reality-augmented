@@ -10,9 +10,11 @@ export default function Toolbar() {
     musicLoaded,
     musicError,
     modPlayer,
+    loopEffect,
     togglePlayback,
     stopPlayback,
     toggleSnap,
+    toggleLoop,
     setVariant,
     zoomLevel,
     setZoom,
@@ -38,6 +40,15 @@ export default function Toolbar() {
           title="Stop (Home)"
         >
           ⏹
+        </button>
+        <button
+          onClick={toggleLoop}
+          className={`px-3 py-1 rounded text-xs transition-colors ${
+            loopEffect ? 'bg-accent-cyan/30 text-accent-cyan' : 'bg-surface-600 text-text-dim'
+          }`}
+          title="Loop Effect (L)"
+        >
+          ⟳ LOOP
         </button>
       </div>
 

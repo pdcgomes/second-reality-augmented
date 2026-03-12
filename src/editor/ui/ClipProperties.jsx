@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useEditorStore } from '../store/editorStore';
 import { getEffectParams } from '@effects/index.js';
 
@@ -37,7 +37,10 @@ export default function ClipProperties() {
 
       {paramDefs.length > 0 && (
         <>
-          <h3 className="text-text-dim text-xs font-bold tracking-widest mt-4 mb-2">EFFECT PARAMS</h3>
+          <div className="flex items-center justify-between mt-4 mb-2">
+            <h3 className="text-text-dim text-xs font-bold tracking-widest">EFFECT PARAMS</h3>
+            <CopyParamsButton paramDefs={paramDefs} clipParams={clipParams} />
+          </div>
           <div className="space-y-3">
             {paramDefs.map((def) => (
               <ParamControl
@@ -104,6 +107,34 @@ function ParamControl({ def, value, clipId, onChange, onReset }) {
   }
 
   return null;
+}
+
+function CopyParamsButton({ paramDefs, clipParams }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = useCallback(() => {
+    const lines = paramDefs.map((def) => {
+      const val = clipParams[def.key] ?? def.default;
+      const formatted = def.type === 'float'
+        ? (def.step < 0.01 ? val.toFixed(3) : def.step < 0.1 ? val.toFixed(2) : def.step < 1 ? val.toFixed(1) : String(val))
+        : String(val);
+      return `- ${def.label}: ${formatted}`;
+    });
+    navigator.clipboard.writeText(lines.join('\n')).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  }, [paramDefs, clipParams]);
+
+  return (
+    <button
+      onClick={handleCopy}
+      className="text-[10px] text-text-dim hover:text-accent-cyan px-1.5 py-0.5 border border-border rounded transition-colors"
+      title="Copy all parameter values to clipboard"
+    >
+      {copied ? 'Copied!' : 'Copy'}
+    </button>
+  );
 }
 
 function Row({ label, value, accent }) {

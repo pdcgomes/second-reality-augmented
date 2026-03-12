@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import Toolbar from './ui/Toolbar';
 import Preview from './ui/Preview';
 import Tracker from './ui/Tracker';
@@ -9,8 +9,10 @@ import { useEditorStore } from './store/editorStore';
 import { getRegionAtTime, timeToMusicPos } from '../core/musicsync.js';
 
 export default function App() {
-  const { setProject, setMusicLoaded, setMusicError, togglePlayback, stopPlayback, nudgePlayhead, jumpToClip, toggleVariant, isPlaying, clock, modPlayer } =
+  const { setProject, setMusicLoaded, setMusicError, togglePlayback, stopPlayback, nudgePlayhead, jumpToClip, toggleVariant, toggleLoop, isPlaying, clock, modPlayer } =
     useEditorStore();
+  const loopClipRef = useRef(null);
+  const prevLoopTimeRef = useRef(null);
 
   useEffect(() => {
     fetch('/project.json')
@@ -44,21 +46,30 @@ export default function App() {
     if (!isPlaying) return;
     let raf;
     function tick() {
-      const { musicLoaded } = useEditorStore.getState();
+      const { musicLoaded, loopEffect, project } = useEditorStore.getState();
 
       if (!musicLoaded) {
-        useEditorStore.setState({ playheadSeconds: clock.currentTime() });
+        let t = clock.currentTime();
+        if (loopEffect && project?.clips) {
+          t = applyLoop(t, project.clips, musicLoaded);
+        }
+        useEditorStore.setState({ playheadSeconds: t });
         raf = requestAnimationFrame(tick);
         return;
       }
 
-      const t = modPlayer.currentTime();
+      let t = modPlayer.currentTime();
+
+      if (loopEffect && project?.clips) {
+        t = applyLoop(t, project.clips, musicLoaded);
+      }
+
       const region = getRegionAtTime(t);
 
       // The audio engine sets reachedBoundary when the S3M player crosses
       // the region's stop position. This is sample-accurate and happens
       // before the rAF loop would normally detect the region mismatch.
-      if (modPlayer.reachedBoundary || (region && region.music !== modPlayer.activeIndex)) {
+      if (!loopEffect && (modPlayer.reachedBoundary || (region && region.music !== modPlayer.activeIndex))) {
         const target = timeToMusicPos(t);
         if (target.music !== modPlayer.activeIndex ||
             modPlayer.reachedBoundary) {
@@ -69,6 +80,24 @@ export default function App() {
 
       useEditorStore.setState({ playheadSeconds: t });
       raf = requestAnimationFrame(tick);
+    }
+
+    function applyLoop(t, clips, musicLoaded) {
+      const lc = loopClipRef.current;
+      const prevT = prevLoopTimeRef.current;
+      const jumped = prevT !== null && Math.abs(t - prevT) > 0.25;
+
+      if (lc && t >= lc.end && !jumped) {
+        clock.seek(lc.start);
+        if (musicLoaded) modPlayer.seekToTime(lc.start);
+        prevLoopTimeRef.current = lc.start;
+        return lc.start;
+      }
+
+      const clip = clips.find((c) => t >= c.start && t < c.end);
+      if (clip) loopClipRef.current = clip;
+      prevLoopTimeRef.current = t;
+      return t;
     }
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
@@ -107,11 +136,15 @@ export default function App() {
           e.preventDefault();
           toggleVariant();
           break;
+        case 'KeyL':
+          e.preventDefault();
+          toggleLoop();
+          break;
       }
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [togglePlayback, stopPlayback, nudgePlayhead, jumpToClip, toggleVariant]);
+  }, [togglePlayback, stopPlayback, nudgePlayhead, jumpToClip, toggleVariant, toggleLoop]);
 
   return (
     <div className="h-screen w-screen grid grid-rows-[auto_1fr_240px_1fr] grid-cols-[1fr_1fr] gap-px bg-border">

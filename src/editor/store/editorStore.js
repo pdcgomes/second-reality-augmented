@@ -16,6 +16,7 @@ export const useEditorStore = create((set, get) => ({
   snapToBeat: true,
   variant: 'classic',
   previewFit: 'fill',
+  loopEffect: false,
   clock,
   modPlayer,
   musicLoaded: false,
@@ -99,6 +100,7 @@ export const useEditorStore = create((set, get) => ({
   setVariant: (variant) => set({ variant }),
   toggleVariant: () => set((s) => ({ variant: s.variant === 'classic' ? 'remastered' : 'classic' })),
   togglePreviewFit: () => set((s) => ({ previewFit: s.previewFit === 'fill' ? 'native' : 'fill' })),
+  toggleLoop: () => set((s) => ({ loopEffect: !s.loopEffect })),
 
   getSelectedClip: () => {
     const { project, selectedClipId } = get();
