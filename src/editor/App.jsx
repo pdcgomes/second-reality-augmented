@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import Toolbar from './ui/Toolbar';
 import Preview from './ui/Preview';
+import Tracker from './ui/Tracker';
 import Timeline from './ui/Timeline';
 import EffectLibrary from './ui/EffectLibrary';
 import ClipProperties from './ui/ClipProperties';
@@ -117,8 +118,8 @@ export default function App() {
       <div className="bg-surface-900 flex items-center justify-center">
         <Preview />
       </div>
-      <div className="bg-surface-900 flex items-center justify-center">
-        <span className="text-text-dim text-sm font-mono">TRACKER (Phase 1f)</span>
+      <div className="bg-surface-900">
+        <Tracker />
       </div>
 
       <div className="col-span-2">
