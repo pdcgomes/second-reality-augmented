@@ -129,16 +129,15 @@ out vec4 fragColor;
 uniform sampler2D uReflectionTex;
 uniform float uReflectivity;
 uniform float uGroundRoughness;
+uniform float uGroundBrightness;
 uniform float uFade;
 uniform vec2 uResolution;
 
 void main() {
-  // vUV: y=0 at bottom, y=1 at top. Ground occupies bottom half (y < 0.5).
   if (vUV.y > 0.5) discard;
 
-  float t = (0.5 - vUV.y) / 0.5;   // 0 at ground line, 1 at bottom edge
+  float t = (0.5 - vUV.y) / 0.5;
 
-  // Sample reflection texture at the same position
   vec3 refl = vec3(0.0);
   if (uGroundRoughness > 0.001) {
     vec2 texel = 1.0 / uResolution;
@@ -159,14 +158,13 @@ void main() {
   float viewAngle = 1.0 - t;
   float fresnel = mix(uReflectivity * 0.4, uReflectivity, pow(viewAngle, 2.0));
 
-  vec3 baseGround = vec3(0.02, 0.02, 0.025);
+  vec3 baseGround = vec3(0.02, 0.02, 0.025) * uGroundBrightness;
 
-  // Subtle perspective grid
   float gridX = abs(fract(vUV.x * 40.0) - 0.5);
   float gridZ = abs(fract(t * 20.0 / (t + 0.1)) - 0.5);
   float lineX = 1.0 - smoothstep(0.0, 0.02, gridX);
   float lineZ = 1.0 - smoothstep(0.0, 0.03, gridZ);
-  float gridLine = max(lineX, lineZ) * 0.08 * (1.0 - t * 0.8);
+  float gridLine = max(lineX, lineZ) * 0.08 * uGroundBrightness * (1.0 - t * 0.8);
   baseGround += vec3(gridLine * 0.3, gridLine * 0.5, gridLine * 0.6);
 
   vec3 color = mix(baseGround, refl, fresnel);
@@ -294,6 +292,7 @@ export default {
     { key: 'saturation',     label: 'Saturation',       type: 'float', min: 0,   max: 1,   step: 0.01,  default: 0.73 },
     { key: 'specularPower',  label: 'Specular',         type: 'float', min: 8,   max: 128, step: 1,     default: 32 },
     { key: 'reflectivity',   label: 'Reflectivity',     type: 'float', min: 0,   max: 1,   step: 0.01,  default: 0.6 },
+    { key: 'groundBrightness',label:'Ground Brightness',type: 'float', min: 0,   max: 5,   step: 0.1,   default: 1.0 },
     { key: 'groundRoughness',label: 'Ground Roughness', type: 'float', min: 0,   max: 0.5, step: 0.01,  default: 0.05 },
     { key: 'bloomThreshold', label: 'Bloom Threshold',  type: 'float', min: 0,   max: 1,   step: 0.01,  default: 0.3 },
     { key: 'bloomStrength',  label: 'Bloom Strength',   type: 'float', min: 0,   max: 2,   step: 0.01,  default: 0.5 },
@@ -325,9 +324,10 @@ export default {
 
     gu = {
       reflectionTex:   gl.getUniformLocation(groundProg, 'uReflectionTex'),
-      reflectivity:    gl.getUniformLocation(groundProg, 'uReflectivity'),
-      groundRoughness: gl.getUniformLocation(groundProg, 'uGroundRoughness'),
-      fade:            gl.getUniformLocation(groundProg, 'uFade'),
+      reflectivity:     gl.getUniformLocation(groundProg, 'uReflectivity'),
+      groundBrightness: gl.getUniformLocation(groundProg, 'uGroundBrightness'),
+      groundRoughness:  gl.getUniformLocation(groundProg, 'uGroundRoughness'),
+      fade:             gl.getUniformLocation(groundProg, 'uFade'),
       resolution:      gl.getUniformLocation(groundProg, 'uResolution'),
     };
 
@@ -488,6 +488,7 @@ export default {
     gl.bindTexture(gl.TEXTURE_2D, reflectionFBO.tex);
     gl.uniform1i(gu.reflectionTex, 0);
     gl.uniform1f(gu.reflectivity, p('reflectivity', 0.6));
+    gl.uniform1f(gu.groundBrightness, p('groundBrightness', 1.0));
     gl.uniform1f(gu.groundRoughness, p('groundRoughness', 0.05));
     gl.uniform1f(gu.fade, fade);
     gl.uniform2f(gu.resolution, sw, sh);
