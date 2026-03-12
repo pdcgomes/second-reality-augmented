@@ -10,175 +10,175 @@
   },
   "clips": [
     {
-      "id": "c01", "effect": "alku", "start": 0.0, "end": 65.0,
+      "id": "c01", "effect": "ALKU", "start": 0.0, "end": 65.0,
       "transitionIn": { "type": "fadeFromBlack", "duration": 3.0 },
       "transitionOut": { "type": "fadeToBlack", "duration": 2.0 },
       "params": {},
       "notes": "Opening credits text over scrolling landscape — ALKU (WILDFIRE)"
     },
     {
-      "id": "c02", "effect": "u2a", "start": 65.0, "end": 78.0,
+      "id": "c02", "effect": "U2A", "start": 65.0, "end": 78.0,
       "transitionIn": { "type": "fadeFromBlack", "duration": 1.5 },
       "transitionOut": { "type": "fadeToWhite", "duration": 1.0 },
       "params": {},
       "notes": "3D polygon ships flyover — U2A (PSI)"
     },
     {
-      "id": "c03", "effect": "pam", "start": 78.0, "end": 82.0,
+      "id": "c03", "effect": "PAM", "start": 78.0, "end": 82.0,
       "transitionIn": { "type": "flash", "duration": 0.5 },
       "transitionOut": { "type": "fadeToBlack", "duration": 1.0 },
       "params": {},
       "notes": "Pre-rendered explosion animation — PAM (TRUG/WILDFIRE)"
     },
     {
-      "id": "c04", "effect": "beglogo", "start": 82.0, "end": 93.0,
+      "id": "c04", "effect": "BEGLOGO", "start": 82.0, "end": 93.0,
       "transitionIn": { "type": "fadeFromBlack", "duration": 2.0 },
       "transitionOut": { "type": "fadeToBlack", "duration": 2.0 },
       "params": {},
       "notes": "Second Reality title card — BEGLOGO. Music 0 stops, music 1 begins."
     },
     {
-      "id": "c05", "effect": "glenzTransition", "start": 93.0, "end": 108.0,
+      "id": "c05", "effect": "GLENZ_TRANSITION", "start": 93.0, "end": 108.0,
       "transitionIn": { "type": "fadeFromBlack", "duration": 1.5 },
       "transitionOut": { "type": "none" },
       "params": {},
       "notes": "Checkerboard fall transition — GLENZ (PSI)"
     },
     {
-      "id": "c06", "effect": "glenzVectors", "start": 108.0, "end": 170.0,
+      "id": "c06", "effect": "GLENZ_3D", "start": 108.0, "end": 170.0,
       "transitionIn": { "type": "none" },
       "transitionOut": { "type": "fadeToBlack", "duration": 1.5 },
       "params": {},
       "notes": "Translucent rotating polyhedra — GLENZ_3D (PSI)"
     },
     {
-      "id": "c07", "effect": "tunneli", "start": 170.0, "end": 193.0,
+      "id": "c07", "effect": "TUNNELI", "start": 170.0, "end": 193.0,
       "transitionIn": { "type": "fadeFromBlack", "duration": 1.0 },
       "transitionOut": { "type": "fadeToBlack", "duration": 1.0 },
       "params": {},
       "notes": "Dot tunnel — concentric circles receding — TUNNELI (TRUG)"
     },
     {
-      "id": "c08", "effect": "technoCircles", "start": 193.0, "end": 220.0,
+      "id": "c08", "effect": "TECHNO_CIRCLES", "start": 193.0, "end": 220.0,
       "transitionIn": { "type": "fadeFromBlack", "duration": 1.0 },
       "transitionOut": { "type": "none" },
       "params": {},
       "notes": "Circle interference / Moire patterns — TECHNO (PSI)"
     },
     {
-      "id": "c09", "effect": "technoBarsTransition", "start": 220.0, "end": 225.0,
+      "id": "c09", "effect": "TECHNO_BARS_TRANSITION", "start": 220.0, "end": 225.0,
       "transitionIn": { "type": "none" },
       "transitionOut": { "type": "flash", "duration": 0.3 },
       "params": {},
       "notes": "4 synced bars transition — TECHNO (PSI)"
     },
     {
-      "id": "c10", "effect": "technoBars", "start": 225.0, "end": 275.0,
+      "id": "c10", "effect": "TECHNO_BARS", "start": 225.0, "end": 275.0,
       "transitionIn": { "type": "none" },
       "transitionOut": { "type": "fadeToBlack", "duration": 1.5 },
       "params": {},
       "notes": "Rotating layered bars with palette pulse — TECHNO (PSI)"
     },
     {
-      "id": "c11", "effect": "technoTroll", "start": 275.0, "end": 295.0,
+      "id": "c11", "effect": "TECHNO_TROLL", "start": 275.0, "end": 295.0,
       "transitionIn": { "type": "fadeFromBlack", "duration": 1.0 },
       "transitionOut": { "type": "crtShutdown", "duration": 2.0 },
       "params": {},
       "notes": "Troll picture + CRT shutdown — TECHNO/PANIC (PSI/WILDFIRE)"
     },
     {
-      "id": "c12", "effect": "forest", "start": 295.0, "end": 325.0,
+      "id": "c12", "effect": "FOREST", "start": 295.0, "end": 325.0,
       "transitionIn": { "type": "fadeFromBlack", "duration": 2.0 },
       "transitionOut": { "type": "fadeToBlack", "duration": 2.0 },
       "params": {},
       "notes": "Mountain text scroller — FOREST/MNTSCRL (TRUG)"
     },
     {
-      "id": "c13", "effect": "lensTransition", "start": 325.0, "end": 335.0,
+      "id": "c13", "effect": "LENS_TRANSITION", "start": 325.0, "end": 335.0,
       "transitionIn": { "type": "fadeFromBlack", "duration": 1.0 },
       "transitionOut": { "type": "none" },
       "params": {},
       "notes": "Lens picture slide-in — LENS (PSI)"
     },
     {
-      "id": "c14", "effect": "lens", "start": 335.0, "end": 360.0,
+      "id": "c14", "effect": "LENS_LENS", "start": 335.0, "end": 360.0,
       "transitionIn": { "type": "none" },
       "transitionOut": { "type": "none" },
       "params": {},
       "notes": "Bouncing crystal ball over face — LENS_LENS (PSI)"
     },
     {
-      "id": "c15", "effect": "rotozoom", "start": 360.0, "end": 410.0,
+      "id": "c15", "effect": "LENS_ROTO", "start": 360.0, "end": 410.0,
       "transitionIn": { "type": "none" },
       "transitionOut": { "type": "fadeToBlack", "duration": 2.0 },
       "params": {},
       "notes": "Rotozoom of picture — LENS_ROTO (PSI)"
     },
     {
-      "id": "c16", "effect": "plasma", "start": 410.0, "end": 440.0,
+      "id": "c16", "effect": "PLZ_PLASMA", "start": 410.0, "end": 440.0,
       "transitionIn": { "type": "fadeFromBlack", "duration": 1.5 },
       "transitionOut": { "type": "none" },
       "params": {},
       "notes": "Colorful plasma/smoke waves — PLZ_PLASMA (WILDFIRE)"
     },
     {
-      "id": "c17", "effect": "plzCube", "start": 440.0, "end": 485.0,
+      "id": "c17", "effect": "PLZ_CUBE", "start": 440.0, "end": 485.0,
       "transitionIn": { "type": "none" },
       "transitionOut": { "type": "fadeToBlack", "duration": 1.5 },
       "params": {},
       "notes": "Texture-mapped rotating 3D cube — PLZ_CUBE (WILDFIRE)"
     },
     {
-      "id": "c18", "effect": "dots", "start": 485.0, "end": 540.0,
+      "id": "c18", "effect": "DOTS", "start": 485.0, "end": 540.0,
       "transitionIn": { "type": "fadeFromBlack", "duration": 1.0 },
       "transitionOut": { "type": "fadeToBlack", "duration": 1.5 },
       "params": {},
       "notes": "1024 mini vector balls with gravity — DOTS/MINVBALL (PSI)"
     },
     {
-      "id": "c19", "effect": "water", "start": 540.0, "end": 565.0,
+      "id": "c19", "effect": "WATER", "start": 540.0, "end": 565.0,
       "transitionIn": { "type": "fadeFromBlack", "duration": 2.0 },
       "transitionOut": { "type": "fadeToBlack", "duration": 2.0 },
       "params": {},
       "notes": "Mirror ball scroller — sword on water background — WATER/RAYSCRL (TRUG)"
     },
     {
-      "id": "c20", "effect": "voxelLandscape", "start": 565.0, "end": 595.0,
+      "id": "c20", "effect": "COMAN", "start": 565.0, "end": 595.0,
       "transitionIn": { "type": "fadeFromBlack", "duration": 1.5 },
       "transitionOut": { "type": "fadeToBlack", "duration": 2.0 },
       "params": {},
       "notes": "3D sinusfield / voxel landscape — COMAN/3DSINFLD (PSI)"
     },
     {
-      "id": "c21", "effect": "jplogo", "start": 595.0, "end": 610.0,
+      "id": "c21", "effect": "JPLOGO", "start": 595.0, "end": 610.0,
       "transitionIn": { "type": "fadeFromBlack", "duration": 1.0 },
       "transitionOut": { "type": "fadeToBlack", "duration": 2.0 },
       "params": {},
       "notes": "Jelly-distorted Future Crew logo — JPLOGO (PSI). Music 1 stops, music 0 resumes."
     },
     {
-      "id": "c22", "effect": "u2e", "start": 610.0, "end": 650.0,
+      "id": "c22", "effect": "U2E", "start": 610.0, "end": 650.0,
       "transitionIn": { "type": "fadeFromBlack", "duration": 2.0 },
       "transitionOut": { "type": "fadeToWhite", "duration": 1.5 },
       "params": {},
       "notes": "3D city polygon flyover — U2E (PSI)"
     },
     {
-      "id": "c23", "effect": "endlogo", "start": 650.0, "end": 658.0,
+      "id": "c23", "effect": "ENDLOGO", "start": 650.0, "end": 658.0,
       "transitionIn": { "type": "flash", "duration": 0.5 },
       "transitionOut": { "type": "fadeToBlack", "duration": 2.0 },
       "params": {},
       "notes": "End picture flash — ENDLOGO"
     },
     {
-      "id": "c24", "effect": "credits", "start": 658.0, "end": 710.0,
+      "id": "c24", "effect": "CREDITS", "start": 658.0, "end": 710.0,
       "transitionIn": { "type": "fadeFromBlack", "duration": 2.0 },
       "transitionOut": { "type": "fadeToBlack", "duration": 2.0 },
       "params": {},
       "notes": "Scrolling credits with demo screenshots — CREDITS"
     },
     {
-      "id": "c25", "effect": "scrolltext", "start": 710.0, "end": 750.0,
+      "id": "c25", "effect": "ENDSCRL", "start": 710.0, "end": 750.0,
       "transitionIn": { "type": "fadeFromBlack", "duration": 1.5 },
       "transitionOut": { "type": "fadeToBlack", "duration": 3.0 },
       "params": {},

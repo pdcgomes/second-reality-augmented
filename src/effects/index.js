@@ -51,35 +51,35 @@ import tunnelClassic from './tunnel/effect.js';
 
 const registry = {};
 
-// Original demo sequence
-registerEffect('alku', alkuClassic);
-registerEffect('u2a', u2aClassic);
-registerEffect('pam', pamClassic);
-registerEffect('beglogo', beglogoClassic);
-registerEffect('glenzTransition', glenzTransitionClassic);
-registerEffect('glenzVectors', glenzVectorsClassic);
-registerEffect('tunneli', tunneliClassic);
-registerEffect('technoCircles', technoCirclesClassic);
-registerEffect('technoBarsTransition', technoBarsTransitionClassic);
-registerEffect('technoBars', technoBarsClassic);
-registerEffect('technoTroll', technoTrollClassic);
-registerEffect('forest', forestClassic);
-registerEffect('lensTransition', lensTransitionClassic);
-registerEffect('lens', lensClassic);
-registerEffect('rotozoom', rotozoomClassic);
-registerEffect('plasma', plasmaClassic);
-registerEffect('plzCube', plzCubeClassic);
-registerEffect('dots', dotsClassic);
-registerEffect('water', waterClassic);
-registerEffect('voxelLandscape', voxelLandscapeClassic);
-registerEffect('jplogo', jplogoClassic);
-registerEffect('u2e', u2eClassic);
-registerEffect('endlogo', endlogoClassic);
-registerEffect('credits', creditsClassic);
-registerEffect('scrolltext', scrolltextClassic);
+// Original demo sequence — names match the original Second Reality part identifiers
+registerEffect('ALKU', alkuClassic);
+registerEffect('U2A', u2aClassic);
+registerEffect('PAM', pamClassic);
+registerEffect('BEGLOGO', beglogoClassic);
+registerEffect('GLENZ_TRANSITION', glenzTransitionClassic);
+registerEffect('GLENZ_3D', glenzVectorsClassic);
+registerEffect('TUNNELI', tunneliClassic);
+registerEffect('TECHNO_CIRCLES', technoCirclesClassic);
+registerEffect('TECHNO_BARS_TRANSITION', technoBarsTransitionClassic);
+registerEffect('TECHNO_BARS', technoBarsClassic);
+registerEffect('TECHNO_TROLL', technoTrollClassic);
+registerEffect('FOREST', forestClassic);
+registerEffect('LENS_TRANSITION', lensTransitionClassic);
+registerEffect('LENS_LENS', lensClassic);
+registerEffect('LENS_ROTO', rotozoomClassic);
+registerEffect('PLZ_PLASMA', plasmaClassic);
+registerEffect('PLZ_CUBE', plzCubeClassic);
+registerEffect('DOTS', dotsClassic);
+registerEffect('WATER', waterClassic);
+registerEffect('COMAN', voxelLandscapeClassic);
+registerEffect('JPLOGO', jplogoClassic);
+registerEffect('U2E', u2eClassic);
+registerEffect('ENDLOGO', endlogoClassic);
+registerEffect('CREDITS', creditsClassic);
+registerEffect('ENDSCRL', scrolltextClassic);
 
 // Bonus / hidden effects
-registerEffect('starfield', starfieldClassic, null, { bonus: true, hidden: true });
+registerEffect('DDSTARS', starfieldClassic, null, { bonus: true, hidden: true });
 registerEffect('copperBars', copperBarsClassic, null, { bonus: true });
 registerEffect('fire', fireClassic, null, { bonus: true });
 registerEffect('wireframe3d', wireframe3dClassic, null, { bonus: true });
