@@ -93,7 +93,7 @@ The following maps to the actual Second Reality demo sequence. Each effect has a
 - [ ] `glenzVectors/effect.remastered.js`
 
 ### Part 7 — TUNNELI (Dot Tunnel)
-- [x] `tunneli/effect.js` — concentric circles receding into depth (TRUG)
+- [x] `tunneli/effect.js` — concentric circles receding into depth (TRUG) [REWRITTEN: full 1:1 port]
 - [ ] `tunneli/effect.remastered.js`
 
 ### Part 8 — TECHNO_CIRCLES (Circle Interference)
