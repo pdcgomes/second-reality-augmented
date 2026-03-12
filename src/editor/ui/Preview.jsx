@@ -7,6 +7,24 @@ import { getTransitionProgress, renderTransitionOverlay, destroyTransitions } fr
 const INTERNAL_WIDTH = 320;
 const INTERNAL_HEIGHT = 256;
 
+function resizeCanvasToDisplay(canvas, variant, fit) {
+  if (variant === 'remastered' && fit === 'fill') {
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.parentElement.getBoundingClientRect();
+    const w = Math.round(rect.width * dpr);
+    const h = Math.round(rect.height * dpr);
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w;
+      canvas.height = h;
+    }
+  } else {
+    if (canvas.width !== INTERNAL_WIDTH || canvas.height !== INTERNAL_HEIGHT) {
+      canvas.width = INTERNAL_WIDTH;
+      canvas.height = INTERNAL_HEIGHT;
+    }
+  }
+}
+
 export default function Preview() {
   const canvasRef = useRef(null);
   const rafRef = useRef(null);
@@ -74,7 +92,9 @@ export default function Preview() {
         fpsRef.current.lastTime = now;
       }
 
-      const { project, playheadSeconds, variant: currentVariant } = useEditorStore.getState();
+      const { project, playheadSeconds, variant: currentVariant, previewFit: currentFit } = useEditorStore.getState();
+      resizeCanvasToDisplay(canvas, currentVariant, currentFit);
+      gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
       gl.clear(gl.COLOR_BUFFER_BIT);
 
       if (project?.clips) {
@@ -114,6 +134,8 @@ export default function Preview() {
   }, []);
 
   const isFill = previewFit === 'fill';
+  const variant = useEditorStore((s) => s.variant);
+  const isHiRes = variant === 'remastered' && isFill;
 
   return (
     <div className="w-full h-full relative bg-black overflow-hidden">
@@ -123,7 +145,7 @@ export default function Preview() {
         height={INTERNAL_HEIGHT}
         className={isFill ? '' : 'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 border border-border'}
         style={{
-          imageRendering: 'pixelated',
+          imageRendering: isHiRes ? 'auto' : 'pixelated',
           ...(isFill
             ? { width: '100%', height: '100%', objectFit: 'contain' }
             : { width: INTERNAL_WIDTH, height: INTERNAL_HEIGHT }),
