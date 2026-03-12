@@ -13,6 +13,7 @@ One subfolder per effect with two possible variants:
 ```
 effects/<name>/effect.js              — Classic (1:1 faithful to original)
 effects/<name>/effect.remastered.js   — Remastered (4K, enhanced) — optional
+effects/<name>/data.js                — Base64-embedded binary data (generated)
 ```
 
 Classic is always implemented first. Remastered is optional and additive.
@@ -32,6 +33,33 @@ export default {
 - `t` — seconds elapsed since this clip's start (local time, not global)
 - `beat` — 0.0–1.0 position within the current bar
 - `params` — clip-specific parameters from project.json
+
+## Asset Extraction
+
+When an effect bakes in visual data (textures, palettes, frame sequences, font
+bitmaps, landscapes, etc.), those assets **must also be extracted as readable
+image files** for later AI-upscaling and remastering.
+
+### Convention
+
+- Output directory: `assets/effects/{effect-name}/`
+- Naming: `{resource-name}.{ext}` (e.g. `landscape.png`, `frame-07.png`, `palette.png`)
+- Format: PNG for images, plain text for non-image data
+- Palette-indexed data should be decoded to full RGB — no indexed PNGs
+- Frame sequences use zero-padded numbering: `frame-{NN}.png`
+- Extract at **normal palette** (no fades applied) so the raw artwork is preserved
+
+### How
+
+Add extraction logic to `tools/extract-assets-png.mjs`. The script uses only
+Node.js built-ins (zlib for PNG deflate) — no external image libraries needed.
+Run it with `node tools/extract-assets-png.mjs` to regenerate all assets.
+
+When implementing a new effect that embeds data:
+1. Create the `data.js` module with base64 data (via a `tools/extract-*-data.mjs` script)
+2. Add an extraction function to `tools/extract-assets-png.mjs` that decodes the
+   visual data into PNG files under `assets/`
+3. Run the script and verify the output images look correct
 
 ## Rules
 
