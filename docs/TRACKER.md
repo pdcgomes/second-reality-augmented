@@ -28,33 +28,35 @@
 - [x] Vitest setup + unit tests for core modules
 
 ### 1b — Clock
-- [ ] `core/clock.js` — wraps `AudioContext.currentTime`, play/pause/scrub
+- [x] `core/clock.js` — wraps `AudioContext.currentTime`, play/pause/scrub
 
 ### 1c — Project I/O
-- [ ] `core/project.js` — project.json load/save/validate, File System Access API
+- [x] `core/project.js` — project.json load/validate
+- [ ] `core/project.js` — File System Access API save (editor-specific)
 
 ### 1d — Orchestrator
-- [ ] `core/orchestrator.js` — effect lifecycle, tick loop, cue dispatch, pre-warming
+- [x] `core/orchestrator.js` — effect lifecycle, tick loop, cue dispatch, pre-warming
 
 ### 1e — MOD Player
 - [ ] `core/modplayer.js` — libxmp-wasm + AudioWorklet, S3M playback
 
 ### 1f — Timeline
-- [ ] `editor/ui/Timeline.jsx` — canvas-rendered timeline, playhead scrubbing, clip blocks, beat ticks, zoom
+- [x] `editor/ui/Timeline.jsx` — canvas-rendered timeline, playhead scrubbing, clip blocks, beat ticks, zoom
 
 ### 1g — Transport
-- [ ] `editor/ui/Toolbar.jsx` — play/pause/stop, timecode, beat snap, keyboard shortcuts
+- [x] `editor/ui/Toolbar.jsx` — play/pause/stop, timecode, beat snap, keyboard shortcuts
 
 ### 1h — Library & Properties
-- [ ] `editor/ui/EffectLibrary.jsx` — effect browser, drag-to-add
-- [ ] `editor/ui/ClipProperties.jsx` — clip param editor
+- [x] `editor/ui/EffectLibrary.jsx` — effect browser (listing)
+- [ ] `editor/ui/EffectLibrary.jsx` — drag-to-add clips
+- [x] `editor/ui/ClipProperties.jsx` — clip param viewer
 
 ### 1i — Export Pipeline
 - [ ] `tools/export.js` — inline all assets into a single self-contained HTML file
 
 ## Phase 2 — Amiga Opener Effects
 
-- [ ] `copperBars` — copper gradient sky (fragment shader, palette cycling)
+- [x] `copperBars` — copper gradient sky (fragment shader, palette cycling)
 - [ ] `starfield` — two-layer parallax point sprites, warp mode
 - [ ] `scrolltext` — sine wave displaced scrolling text
 
