@@ -347,6 +347,42 @@ async function extractTechnoCircles() {
   writePNG(resolve(out, 'circle2-quarter.png'), W, H1, rgba2);
 }
 
+// ── WATER assets ─────────────────────────────────────────────────
+
+async function extractWater() {
+  console.log('\nWATER:');
+  const out = effectDir('water');
+  const { FONT_W, FONT_H, PAL_B64, FONT_B64, BG_B64 } =
+    await import('../src/effects/water/data.js');
+
+  const pal = b64ToUint8(PAL_B64);
+  const k = 255 / 63;
+
+  function indexedToRGBA(pixels, w, h) {
+    const rgba = new Uint8Array(w * h * 4);
+    for (let i = 0; i < w * h; i++) {
+      const idx = pixels[i];
+      rgba[i * 4]     = Math.round(pal[idx * 3] * k);
+      rgba[i * 4 + 1] = Math.round(pal[idx * 3 + 1] * k);
+      rgba[i * 4 + 2] = Math.round(pal[idx * 3 + 2] * k);
+      rgba[i * 4 + 3] = 255;
+    }
+    return rgba;
+  }
+
+  // Background scene — 320×200
+  {
+    const pixels = b64ToUint8(BG_B64);
+    writePNG(resolve(out, 'background.png'), 320, 200, indexedToRGBA(pixels, 320, 200));
+  }
+
+  // Sword font — 400×34
+  {
+    const pixels = b64ToUint8(FONT_B64);
+    writePNG(resolve(out, 'sword.png'), FONT_W, FONT_H, indexedToRGBA(pixels, FONT_W, FONT_H));
+  }
+}
+
 // ── Run all ─────────────────────────────────────────────────────
 
 console.log('Extracting visual assets from implemented effects...');
@@ -356,4 +392,5 @@ await extractU2a();
 await extractBeglogo();
 await extractGlenzTransition();
 await extractTechnoCircles();
+await extractWater();
 console.log('\nDone.');
