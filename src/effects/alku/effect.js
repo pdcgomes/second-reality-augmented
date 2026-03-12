@@ -225,64 +225,92 @@ function parseFont() {
   return { chars, raw };
 }
 
-/** Render a text screen (array of {y, text} lines) to an RGBA buffer. */
+/**
+ * Render a text screen to a 320×256 RGBA buffer.
+ *
+ * Strategy: first blit text at native positions into a 320×400 intermediate
+ * buffer (where the 30px font is its natural size), then area-downsample to
+ * 320×256 so every font pixel contributes — no source rows are skipped.
+ */
 function renderTextScreen(screen, font) {
-  const rgba = new Uint8Array(DISPLAY_W * DISPLAY_H * 4);
-  // Scale Y positions from original 400-line space to our 256-line space
-  const yScale = DISPLAY_H / 400;
+  const SRC_H = 400;
+  const src = new Uint8Array(DISPLAY_W * SRC_H * 4);
 
   for (const line of screen.lines) {
-    // Calculate string pixel width
     let totalW = 0;
     for (let i = 0; i < line.text.length; i++) {
       const ch = font.chars[line.text.charCodeAt(i)];
       if (ch) totalW += ch.w + 2;
     }
 
-    // Center horizontally around x=160 (half of 320)
     let cx = Math.floor(160 - totalW / 2);
-    const cy = Math.floor(line.y * yScale);
+    const cy = line.y; // native 400-line position
 
-    // Handle special Dolby logo height
     const isDolbyUpper = line.text === '[';
     const charHeight = isDolbyUpper ? 19 : FONT_H;
-    const scaledCharH = Math.ceil(charHeight * yScale);
 
     for (let i = 0; i < line.text.length; i++) {
       const ch = font.chars[line.text.charCodeAt(i)];
       if (!ch) { cx += 18; continue; }
 
-      const scaledW = Math.max(1, Math.floor(ch.w * (DISPLAY_W / 320)));
-      const renderH = Math.min(scaledCharH, Math.ceil(FONT_H * yScale));
-
-      for (let fy = 0; fy < renderH; fy++) {
-        const srcY = Math.floor(fy / yScale);
-        if (srcY >= FONT_H) break;
-        for (let fx = 0; fx < scaledW; fx++) {
-          const srcX = Math.floor(fx * ch.w / scaledW);
-          const fontVal = font.raw[ch.x + srcX + srcY * FONT_W];
+      for (let fy = 0; fy < charHeight; fy++) {
+        if (fy >= FONT_H) break;
+        for (let fx = 0; fx < ch.w; fx++) {
+          const fontVal = font.raw[ch.x + fx + fy * FONT_W];
           if (fontVal === 0) continue;
 
           const px = cx + fx;
           const py = cy + fy;
-          if (px < 0 || px >= DISPLAY_W || py < 0 || py >= DISPLAY_H) continue;
+          if (px < 0 || px >= DISPLAY_W || py < 0 || py >= SRC_H) continue;
 
-          // Font values 1-3 map to anti-aliasing levels
           const alpha = fontVal === 1 ? 85 : fontVal === 2 ? 170 : 255;
           const oi = (py * DISPLAY_W + px) * 4;
-          // White/light-gray text like the original
-          const existing = rgba[oi + 3];
+          const existing = src[oi + 3];
           if (alpha > existing) {
-            rgba[oi + 0] = 255;
-            rgba[oi + 1] = 255;
-            rgba[oi + 2] = 255;
-            rgba[oi + 3] = alpha;
+            src[oi]     = 255;
+            src[oi + 1] = 255;
+            src[oi + 2] = 255;
+            src[oi + 3] = alpha;
           }
         }
       }
-      cx += Math.floor((ch.w + 2) * (DISPLAY_W / 320));
+      cx += ch.w + 2;
     }
   }
+
+  // Area-downsample 320×400 → 320×256 with fractional coverage weighting
+  const rgba = new Uint8Array(DISPLAY_W * DISPLAY_H * 4);
+  const ratio = SRC_H / DISPLAY_H; // ≈ 1.5625
+
+  for (let dy = 0; dy < DISPLAY_H; dy++) {
+    const srcY0 = dy * ratio;
+    const srcY1 = (dy + 1) * ratio;
+    const y0 = Math.floor(srcY0);
+    const y1 = Math.min(Math.ceil(srcY1), SRC_H);
+
+    for (let dx = 0; dx < DISPLAY_W; dx++) {
+      let a = 0, weight = 0;
+
+      for (let sy = y0; sy < y1; sy++) {
+        let w = 1;
+        if (sy < srcY0) w -= srcY0 - sy;
+        if (sy + 1 > srcY1) w -= (sy + 1 - srcY1);
+
+        const si = (sy * DISPLAY_W + dx) * 4;
+        a += src[si + 3] * w;
+        weight += w;
+      }
+
+      if (a > 0) {
+        const di = (dy * DISPLAY_W + dx) * 4;
+        rgba[di]     = 255;
+        rgba[di + 1] = 255;
+        rgba[di + 2] = 255;
+        rgba[di + 3] = Math.round(a / weight);
+      }
+    }
+  }
+
   return rgba;
 }
 
