@@ -125,7 +125,7 @@ The following maps to the actual Second Reality demo sequence. Each effect has a
 - [ ] `lens/effect.remastered.js`
 
 ### Part 15 — LENS_ROTO (Rotozoom)
-- [x] `rotozoom/effect.js` — rotozoom of picture (PSI)
+- [x] `rotozoom/effect.js` — rotozoom of picture (PSI) [REWRITTEN: full 1:1 port]
 - [ ] `rotozoom/effect.remastered.js`
 
 ### Part 16 — PLZ_PLASMA (Plasma)
