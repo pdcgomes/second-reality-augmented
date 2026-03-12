@@ -173,6 +173,16 @@ export default {
       plzline(fb400, y, lc, params, false);
     }
 
+    // Horizontal box filter: blend adjacent columns to simulate CRT phosphor
+    // bleed that made the even/odd column interleaving invisible on the original hardware
+    for (let y = 0; y < MAXY; y++) {
+      const row = (y + lc) * 320;
+      if (y + lc >= 400) continue;
+      for (let x = 0; x < 319; x++) {
+        fb400[row + x] = (fb400[row + x] + fb400[row + x + 1] + 1) >> 1;
+      }
+    }
+
     // Select palette for current sequence
     const targetPal = pals[effectiveSeq];
 
