@@ -12,6 +12,11 @@ export default defineConfig({
       '@effects': path.resolve(__dirname, '../effects'),
     },
   },
+  server: {
+    fs: {
+      allow: [path.resolve(__dirname, '../..')],
+    },
+  },
   test: {
     include: ['../__tests__/**/*.test.js'],
     environment: 'node',
