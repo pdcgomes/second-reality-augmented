@@ -153,7 +153,7 @@ The following maps to the actual Second Reality demo sequence. Each effect has a
 - [ ] `jplogo/effect.remastered.js`
 
 ### Part 22 — U2E (3D City Flyover)
-- [ ] `u2e/effect.js` — 3D city polygon flyover (PSI)
+- [x] `u2e/effect.js` — 3D city polygon flyover (PSI) [REWRITTEN: full 1:1 port with U2 engine]
 - [ ] `u2e/effect.remastered.js`
 
 ### Part 23 — ENDLOGO (End Picture)
