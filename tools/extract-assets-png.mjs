@@ -230,10 +230,57 @@ async function extractU2a() {
   }
 }
 
+// ── BEGLOGO assets ──────────────────────────────────────────────
+
+async function extractBeglogo() {
+  console.log('\nBEGLOGO:');
+  const out = effectDir('beglogo');
+  const { SRTITLE_B64 } = await import('../src/effects/beglogo/data.js');
+
+  const src = b64ToUint8(SRTITLE_B64);
+  const width = src[2] | (src[3] << 8);
+  const height = src[4] | (src[5] << 8);
+  const add = src[8] | (src[9] << 8);
+
+  // Extract palette (768 bytes at offset 16)
+  const pal = new Uint8Array(768);
+  for (let i = 0; i < 768; i++) pal[i] = src[16 + i];
+
+  // Decode all rows via readp RLE
+  const pix = new Uint8Array(width * height);
+  let srcIdx = add * 16;
+  for (let row = 0; row < height; row++) {
+    const bytes = src[srcIdx] | (src[srcIdx + 1] << 8);
+    srcIdx += 2;
+    const rowEnd = srcIdx + bytes;
+    let destIdx = row * width;
+    while (srcIdx < rowEnd) {
+      let b = src[srcIdx++];
+      let n;
+      if (b <= 127) { n = 1; }
+      else { n = b & 0x7f; b = src[srcIdx++]; }
+      for (let i = 0; i < n; i++) pix[destIdx++] = b;
+    }
+  }
+
+  // Write title picture with normal palette
+  const k = 255 / 63;
+  const rgba = new Uint8Array(width * height * 4);
+  for (let i = 0; i < width * height; i++) {
+    const idx = pix[i];
+    rgba[i * 4]     = Math.round(pal[idx * 3] * k);
+    rgba[i * 4 + 1] = Math.round(pal[idx * 3 + 1] * k);
+    rgba[i * 4 + 2] = Math.round(pal[idx * 3 + 2] * k);
+    rgba[i * 4 + 3] = 255;
+  }
+  writePNG(resolve(out, 'title.png'), width, height, rgba);
+}
+
 // ── Run all ─────────────────────────────────────────────────────
 
 console.log('Extracting visual assets from implemented effects...');
 await extractAlku();
 await extractPam();
 await extractU2a();
+await extractBeglogo();
 console.log('\nDone.');

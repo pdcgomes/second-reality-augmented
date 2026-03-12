@@ -81,7 +81,7 @@ The following maps to the actual Second Reality demo sequence. Each effect has a
 - [ ] `pam/effect.remastered.js`
 
 ### Part 4 — BEGLOGO (Title Card)
-- [ ] `beglogo/effect.js` — "Second Reality" title display
+- [x] `beglogo/effect.js` — "Second Reality" title display
 - [ ] `beglogo/effect.remastered.js`
 
 ### Part 5 — GLENZ_TRANSITION (Checkerboard Fall)
