@@ -604,7 +604,20 @@ export function createU2Engine() {
     sortAndDraw();
   }
 
-  // ── Pre-baked animation snapshots ────────────────────────────────
+  // ── Real-time API ──────────────────────────────────────────────
+
+  function reset() {
+    animPtr = 0;
+    animEnd = false;
+    setFov(40);
+    for (let c = 0; c < co.length; c++) {
+      co[c].o.r0.fill(0);
+      if (c > 0) co[c].on = 0;
+    }
+    cam = co[0].o.r0;
+  }
+
+  // ── Lazy-bake snapshot API (for editor scrubbing) ─────────────
 
   let snapshots = null;
 
@@ -627,15 +640,7 @@ export function createU2Engine() {
   }
 
   function bakeAnimation() {
-    animPtr = 0;
-    animEnd = false;
-    setFov(40);
-    for (let c = 0; c < co.length; c++) {
-      co[c].o.r0.fill(0);
-      if (c > 0) co[c].on = 0;
-    }
-    cam = co[0].o.r0;
-
+    reset();
     snapshots = [snapshot()];
     while (!animEnd) {
       stepAnimation();
@@ -644,16 +649,21 @@ export function createU2Engine() {
   }
 
   function seekFrame(n) {
+    if (!snapshots) bakeAnimation();
     const idx = Math.max(0, Math.min(n, snapshots.length - 1));
     restoreSnapshot(snapshots[idx]);
   }
 
   return {
     init,
+    stepAnimation,
+    reset,
+    renderFrame,
     bakeAnimation,
     seekFrame,
-    renderFrame,
     get framebuffer() { return fb; },
+    get baked() { return !!snapshots; },
+    get ended() { return animEnd; },
     get totalFrames() { return snapshots ? snapshots.length : 0; },
     get width() { return W; },
     get height() { return H; },

@@ -55,6 +55,7 @@ let bgPic = null;
 let palette32 = null;
 let rgbaBuffer = null;
 let frameTex = null;
+let frameCount = 0;
 
 function b64ToUint8(b64) {
   const bin = atob(b64);
@@ -102,11 +103,11 @@ export default {
 
     engine = createU2Engine();
     const scene = engine.init(SCENE_B64, OBJ_B64S, ANIM_B64);
-    engine.bakeAnimation();
 
     palette32 = buildPalette(scene);
     bgPic = buildBackground();
     rgbaBuffer = new Uint8Array(W * H * 4);
+    frameCount = 0;
 
     frameTex = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, frameTex);
@@ -120,7 +121,17 @@ export default {
   render(gl, t, beat, _params) {
     const targetFrame = Math.floor(t * FRAME_RATE);
 
-    engine.seekFrame(targetFrame);
+    if (targetFrame < frameCount) {
+      // Backward seek detected — lazily bake all frames for O(1) random access.
+      // Once baked, all subsequent seeks (forward or backward) use snapshots.
+      engine.seekFrame(targetFrame);
+    } else if (engine.baked) {
+      engine.seekFrame(targetFrame);
+    } else {
+      const steps = Math.min(targetFrame - frameCount, 910);
+      for (let i = 0; i < steps && !engine.ended; i++) engine.stepAnimation();
+    }
+    frameCount = targetFrame;
 
     const fb = engine.framebuffer;
     const cy0 = engine.clipY[0];
@@ -160,5 +171,6 @@ export default {
     palette32 = null;
     rgbaBuffer = null;
     frameTex = null;
+    frameCount = 0;
   },
 };
