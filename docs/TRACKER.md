@@ -157,7 +157,7 @@ The following maps to the actual Second Reality demo sequence. Each effect has a
 - [ ] `u2e/effect.remastered.js`
 
 ### Part 23 — ENDLOGO (End Picture)
-- [ ] `endlogo/effect.js` — end picture flash
+- [x] `endlogo/effect.js` — end picture flash [REWRITTEN: full 1:1 port]
 - [ ] `endlogo/effect.remastered.js`
 
 ### Part 24 — CREDITS (Scrolling Credits)
