@@ -101,7 +101,7 @@ The following maps to the actual Second Reality demo sequence. Each effect has a
 - [ ] `technoCircles/effect.remastered.js`
 
 ### Part 9 — TECHNO_BARS_TRANSITION (Bars Transition)
-- [ ] `technoBarsTransition/effect.js` — four synced bars transition (PSI)
+- [x] `technoBarsTransition/effect.js` — four synced bars transition (PSI)
 - [ ] `technoBarsTransition/effect.remastered.js`
 
 ### Part 10 — TECHNO_BARS (Rotating Bars)
@@ -182,6 +182,34 @@ These are additional effects developed for creative use in the editor. Not part 
 - [x] `bouncingBitmap/effect.js` — bouncing bitmap (SDF logo)
 - [x] `grid/effect.js` — morphing neon grid, perspective floor
 - [x] `tunnel/effect.js` — classic tunnel/vortex (original name, now bonus)
+
+---
+
+## Remastered Variant Strategy
+
+> **Rule: all remastered effects must be 100% shader-based (no software renderers).**
+
+Several classic variants faithfully reproduce the original CPU-based algorithms using indexed framebuffers and `texSubImage2D` per frame. The remastered variants must replace these with pure GLSL implementations.
+
+### Software-rendered classics requiring shader rewrites for remastered
+
+| Effect | Classic technique | Remastered approach (TBD) |
+|---|---|---|
+| `glenzVectors` | CPU 3D polygon rasterization, scanline filler, OR blending | **Needs design discussion** — vertex pipeline or raymarched SDF? |
+| `glenzTransition` | CPU checkerboard + title compositing | Fragment shader with procedural tiles |
+| `tunneli` | CPU circle rasterization (back-to-front) | Fragment shader (polar coordinates / raymarching) |
+| `technoCircles` | CPU circle compositing with palette animation | Fragment shader (SDF circles, palette LUT) |
+| `beglogo` | CPU palette-cycling decoded bitmap | Fragment shader with palette LUT texture |
+| `pam` | Pre-baked CPU frames, palette lookup | Texture atlas + shader playback |
+| `u2a` | CPU background compositing, palette | **Needs design discussion** — 3D ships need vertex pipeline or SDF |
+
+### 3D engine discussion (before starting)
+
+Effects with real 3D geometry need a decision on approach before implementation:
+
+- [ ] **Option A — Mini vertex pipeline**: shared `core/geometry.js` with projection matrices, vertex buffers, depth sorting, instancing. Covers glenzVectors, u2a, u2e, plzCube, dots remastered.
+- [ ] **Option B — Raymarching/SDF only**: each effect self-contained with raymarched SDFs in a single fragment shader. Works well for simple shapes (cubes, spheres, tori) but harder for complex polygon meshes.
+- [ ] **Option C — Hybrid**: simple effects use SDF, complex polygon effects (u2a, u2e city flyover) get the mini vertex pipeline.
 
 ---
 
