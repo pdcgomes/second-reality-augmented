@@ -113,7 +113,7 @@ The following maps to the actual Second Reality demo sequence. Each effect has a
 - [ ] `technoTroll/effect.remastered.js`
 
 ### Part 12 — FOREST (Mountain Scroller)
-- [ ] `forest/effect.js` — text mapped onto mountain landscape (TRUG)
+- [x] `forest/effect.js` — text mapped onto mountain landscape (TRUG)
 - [ ] `forest/effect.remastered.js`
 
 ### Part 13 — LENS_TRANSITION (Lens Slide-In)
