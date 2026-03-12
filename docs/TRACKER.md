@@ -16,16 +16,16 @@
 ### 1a — Monorepo Scaffold
 - [x] `.cursor/rules/` — 7 project convention rules
 - [x] `docs/PROJECT_BRIEF.md` + `docs/TRACKER.md`
-- [ ] Editor scaffold: Vite + React 18 + Tailwind + shadcn/ui + Zustand
-- [ ] Editor dark theme (FL Studio aesthetic)
-- [ ] Editor 5-panel layout (Toolbar, Preview, Timeline, EffectLibrary, ClipProperties)
-- [ ] `src/core/webgl.js` — shared WebGL2 helpers
-- [ ] Editor Preview.jsx — WebGL2 canvas at 320×256, nearest-neighbor upscale
-- [ ] Player stub — `src/player/index.html` + `player.js`, fullscreen canvas
-- [ ] Core module stubs: clock, project, orchestrator, beatmap, modplayer
-- [ ] Placeholder `assets/project.json` with realistic timings
-- [ ] Effects registry (`src/effects/index.js`) with classic/remastered variant resolution
-- [ ] Vitest setup + unit tests for core modules
+- [x] Editor scaffold: Vite + React 18 + Tailwind + shadcn/ui + Zustand
+- [x] Editor dark theme (FL Studio aesthetic)
+- [x] Editor 5-panel layout (Toolbar, Preview, Timeline, EffectLibrary, ClipProperties)
+- [x] `src/core/webgl.js` — shared WebGL2 helpers
+- [x] Editor Preview.jsx — WebGL2 canvas at 320×256, nearest-neighbor upscale
+- [x] Player stub — `src/player/index.html` + `player.js`, fullscreen canvas
+- [x] Core module stubs: clock, project, orchestrator, beatmap, modplayer
+- [x] Placeholder `assets/project.json` with realistic timings
+- [x] Effects registry (`src/effects/index.js`) with classic/remastered variant resolution
+- [x] Vitest setup + unit tests for core modules
 
 ### 1b — Clock
 - [ ] `core/clock.js` — wraps `AudioContext.currentTime`, play/pause/scrub

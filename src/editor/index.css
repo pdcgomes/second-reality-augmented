@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+@theme {
+  --color-surface-900: #0d0d1a;
+  --color-surface-800: #13132b;
+  --color-surface-700: #1a1a3e;
+  --color-surface-600: #252550;
+  --color-surface-500: #333366;
+  --color-border: #2a2a4a;
+  --color-accent-blue: #4a7cff;
+  --color-accent-purple: #8855ff;
+  --color-accent-cyan: #00ccaa;
+  --color-text-primary: #e8e8f0;
+  --color-text-secondary: #8888aa;
+  --color-text-dim: #555577;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-surface-600) var(--color-surface-900);
+}
