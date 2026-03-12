@@ -109,7 +109,7 @@ The following maps to the actual Second Reality demo sequence. Each effect has a
 - [ ] `technoBars/effect.remastered.js`
 
 ### Part 11 — TECHNO_TROLL (Troll Picture)
-- [ ] `technoTroll/effect.js` — troll picture with CRT shutdown (PSI/WILDFIRE)
+- [x] `technoTroll/effect.js` — troll picture with CRT shutdown (PSI/WILDFIRE)
 - [ ] `technoTroll/effect.remastered.js`
 
 ### Part 12 — FOREST (Mountain Scroller)
