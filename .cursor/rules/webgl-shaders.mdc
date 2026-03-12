@@ -12,7 +12,9 @@ Target WebGL2 exclusively. All shaders use `#version 300 es`.
 
 ## Resolution
 
-Internal render target: 320×256 (classic mode). Upscale to display size with nearest-neighbor filtering only — never bilinear. Set via `gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)`.
+**Classic** — internal render target is 320x256. Upscale to display with nearest-neighbor filtering (`gl.NEAREST`) to preserve the pixel-art aesthetic.
+
+**Remastered** — render at the canvas's native resolution (`gl.drawingBufferWidth x gl.drawingBufferHeight`). Recreate FBOs dynamically when the canvas resizes. Use MSAA for anti-aliased geometry and bilinear filtering for bloom/blur passes.
 
 ## Fullscreen Quad
 

@@ -1,0 +1,89 @@
+---
+description: Resolution independence and parameterization patterns for remastered effects
+globs: src/effects/**/effect.remastered.js
+alwaysApply: false
+---
+
+# Remastered Effect Standards
+
+## Resolution Independence
+
+Remastered effects must render at the display's native resolution, not the classic 320x256.
+
+- Read `gl.drawingBufferWidth` / `gl.drawingBufferHeight` each frame — the canvas may resize
+- Recreate FBOs when dimensions change (track previous size, compare, rebuild)
+- Bloom / blur FBOs scale proportionally: half-res for tight bloom, quarter-res for wide bloom
+- Final composite outputs to `gl.bindFramebuffer(null)` at full `drawingBufferWidth x drawingBufferHeight`
+- Use MSAA renderbuffers for anti-aliased 3D geometry, then blit-resolve to a texture FBO
+- Projection matrices must use the current aspect ratio (`sw / sh`), not a hardcoded ratio
+- Never assume a fixed resolution — everything flows from the canvas size
+
+```javascript
+render(gl, t, beat, params) {
+  const sw = gl.drawingBufferWidth;
+  const sh = gl.drawingBufferHeight;
+  if (sw !== fboW || sh !== fboH) {
+    // Destroy old FBOs, recreate at new size
+    msaaFBO = createMSAAFBO(gl, sw, sh, samples);
+    sceneFBO = createFBO(gl, sw, sh);
+    bloomFBO = createFBO(gl, sw >> 1, sh >> 1);
+    fboW = sw; fboH = sh;
+  }
+  // ...
+}
+```
+
+## Effect Parameterization
+
+Every remastered effect must export a `params` array of descriptors alongside `init`, `render`, `destroy`. This enables the editor's CLIP PROPERTIES pane to auto-generate controls.
+
+### Parameter Descriptor Schema
+
+```javascript
+export default {
+  label: 'effectName (remastered)',
+  params: [
+    { key: 'bloomThreshold', label: 'Bloom Threshold', type: 'float', min: 0, max: 1, step: 0.01, default: 0.2 },
+    // ...
+  ],
+  init(gl) { },
+  render(gl, t, beat, params) { },
+  destroy(gl) { },
+}
+```
+
+Each descriptor has: `key` (uniform/variable name), `label` (display name), `type` (`float` for now — extend with `int`, `bool`, `color` as needed), `min`, `max`, `step`, `default`.
+
+### Consuming Parameters in render()
+
+Use a helper to read params with fallback to defaults:
+
+```javascript
+render(gl, t, beat, params) {
+  const p = (k, d) => params[k] ?? d;
+  gl.uniform1f(loc.threshold, p('bloomThreshold', 0.2));
+  const scale = 1.0 + beatPulse * p('beatScale', 0.02);
+  // ...
+}
+```
+
+### What to Parameterize
+
+Expose anything that meaningfully changes the visual output:
+
+- **Post-processing**: bloom threshold, bloom intensity (tight/wide), scanline strength
+- **Lighting**: specular power, fresnel exponent, ambient levels
+- **Beat reactivity**: scale pulse amount, bloom pulse amount
+- **Material**: transparency, color tint, reflectivity
+
+Do NOT parameterize internal implementation details (buffer sizes, iteration counts for convergence, etc.).
+
+## Registering Remastered Variants
+
+In `src/effects/index.js`, pass the remastered module as the third argument to `registerEffect`:
+
+```javascript
+registerEffect('EFFECT_NAME', classicModule, remasteredModule);
+```
+
+The registry's `getEffectParams(name, variant)` helper reads the `params` array from whichever variant is active. The editor reads this to build the UI — no per-effect UI code needed.

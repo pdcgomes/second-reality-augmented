@@ -12,11 +12,9 @@
  */
 
 import { createProgram, createFullscreenQuad, FULLSCREEN_VERT } from '../../core/webgl.js';
+import { FRAME_RATE, MAXDOTS, simulateDots } from './animation.js';
 
 const W = 320, H = 200, PIXELS = W * H;
-const FRAME_RATE = 70;
-const MAXDOTS = 512;
-const BOTTOM = 8000;
 
 const FRAG = `#version 300 es
 precision highp float;
@@ -31,9 +29,6 @@ void main() {
 function clamp(v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; }
 
 const COLS = [0,0,0, 4,25,30, 8,40,45, 16,55,60];
-
-function isin(deg) { return Math.sin(Math.PI * deg / 512) * 255; }
-function icos(deg) { return Math.cos(Math.PI * deg / 512) * 255; }
 
 let program, quad, uFrameLoc, frameTex;
 let rgba, pal, bgpic;
@@ -56,7 +51,6 @@ function buildPalAndBg() {
     pal[(64 + a) * 3 + 1] = Math.floor(c / 4);
     pal[(64 + a) * 3 + 2] = Math.floor(c / 4);
   }
-  // Palette entry 87 used for shadows is in the bg range — already set
 
   bgpic = new Uint8Array(PIXELS);
   for (let a = 0; a < 100; a++)
@@ -96,82 +90,11 @@ export default {
 
   render(gl, t, _beat, _params) {
     const targetFrame = Math.floor(t * FRAME_RATE);
+    const sim = simulateDots(targetFrame);
+    const { dots, rotSin: rotsin, rotCos: rotcos, frame } = sim;
 
-    // Replay dot simulation from start
-    const dots = new Array(MAXDOTS);
-    for (let i = 0; i < MAXDOTS; i++) dots[i] = { x: 0, y: 2560 - 22000, z: 0, yadd: 0 };
-
-    let dropper = 22000, rot = 0, rots = 0, rota = -64, j = 0, f = 0, frame = 0;
-    let grav = 3, gravd = 13, gravitybottom = 8105;
-    let rotsin = 0, rotcos = 0;
-
-    // Use seeded PRNG for deterministic random
-    let seed = 12345;
-    function rand() { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return (seed >> 16) & 0x7fff; }
-
-    const replayFrames = Math.min(targetFrame - 128, 2450);
-    for (let fr = 0; fr < replayFrames; fr++) {
-      if (frame < 2450) frame++;
-      if (frame === 500) f = 0;
-      j++; j %= MAXDOTS;
-
-      if (frame < 500) {
-        dots[j].x = isin(f * 11) * 40;
-        dots[j].y = icos(f * 13) * 10 - dropper;
-        dots[j].z = isin(f * 17) * 40;
-        dots[j].yadd = 0;
-      } else if (frame < 900) {
-        dots[j].x = icos(f * 15) * 55;
-        dots[j].y = dropper;
-        dots[j].z = isin(f * 15) * 55;
-        dots[j].yadd = -260;
-      } else if (frame < 1700) {
-        const a = Math.floor(256 * Math.sin(frame / 1024 * 2 * Math.PI) / 8);
-        dots[j].x = icos(f * 66) * a;
-        dots[j].y = 8000;
-        dots[j].z = isin(f * 66) * a;
-        dots[j].yadd = -300;
-      } else if (frame < 2360) {
-        dots[j].x = (rand() % 0x7fff) - 16384;
-        dots[j].y = 8000 - (rand() % 0x7fff) / 2;
-        dots[j].z = (rand() % 0x7fff) - 16384;
-        dots[j].yadd = 0;
-        if (frame > 1900 && !(frame & 31) && grav > 0) grav--;
-      }
-
-      if (dropper > 4000) dropper -= 100;
-      rotcos = icos(rot) * 64; rotsin = isin(rot) * 64;
-      rots += 2;
-      if (frame > 1900) { rot += rota / 64; rota--; }
-      else rot = isin(rots);
-      f++;
-
-      const gravity = grav;
-      for (let i = 0; i < MAXDOTS; i++) {
-        const d = dots[i];
-        const bp = ((d.z * rotcos - d.x * rotsin) / 0x10000) + 9000;
-        const a2 = (d.z * rotsin + d.x * rotcos) / 0x100;
-        const x = (a2 + a2 / 8) / bp + 160;
-        if (x <= 319) {
-          const sy = (0x80000 / bp) + 100;
-          if (sy <= 199) {
-            d.yadd += gravity;
-            let b = d.y + d.yadd;
-            if (b >= gravitybottom) {
-              d.yadd = Math.floor((-d.yadd * gravd) / 0x10);
-              b += d.yadd;
-            }
-            d.y = b;
-          }
-        }
-      }
-    }
-
-    // Draw current frame
     const fb = new Uint8Array(PIXELS);
     for (let i = 0; i < PIXELS; i++) fb[i] = bgpic[i];
-
-    rotcos = icos(rot) * 64; rotsin = isin(rot) * 64;
 
     for (let i = 0; i < MAXDOTS; i++) {
       const d = dots[i];
@@ -181,14 +104,12 @@ export default {
       const x = Math.floor((a + a / 8) / bp + 160);
       if (x < 0 || x >= W - 4) continue;
 
-      // Shadow
       const sy = Math.floor((0x80000 / bp) + 100);
       if (sy >= 0 && sy < H) {
         const sofs = sy * W + x;
         if (sofs >= 0 && sofs + 1 < PIXELS) { fb[sofs] = 87; fb[sofs + 1] = 87; }
       }
 
-      // Dot sprite
       const y = Math.floor((d.y * 64) / bp + 100);
       if (y < 0 || y >= H - 3) continue;
       let bpi = (bp >> 6) & ~3;
@@ -202,7 +123,6 @@ export default {
       if (ofs + 2 * W + 2 < PIXELS) { fb[ofs + 2 * W + 1] = dt1[bpi]; fb[ofs + 2 * W + 2] = dt1[bpi + 1]; }
     }
 
-    // Apply palette fade-in for first 128 frames
     const activePal = new Uint8Array(768);
     if (targetFrame < 128) {
       const fade = targetFrame / 128;
@@ -222,7 +142,6 @@ export default {
       for (let i = 0; i < 768; i++) activePal[i] = pal[i];
     }
 
-    // Convert to RGBA
     const k = 255 / 63;
     const rgba32 = new Uint32Array(rgba.buffer);
     for (let i = 0; i < PIXELS; i++) {
