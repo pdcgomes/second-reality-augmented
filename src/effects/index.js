@@ -13,7 +13,12 @@
  *   }
  */
 
+import copperBarsClassic from './copperBars/effect.js';
+
 const registry = {};
+
+// Auto-register built-in effects
+registerEffect('copperBars', copperBarsClassic);
 
 export function registerEffect(name, classic, remastered = null) {
   registry[name] = { classic, remastered };
