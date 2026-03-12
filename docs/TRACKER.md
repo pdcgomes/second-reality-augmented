@@ -165,8 +165,8 @@ The following maps to the actual Second Reality demo sequence. Each effect has a
 - [ ] `credits/effect.remastered.js`
 
 ### Part 25 — ENDSCRL (Greetings Scroll)
-- [x] `scrolltext/effect.js` — vertical text scroller (WILDFIRE)
-- [ ] `scrolltext/effect.remastered.js`
+- [x] `endscrl/effect.js` — vertical text scroller (WILDFIRE) [REWRITTEN: full 1:1 port]
+- [ ] `endscrl/effect.remastered.js`
 
 ---
 
