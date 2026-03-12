@@ -38,7 +38,7 @@ import jplogoClassic from './jplogo/effect.js';
 import u2eClassic from './u2e/effect.js';
 import endlogoClassic from './endlogo/effect.js';
 import creditsClassic from './credits/effect.js';
-import scrolltextClassic from './scrolltext/effect.js';
+import endscrlClassic from './endscrl/effect.js';
 
 // ── Bonus effects (not in original demo) ──────────────────────────
 import starfieldClassic from './starfield/effect.js';
@@ -77,7 +77,7 @@ registerEffect('JPLOGO', jplogoClassic);
 registerEffect('U2E', u2eClassic);
 registerEffect('ENDLOGO', endlogoClassic);
 registerEffect('CREDITS', creditsClassic);
-registerEffect('ENDSCRL', scrolltextClassic);
+registerEffect('ENDSCRL', endscrlClassic);
 
 // Bonus / hidden effects
 registerEffect('DDSTARS', starfieldClassic, null, { bonus: true, hidden: true });
