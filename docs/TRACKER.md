@@ -145,7 +145,7 @@ The following maps to the actual Second Reality demo sequence. Each effect has a
 - [ ] `water/effect.remastered.js`
 
 ### Part 20 — COMAN (3D Sinusfield)
-- [x] `voxelLandscape/effect.js` — 3D sinusfield / voxel landscape (PSI)
+- [x] `coman/effect.js` — 3D sinusfield / voxel landscape (PSI) [REWRITTEN: full 1:1 port]
 - [ ] `voxelLandscape/effect.remastered.js`
 
 ### Part 21 — JPLOGO (Jelly Logo)
