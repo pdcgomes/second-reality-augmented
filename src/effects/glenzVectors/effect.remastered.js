@@ -311,6 +311,22 @@ function createFBO(gl, w, h) {
   return { fb, tex };
 }
 
+function createMSAAFBO(gl, w, h, samples) {
+  const fb = gl.createFramebuffer();
+  const rb = gl.createRenderbuffer();
+  gl.bindRenderbuffer(gl.RENDERBUFFER, rb);
+  gl.renderbufferStorageMultisample(gl.RENDERBUFFER, samples, gl.RGBA8, w, h);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, rb);
+  const status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+  if (status !== gl.FRAMEBUFFER_COMPLETE) {
+    console.error('MSAA FBO incomplete:', status);
+  }
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+  return { fb, rb };
+}
+
 // ── Checkerboard texture loader ──────────────────────────────────
 
 function b64ToUint8(b64) {
@@ -385,10 +401,12 @@ let meshProg, groundProg, bloomExtractProg, blurProg, compositeProg;
 let quad;
 let g1Mesh, g2Mesh, g1VAO, g2VAO;
 let checkerTex;
-let sceneFBO, bloomFBO1, bloomFBO2;
+let msaaFBO, sceneFBO, bloomFBO1, bloomFBO2;
 let checkerPal8;
 
 const IW = 320, IH = 256;
+const SCENE_SCALE = 4;
+const SW = IW * SCENE_SCALE, SH = IH * SCENE_SCALE;
 
 // ── Uniform cache ────────────────────────────────────────────────
 
@@ -452,9 +470,12 @@ export default {
     checkerPal8 = new Float64Array(24);
     for (let i = 0; i < 24; i++) checkerPal8[i] = raw[16 + i];
 
-    sceneFBO = createFBO(gl, IW, IH);
-    bloomFBO1 = createFBO(gl, IW >> 1, IH >> 1);
-    bloomFBO2 = createFBO(gl, IW >> 1, IH >> 1);
+    const maxSamples = gl.getParameter(gl.MAX_SAMPLES);
+    const samples = Math.min(4, maxSamples);
+    msaaFBO = createMSAAFBO(gl, SW, SH, samples);
+    sceneFBO = createFBO(gl, SW, SH);
+    bloomFBO1 = createFBO(gl, SW >> 1, SH >> 1);
+    bloomFBO2 = createFBO(gl, SW >> 1, SH >> 1);
   },
 
   render(gl, t, beat, _params) {
@@ -479,10 +500,10 @@ export default {
     const view = mat4Identity();
     view[14] = -7500;
 
-    // ── Render to scene FBO ──────────────────────────────────────
+    // ── Render to MSAA FBO ──────────────────────────────────────
 
-    gl.bindFramebuffer(gl.FRAMEBUFFER, sceneFBO.fb);
-    gl.viewport(0, 0, IW, IH);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, msaaFBO.fb);
+    gl.viewport(0, 0, SW, SH);
     gl.clearColor(0, 0, 0, 1);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
@@ -592,9 +613,15 @@ export default {
 
     gl.disable(gl.BLEND);
 
+    // ── Resolve MSAA → scene texture ─────────────────────────────
+
+    gl.bindFramebuffer(gl.READ_FRAMEBUFFER, msaaFBO.fb);
+    gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, sceneFBO.fb);
+    gl.blitFramebuffer(0, 0, SW, SH, 0, 0, SW, SH, gl.COLOR_BUFFER_BIT, gl.NEAREST);
+
     // ── Bloom pipeline ───────────────────────────────────────────
 
-    const hw = IW >> 1, hh = IH >> 1;
+    const hw = SW >> 1, hh = SH >> 1;
 
     // Extract bright pixels
     gl.bindFramebuffer(gl.FRAMEBUFFER, bloomFBO1.fb);
@@ -656,6 +683,7 @@ export default {
       gl.deleteBuffer(g2VAO.normBuf);
     }
     if (checkerTex) gl.deleteTexture(checkerTex);
+    if (msaaFBO) { gl.deleteFramebuffer(msaaFBO.fb); gl.deleteRenderbuffer(msaaFBO.rb); }
     if (sceneFBO) { gl.deleteFramebuffer(sceneFBO.fb); gl.deleteTexture(sceneFBO.tex); }
     if (bloomFBO1) { gl.deleteFramebuffer(bloomFBO1.fb); gl.deleteTexture(bloomFBO1.tex); }
     if (bloomFBO2) { gl.deleteFramebuffer(bloomFBO2.fb); gl.deleteTexture(bloomFBO2.tex); }
@@ -664,7 +692,7 @@ export default {
     g1VAO = g2VAO = null;
     g1Mesh = g2Mesh = null;
     checkerTex = null;
-    sceneFBO = bloomFBO1 = bloomFBO2 = null;
+    msaaFBO = sceneFBO = bloomFBO1 = bloomFBO2 = null;
     checkerPal8 = null;
   },
 };
