@@ -83,6 +83,14 @@ Each effect has two variants:
 
 Classic is always implemented first. The registry falls back to classic if no remastered variant exists.
 
+### Remastered Variant Guidelines
+
+**All remastered effects must be fully shader-based.** No CPU-side pixel manipulation (`putImageData`, `texSubImage2D` per frame, indexed framebuffers, etc.). Everything that touches the screen each frame must run in GLSL. Static asset decoding at init time is acceptable, but per-frame rendering must be GPU-only.
+
+Several classic variants intentionally use software renderers to faithfully reproduce the original algorithms (glenzVectors, glenzTransition, tunneli, technoCircles, beglogo, pam, u2a). The remastered variants for these effects are where we break from the original approach and go fully GPU.
+
+**3D-heavy effects require design discussion before implementation.** Effects involving polygon rasterization, 3D transformations, or scene graphs (glenzVectors, u2a, u2e, plzCube, dots) should be discussed to determine whether they need a shared mini 3D engine (vertex buffer pipeline, projection matrices, depth sorting) or can be handled with raymarching / SDF techniques in a single fragment shader.
+
 -----
 
 ## Project Data Format

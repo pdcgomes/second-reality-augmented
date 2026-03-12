@@ -32,17 +32,35 @@ export default function Preview() {
     const effects = listEffects();
     setStatus(effects.length ? `${effects.map((e) => e.name).join(', ')}` : 'no effects registered');
 
+    // Init all effects for the current variant eagerly
+    const variant = useEditorStore.getState().variant;
     for (const { name } of effects) {
-      const variant = useEditorStore.getState().variant;
       const mod = getEffect(name, variant);
       if (mod) {
         try {
           mod.init(gl);
-          effectsRef.current[name] = mod;
+          effectsRef.current[`${name}:${variant}`] = mod;
         } catch (e) {
-          console.error(`Failed to init effect "${name}":`, e);
+          console.error(`Failed to init effect "${name}" (${variant}):`, e);
           setStatus(`Error: ${name} — ${e.message}`);
         }
+      }
+    }
+
+    function resolveEffect(name, v) {
+      const key = `${name}:${v}`;
+      if (effectsRef.current[key]) return effectsRef.current[key];
+
+      // Lazy init: first time this name+variant combo is requested
+      const mod = getEffect(name, v);
+      if (!mod) return null;
+      try {
+        mod.init(gl);
+        effectsRef.current[key] = mod;
+        return mod;
+      } catch (e) {
+        console.error(`Failed to init effect "${name}" (${v}):`, e);
+        return null;
       }
     }
 
@@ -56,7 +74,7 @@ export default function Preview() {
         fpsRef.current.lastTime = now;
       }
 
-      const { project, playheadSeconds } = useEditorStore.getState();
+      const { project, playheadSeconds, variant: currentVariant } = useEditorStore.getState();
       gl.clear(gl.COLOR_BUFFER_BIT);
 
       if (project?.clips) {
@@ -64,7 +82,7 @@ export default function Preview() {
           (c) => playheadSeconds >= c.start && playheadSeconds < c.end,
         );
         if (clip) {
-          const mod = effectsRef.current[clip.effect];
+          const mod = resolveEffect(clip.effect, currentVariant);
           if (mod) {
             const localT = playheadSeconds - clip.start;
             const beat = getBeatPosition(playheadSeconds, project.beatMap);
