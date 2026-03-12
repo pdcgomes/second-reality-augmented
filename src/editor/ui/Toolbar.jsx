@@ -8,6 +8,7 @@ export default function Toolbar() {
     variant,
     project,
     musicLoaded,
+    musicError,
     modPlayer,
     togglePlayback,
     stopPlayback,
@@ -44,7 +45,9 @@ export default function Toolbar() {
 
       <div className="text-text-secondary">BPM: {bpm}</div>
       {musicPos && <div className="text-accent-green text-xs tabular-nums">{musicPos}</div>}
-      {!musicLoaded && <div className="text-text-dim text-xs">S3M loading...</div>}
+      {musicLoaded && <div className="text-accent-green text-xs">♫ S3M</div>}
+      {!musicLoaded && !musicError && <div className="text-text-dim text-xs">S3M loading...</div>}
+      {musicError && <div className="text-red-400 text-xs" title={musicError}>♫ S3M error</div>}
 
       <button
         onClick={toggleSnap}

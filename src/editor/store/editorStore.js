@@ -21,7 +21,9 @@ export const useEditorStore = create((set, get) => ({
 
   setProject: (project) => set({ project }),
 
+  musicError: null,
   setMusicLoaded: (loaded) => set({ musicLoaded: loaded }),
+  setMusicError: (err) => set({ musicError: err }),
 
   setPlayhead: (seconds) => {
     const { project, snapToBeat } = get();
@@ -39,15 +41,24 @@ export const useEditorStore = create((set, get) => ({
     set({ playheadSeconds: t });
   },
 
+  musicStarted: false,
+
   togglePlayback: () => {
-    const { isPlaying, musicLoaded } = get();
+    const { isPlaying, musicLoaded, musicStarted } = get();
     if (isPlaying) {
       clock.pause();
       if (musicLoaded) modPlayer.pause();
       set({ isPlaying: false, playheadSeconds: clock.currentTime() });
     } else {
       clock.play();
-      if (musicLoaded) modPlayer.play(0);
+      if (musicLoaded) {
+        if (!musicStarted) {
+          modPlayer.play(0);
+          set({ musicStarted: true });
+        } else {
+          modPlayer.resume();
+        }
+      }
       set({ isPlaying: true });
     }
   },
@@ -56,7 +67,7 @@ export const useEditorStore = create((set, get) => ({
     clock.pause();
     clock.seek(0);
     if (get().musicLoaded) modPlayer.stop();
-    set({ isPlaying: false, playheadSeconds: 0 });
+    set({ isPlaying: false, playheadSeconds: 0, musicStarted: false });
   },
 
   selectClip: (clipId) => set({ selectedClipId: clipId }),

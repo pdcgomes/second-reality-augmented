@@ -127,6 +127,41 @@ export default function Timeline() {
         });
       }
 
+      // Audio row — show music regions from cues
+      const audioRowY = rowH * 1;
+      if (project?.cues) {
+        const regions = [];
+        const { music0Start, music0Stop, music1Start, music1Stop, music0Resume, musicFadeOut } = project.cues;
+        if (music0Start != null && music0Stop != null) {
+          regions.push({ label: 'MUSIC0.S3M', start: music0Start, end: music0Stop, color: '#4a7cff' });
+        }
+        if (music1Start != null && music1Stop != null) {
+          regions.push({ label: 'MUSIC1.S3M', start: music1Start, end: music1Stop, color: '#8855ff' });
+        }
+        if (music0Resume != null && musicFadeOut != null) {
+          regions.push({ label: 'MUSIC0.S3M (resume)', start: music0Resume, end: musicFadeOut, color: '#4a7cff' });
+        }
+        for (const r of regions) {
+          const x1 = timeToX(r.start);
+          const x2 = timeToX(r.end);
+          if (x2 < LABEL_WIDTH || x1 > w) continue;
+          ctx.fillStyle = r.color + '44';
+          ctx.fillRect(Math.max(LABEL_WIDTH, x1), audioRowY + 4, x2 - Math.max(LABEL_WIDTH, x1), rowH - 8);
+          ctx.strokeStyle = r.color + '88';
+          ctx.strokeRect(Math.max(LABEL_WIDTH, x1), audioRowY + 4, x2 - Math.max(LABEL_WIDTH, x1), rowH - 8);
+          if (x2 - x1 > 60) {
+            ctx.fillStyle = r.color;
+            ctx.font = '9px monospace';
+            ctx.fillText(r.label, Math.max(LABEL_WIDTH + 4, x1 + 4), audioRowY + rowH / 2 + 3);
+          }
+        }
+      }
+      if (!project?.cues) {
+        ctx.fillStyle = '#333355';
+        ctx.font = '9px monospace';
+        ctx.fillText('no music cues', LABEL_WIDTH + 8, audioRowY + rowH / 2 + 3);
+      }
+
       // Beat grid
       const beatsRowY = rowH * 2;
       if (project?.beatMap?.beats) {

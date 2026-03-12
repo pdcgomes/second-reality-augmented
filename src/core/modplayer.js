@@ -101,7 +101,7 @@ export class ModPlayer {
     }
 
     if (this._audioCtx.state === 'suspended') {
-      this._audioCtx.resume();
+      this._audioCtx.resume().catch(() => {});
     }
 
     mp.player.samplerate = mp.samplerate;
@@ -133,11 +133,13 @@ export class ModPlayer {
 
   resume() {
     const p = this._activePlayer;
-    if (p && p.player && p.player.paused) {
-      p.player.paused = false;
-      if (this._audioCtx && this._audioCtx.state === 'suspended') {
-        this._audioCtx.resume();
-      }
+    if (!p || !p.player) return;
+
+    p.player.paused = false;
+    p.playing = true;
+
+    if (this._audioCtx && this._audioCtx.state === 'suspended') {
+      this._audioCtx.resume().catch(() => {});
     }
   }
 
