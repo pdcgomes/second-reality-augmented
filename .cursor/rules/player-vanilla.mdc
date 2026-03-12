@@ -1,0 +1,27 @@
+---
+description: Vanilla JS constraints for the player runtime
+globs: src/player/**/*.js
+alwaysApply: false
+---
+
+# Player Runtime Conventions
+
+## Constraints
+
+- Pure vanilla JS — no npm dependencies, no build step, no framework
+- Must work as a static file served from any origin (file://, http://, https://)
+- Imports only from `../core/` and `../effects/` via relative ES module paths
+
+## Project Loading
+
+Three-mode resolution, checked in order:
+
+1. URL param: `?project=https://example.com/project.json`
+2. Inline: `window.__DEMO_PROJECT__` (set by export pipeline)
+3. Local fallback: `fetch('../assets/project.json')`
+
+## Canvas
+
+- Fullscreen `<canvas>` with `image-rendering: pixelated`
+- Internal resolution: 320×256 (classic) or viewport size (remastered)
+- Nearest-neighbor upscaling only — never bilinear

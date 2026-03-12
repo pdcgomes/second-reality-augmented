@@ -1,0 +1,37 @@
+---
+description: WebGL2 shader conventions and rendering constraints
+globs: src/**/*.js
+alwaysApply: false
+---
+
+# WebGL & Shader Conventions
+
+## WebGL Version
+
+Target WebGL2 exclusively. All shaders use `#version 300 es`.
+
+## Resolution
+
+Internal render target: 320×256 (classic mode). Upscale to display size with nearest-neighbor filtering only — never bilinear. Set via `gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)`.
+
+## Fullscreen Quad
+
+Standard geometry for all fragment-shader effects: 4-vertex `TRIANGLE_STRIP`.
+
+## Uniform Naming
+
+| Name          | Type  | Meaning                              |
+|---------------|-------|--------------------------------------|
+| `uTime`       | float | Seconds elapsed (local to clip)      |
+| `uBeat`       | float | 0.0–1.0 position in current bar     |
+| `uResolution` | vec2  | Render target size in pixels         |
+
+## Error Handling
+
+Always check compile/link status and log errors:
+
+```javascript
+if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+  console.error(gl.getShaderInfoLog(shader));
+}
+```

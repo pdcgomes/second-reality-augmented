@@ -1,0 +1,17 @@
+node_modules/
+dist/
+.DS_Store
+*.log
+.env
+.env.local
+
+# Build artifacts
+second-reality-demo.html
+
+# IDE
+.vscode/
+*.swp
+*.swo
+
+# OS
+Thumbs.db

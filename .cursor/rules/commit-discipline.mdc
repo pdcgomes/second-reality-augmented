@@ -1,0 +1,28 @@
+---
+description: Atomic commit discipline — every commit must build and pass tests
+alwaysApply: true
+---
+
+# Commit Discipline
+
+## Rules
+
+- Every commit is an atomic logical unit of work — one concern per commit
+- Every commit must build cleanly and pass all tests before being created
+- Never commit code that is known to be broken. Stubs are fine; broken stubs are not.
+- Use conventional commit prefixes: `feat:`, `fix:`, `test:`, `chore:`, `refactor:`, `docs:`
+
+## Pre-Commit Checklist
+
+1. `npm run build` succeeds in `src/editor/`
+2. `npm test` passes in `src/editor/` (Vitest)
+3. No linter errors introduced
+4. If a tracked milestone was completed, update `docs/TRACKER.md`
+
+## Commit Message Format
+
+```
+<type>: <concise description of what and why>
+```
+
+Types: `feat` (new feature), `fix` (bug fix), `test` (tests), `chore` (tooling/config), `refactor` (restructure), `docs` (documentation)

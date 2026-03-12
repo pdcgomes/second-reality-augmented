@@ -1,0 +1,39 @@
+---
+description: Core architecture conventions for the Second Reality Web Demo Engine
+alwaysApply: true
+---
+
+# Project Architecture
+
+Monorepo with source under `src/`, two entry points sharing `core/` and `effects/`:
+
+- `src/editor/` — React + Vite creative tool (the only place React/Vite/Tailwind live)
+- `src/player/` — Vanilla JS fullscreen runtime (no npm deps, no build step)
+- `src/core/` — Shared runtime machinery (vanilla ES modules, zero dependencies)
+- `src/effects/` — One subfolder per effect with classic + optional remastered variants
+
+React, Vite, Tailwind, and any npm framework code must NEVER appear in `core/`, `effects/`, or `player/`.
+
+## Master Clock
+
+`AudioContext.currentTime` is the single source of truth for all timing. Never use `Date.now()` or `performance.now()` for demo timing.
+
+## Beat Map
+
+Pre-authored JSON beat map, not real-time beat detection. Sync is intentional and handcrafted.
+
+## Effect Fidelity
+
+Each effect has a `classic` variant (1:1 faithful to the original) and an optional `remastered` variant (4K, enhanced). Classic is always implemented first.
+
+## Testing
+
+`core/` modules must have unit tests (Vitest). Effects are validated manually — do not unit test shaders or visual output.
+
+## Documentation
+
+`docs/` contains technical design documents. Update `docs/TRACKER.md` when completing tracked milestones.
+
+## Deliverable
+
+The exported single-HTML file (via `tools/export.js`) is the true distribution artifact.
