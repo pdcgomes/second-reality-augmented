@@ -13,8 +13,8 @@
  * createContext() and play() methods to avoid subtle mismatches.
  */
 
-import { Modplayer as RawModplayer } from '../../lib/webaudio-mod-player/index.js';
-import { musicPosToTime, timeToMusicPos, SPEED_GAIN } from './musicsync.js';
+import { Modplayer as RawModplayer, buildTimeMap } from '../../lib/webaudio-mod-player/index.js';
+import { musicPosToTime, timeToMusicPos, SPEED_GAIN, setTimeMaps } from './musicsync.js';
 
 export class ModPlayer {
   constructor() {
@@ -126,20 +126,31 @@ export class ModPlayer {
   }
 
   async loadBoth(music0ArrayBuffer, music1ArrayBuffer) {
+    const bufs = [music0ArrayBuffer, music1ArrayBuffer];
+
+    // Patch MUSIC0 BPM from 125→120 to match original demo timing.
+    // Confirmed in second-reality-js MusicPlayer.js: MusicData[0][50]=0x78
+    const data0 = new Uint8Array(bufs[0]);
+    data0[50] = 0x78;
+
     for (let i = 0; i < 2; i++) {
       const mp = new RawModplayer();
       mp.speedGain = SPEED_GAIN[i];
-      const buf = i === 0 ? music0ArrayBuffer : music1ArrayBuffer;
-
-      if (i === 0) {
-        const data = new Uint8Array(buf);
-        data[50] = 0x78; // match original: reduce tempo 125→120
-      }
-
-      const ok = mp.loadBuffer(buf);
+      const ok = mp.loadBuffer(bufs[i]);
       if (!ok) throw new Error(`Failed to parse MUSIC${i}.S3M`);
       this._players[i] = mp;
     }
+
+    // Build exact position→time lookup tables by dry-running the engine
+    const maps = [
+      buildTimeMap(bufs[0], SPEED_GAIN[0]),
+      buildTimeMap(bufs[1], SPEED_GAIN[1]),
+    ];
+    setTimeMaps(maps);
+
+    if (maps[0]) console.log(`MUSIC0 time map: ${maps[0].totalDuration.toFixed(1)}s, ${maps[0].syncs.length} sync marks`);
+    if (maps[1]) console.log(`MUSIC1 time map: ${maps[1].totalDuration.toFixed(1)}s, ${maps[1].syncs.length} sync marks`);
+
     this._loaded = true;
   }
 

@@ -54,20 +54,14 @@ export const useEditorStore = create((set, get) => ({
     if (isPlaying) {
       clock.pause();
       if (musicLoaded) modPlayer.pause();
-      const t = (musicLoaded && modPlayer.activeIndex >= 0)
-        ? modPlayer.currentTime()
-        : clock.currentTime();
+      const t = musicLoaded ? modPlayer.currentTime() : clock.currentTime();
       set({ isPlaying: false, playheadSeconds: t });
     } else {
       clock.seek(playheadSeconds);
       clock.play();
       if (musicLoaded) {
         const target = timeToMusicPos(playheadSeconds);
-        if (target.silent) {
-          modPlayer.enterSilence(playheadSeconds);
-        } else {
-          modPlayer.play(target.music, target.position, target.row, playheadSeconds);
-        }
+        modPlayer.play(target.music, target.position, target.row, playheadSeconds);
       }
       set({ isPlaying: true });
     }

@@ -37,8 +37,8 @@ export default function App() {
       });
   }, [modPlayer, setMusicLoaded, setMusicError]);
 
-  // Playback tick — sample-counted time when music is active, clock during
-  // silent gaps. Automatically stops/starts music at cue boundaries.
+  // Playback tick — sample-counted time drives the playhead. Automatically
+  // switches music at region boundaries (no silence gaps in the original demo).
   useEffect(() => {
     if (!isPlaying) return;
     let raf;
@@ -51,31 +51,13 @@ export default function App() {
         return;
       }
 
-      // During silence the sample counter is frozen — use the clock instead
-      const t = modPlayer.activeIndex >= 0
-        ? modPlayer.currentTime()
-        : clock.currentTime();
-
+      const t = modPlayer.currentTime();
       const region = getRegionAtTime(t);
 
-      if (!region && modPlayer.activeIndex >= 0) {
-        // Crossed into a silent gap — sync clock, then stop music
+      if (region && region.music !== modPlayer.activeIndex) {
+        const target = timeToMusicPos(t);
+        modPlayer.changeMusic(target.music, target.position, target.row);
         clock.seek(t);
-        modPlayer.enterSilence(t);
-      } else if (region && modPlayer.activeIndex < 0) {
-        // Exiting a gap — start the next music region
-        const target = timeToMusicPos(t);
-        if (!target.silent) {
-          modPlayer.play(target.music, target.position, target.row, t);
-          clock.seek(t);
-        }
-      } else if (region && modPlayer.activeIndex >= 0 && region.music !== modPlayer.activeIndex) {
-        // Direct region switch (different music index)
-        const target = timeToMusicPos(t);
-        if (!target.silent) {
-          modPlayer.changeMusic(target.music, target.position, target.row);
-          clock.seek(t);
-        }
       }
 
       useEditorStore.setState({ playheadSeconds: t });

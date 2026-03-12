@@ -1,197 +1,198 @@
 {
   "version": "1.0",
-  "note": "Second Reality demo sequence — 25 visual parts matching the original. Timings are approximate estimates derived from the JS port sync table (MusicPlayer.js) and will be fine-tuned during music integration.",
+  "note": "Second Reality demo sequence — 25 visual parts matching the original. Timings derived from second-reality-js dis_sync_table and constant-BPM formula. Exact times are computed at runtime from S3M time maps.",
   "audioFiles": ["MUSIC0.S3M", "MUSIC1.S3M"],
   "musicSyncTable": {
-    "note": "Approximate mapping of music positions to absolute demo time. Music 0 plays positions 0-~10 (0-85s), then music 1 plays positions 0-~66 (93-600s), then music 0 resumes at position 14 (605s onward). The demo stops each S3M file partway through — it does not play all patterns.",
+    "note": "Region boundaries from second-reality-js MusicPlayer.js. MUSIC0 plays pos 0:0→13:42 (MUSIC0_STOP), then MUSIC1 plays pos 0:0→84:0 (MUSIC1_STOP), then MUSIC0 resumes at pos 14:5. No silence gaps — music switches are instantaneous.",
     "music0TempoPatched": true,
     "music0BPM": 120,
-    "music1BPM": 125
+    "music1BPM": 125,
+    "speedGain": [1.00370, 1.00231]
   },
   "clips": [
     {
-      "id": "c01", "effect": "ALKU", "start": 0.0, "end": 65.0,
+      "id": "c01", "effect": "ALKU", "start": 0.0, "end": 87.2,
       "transitionIn": { "type": "fadeFromBlack", "duration": 3.0 },
       "transitionOut": { "type": "fadeToBlack", "duration": 2.0 },
       "params": {},
-      "notes": "Opening credits text over scrolling landscape — ALKU (WILDFIRE)"
+      "notes": "Opening credits text over scrolling landscape — ALKU (WILDFIRE). Sync: DEMO_START→ALKU_EXIT."
     },
     {
-      "id": "c02", "effect": "U2A", "start": 65.0, "end": 78.0,
+      "id": "c02", "effect": "U2A", "start": 93.7, "end": 103.7,
       "transitionIn": { "type": "fadeFromBlack", "duration": 1.5 },
       "transitionOut": { "type": "fadeToWhite", "duration": 1.0 },
       "params": {},
-      "notes": "3D polygon ships flyover — U2A (PSI)"
+      "notes": "3D polygon ships flyover — U2A (PSI). Sync: U2A_START→PAM_START."
     },
     {
-      "id": "c03", "effect": "PAM", "start": 78.0, "end": 82.0,
+      "id": "c03", "effect": "PAM", "start": 103.7, "end": 108.9,
       "transitionIn": { "type": "flash", "duration": 0.5 },
       "transitionOut": { "type": "fadeToBlack", "duration": 1.0 },
       "params": {},
-      "notes": "Pre-rendered explosion animation — PAM (TRUG/WILDFIRE)"
+      "notes": "Pre-rendered explosion animation — PAM (TRUG/WILDFIRE). Sync: PAM_START→MUSIC0_STOP."
     },
     {
-      "id": "c04", "effect": "BEGLOGO", "start": 82.0, "end": 93.0,
+      "id": "c04", "effect": "BEGLOGO", "start": 108.9, "end": 129.7,
       "transitionIn": { "type": "fadeFromBlack", "duration": 2.0 },
       "transitionOut": { "type": "fadeToBlack", "duration": 2.0 },
       "params": {},
-      "notes": "Second Reality title card — BEGLOGO. Music 0 stops, music 1 begins."
+      "notes": "Second Reality title card — BEGLOGO. Music switches from MUSIC0 to MUSIC1. Sync: MUSIC0_STOP→CHECKERBOARD_FALL."
     },
     {
-      "id": "c05", "effect": "GLENZ_TRANSITION", "start": 93.0, "end": 108.0,
+      "id": "c05", "effect": "GLENZ_TRANSITION", "start": 129.7, "end": 142.9,
       "transitionIn": { "type": "fadeFromBlack", "duration": 1.5 },
       "transitionOut": { "type": "none" },
       "params": {},
-      "notes": "Checkerboard fall transition — GLENZ (PSI)"
+      "notes": "Checkerboard fall transition — GLENZ (PSI). Sync: CHECKERBOARD_FALL→GLENZ_START."
     },
     {
-      "id": "c06", "effect": "GLENZ_3D", "start": 108.0, "end": 170.0,
+      "id": "c06", "effect": "GLENZ_3D", "start": 142.9, "end": 203.0,
       "transitionIn": { "type": "none" },
       "transitionOut": { "type": "fadeToBlack", "duration": 1.5 },
       "params": {},
-      "notes": "Translucent rotating polyhedra — GLENZ_3D (PSI)"
+      "notes": "Translucent rotating polyhedra — GLENZ_3D (PSI). Sync: GLENZ_START→(estimated end)."
     },
     {
-      "id": "c07", "effect": "TUNNELI", "start": 170.0, "end": 193.0,
+      "id": "c07", "effect": "TUNNELI", "start": 203.0, "end": 239.1,
       "transitionIn": { "type": "fadeFromBlack", "duration": 1.0 },
       "transitionOut": { "type": "fadeToBlack", "duration": 1.0 },
       "params": {},
-      "notes": "Dot tunnel — concentric circles receding — TUNNELI (TRUG)"
+      "notes": "Dot tunnel — concentric circles receding — TUNNELI (TRUG). Sync: (estimated start)→TECHNO_CIRCLES2_START."
     },
     {
-      "id": "c08", "effect": "TECHNO_CIRCLES", "start": 193.0, "end": 220.0,
+      "id": "c08", "effect": "TECHNO_CIRCLES", "start": 239.1, "end": 276.0,
       "transitionIn": { "type": "fadeFromBlack", "duration": 1.0 },
       "transitionOut": { "type": "none" },
       "params": {},
-      "notes": "Circle interference / Moire patterns — TECHNO (PSI)"
+      "notes": "Circle interference / Moire patterns — TECHNO (PSI). Sync: TECHNO_CIRCLES2_START→TECHNO_BARS_TRANSITION."
     },
     {
-      "id": "c09", "effect": "TECHNO_BARS_TRANSITION", "start": 220.0, "end": 225.0,
+      "id": "c09", "effect": "TECHNO_BARS_TRANSITION", "start": 276.0, "end": 277.4,
       "transitionIn": { "type": "none" },
       "transitionOut": { "type": "flash", "duration": 0.3 },
       "params": {},
-      "notes": "4 synced bars transition — TECHNO (PSI)"
+      "notes": "4 synced bars transition — TECHNO (PSI). Sync: TECHNO_BARS_TRANSITION→TECHNO_BAR1."
     },
     {
-      "id": "c10", "effect": "TECHNO_BARS", "start": 225.0, "end": 275.0,
+      "id": "c10", "effect": "TECHNO_BARS", "start": 277.4, "end": 344.7,
       "transitionIn": { "type": "none" },
       "transitionOut": { "type": "fadeToBlack", "duration": 1.5 },
       "params": {},
-      "notes": "Rotating layered bars with palette pulse — TECHNO (PSI)"
+      "notes": "Rotating layered bars with palette pulse — TECHNO (PSI). Sync: TECHNO_BAR1→TECHNO_TROLL."
     },
     {
-      "id": "c11", "effect": "TECHNO_TROLL", "start": 275.0, "end": 295.0,
+      "id": "c11", "effect": "TECHNO_TROLL", "start": 344.7, "end": 377.6,
       "transitionIn": { "type": "fadeFromBlack", "duration": 1.0 },
       "transitionOut": { "type": "crtShutdown", "duration": 2.0 },
       "params": {},
-      "notes": "Troll picture + CRT shutdown — TECHNO/PANIC (PSI/WILDFIRE)"
+      "notes": "Troll picture + CRT shutdown — TECHNO/PANIC (PSI/WILDFIRE). Sync: TECHNO_TROLL→FOREST_START."
     },
     {
-      "id": "c12", "effect": "FOREST", "start": 295.0, "end": 325.0,
+      "id": "c12", "effect": "FOREST", "start": 377.6, "end": 407.7,
       "transitionIn": { "type": "fadeFromBlack", "duration": 2.0 },
       "transitionOut": { "type": "fadeToBlack", "duration": 2.0 },
       "params": {},
-      "notes": "Mountain text scroller — FOREST/MNTSCRL (TRUG)"
+      "notes": "Mountain text scroller — FOREST/MNTSCRL (TRUG). Sync: FOREST_START→LENS_TRANSITION_START."
     },
     {
-      "id": "c13", "effect": "LENS_TRANSITION", "start": 325.0, "end": 335.0,
+      "id": "c13", "effect": "LENS_TRANSITION", "start": 407.7, "end": 418.7,
       "transitionIn": { "type": "fadeFromBlack", "duration": 1.0 },
       "transitionOut": { "type": "none" },
       "params": {},
-      "notes": "Lens picture slide-in — LENS (PSI)"
+      "notes": "Lens picture slide-in — LENS (PSI). Sync: LENS_TRANSITION_START→LENS_BOUNCE."
     },
     {
-      "id": "c14", "effect": "LENS_LENS", "start": 335.0, "end": 360.0,
+      "id": "c14", "effect": "LENS_LENS", "start": 418.7, "end": 446.0,
       "transitionIn": { "type": "none" },
       "transitionOut": { "type": "none" },
       "params": {},
-      "notes": "Bouncing crystal ball over face — LENS_LENS (PSI)"
+      "notes": "Bouncing crystal ball over face — LENS_LENS (PSI). Sync: LENS_BOUNCE→LENS_ROTO."
     },
     {
-      "id": "c15", "effect": "LENS_ROTO", "start": 360.0, "end": 410.0,
+      "id": "c15", "effect": "LENS_ROTO", "start": 446.0, "end": 507.3,
       "transitionIn": { "type": "none" },
       "transitionOut": { "type": "fadeToBlack", "duration": 2.0 },
       "params": {},
-      "notes": "Rotozoom of picture — LENS_ROTO (PSI)"
+      "notes": "Rotozoom of picture — LENS_ROTO (PSI). Sync: LENS_ROTO→PLZ_START."
     },
     {
-      "id": "c16", "effect": "PLZ_PLASMA", "start": 410.0, "end": 440.0,
+      "id": "c16", "effect": "PLZ_PLASMA", "start": 507.3, "end": 547.4,
       "transitionIn": { "type": "fadeFromBlack", "duration": 1.5 },
       "transitionOut": { "type": "none" },
       "params": {},
-      "notes": "Colorful plasma/smoke waves — PLZ_PLASMA (WILDFIRE)"
+      "notes": "Colorful plasma/smoke waves — PLZ_PLASMA (WILDFIRE). Sync: PLZ_START→PLZ_CUBE_START."
     },
     {
-      "id": "c17", "effect": "PLZ_CUBE", "start": 440.0, "end": 485.0,
+      "id": "c17", "effect": "PLZ_CUBE", "start": 547.4, "end": 606.7,
       "transitionIn": { "type": "none" },
       "transitionOut": { "type": "fadeToBlack", "duration": 1.5 },
       "params": {},
-      "notes": "Texture-mapped rotating 3D cube — PLZ_CUBE (WILDFIRE)"
+      "notes": "Texture-mapped rotating 3D cube — PLZ_CUBE (WILDFIRE). Sync: PLZ_CUBE_START→PLZ_CUBE_END."
     },
     {
-      "id": "c18", "effect": "DOTS", "start": 485.0, "end": 540.0,
+      "id": "c18", "effect": "DOTS", "start": 606.7, "end": 684.0,
       "transitionIn": { "type": "fadeFromBlack", "duration": 1.0 },
       "transitionOut": { "type": "fadeToBlack", "duration": 1.5 },
       "params": {},
-      "notes": "1024 mini vector balls with gravity — DOTS/MINVBALL (PSI)"
+      "notes": "1024 mini vector balls with gravity — DOTS/MINVBALL (PSI). Sync: PLZ_CUBE_END→WATER_START."
     },
     {
-      "id": "c19", "effect": "WATER", "start": 540.0, "end": 565.0,
+      "id": "c19", "effect": "WATER", "start": 684.0, "end": 714.1,
       "transitionIn": { "type": "fadeFromBlack", "duration": 2.0 },
       "transitionOut": { "type": "fadeToBlack", "duration": 2.0 },
       "params": {},
-      "notes": "Mirror ball scroller — sword on water background — WATER/RAYSCRL (TRUG)"
+      "notes": "Mirror ball scroller — sword on water background — WATER/RAYSCRL (TRUG). Sync: WATER_START→COMAN_START."
     },
     {
-      "id": "c20", "effect": "COMAN", "start": 565.0, "end": 595.0,
+      "id": "c20", "effect": "COMAN", "start": 714.1, "end": 752.4,
       "transitionIn": { "type": "fadeFromBlack", "duration": 1.5 },
       "transitionOut": { "type": "fadeToBlack", "duration": 2.0 },
       "params": {},
-      "notes": "3D sinusfield / voxel landscape — COMAN/3DSINFLD (PSI)"
+      "notes": "3D sinusfield / voxel landscape — COMAN/3DSINFLD (PSI). Sync: COMAN_START→MUSIC1_STOP."
     },
     {
-      "id": "c21", "effect": "JPLOGO", "start": 595.0, "end": 610.0,
+      "id": "c21", "effect": "JPLOGO", "start": 752.4, "end": 759.8,
       "transitionIn": { "type": "fadeFromBlack", "duration": 1.0 },
       "transitionOut": { "type": "fadeToBlack", "duration": 2.0 },
       "params": {},
-      "notes": "Jelly-distorted Future Crew logo — JPLOGO (PSI). Music 1 stops, music 0 resumes."
+      "notes": "Jelly-distorted Future Crew logo — JPLOGO (PSI). Music switches from MUSIC1 back to MUSIC0."
     },
     {
-      "id": "c22", "effect": "U2E", "start": 610.0, "end": 650.0,
+      "id": "c22", "effect": "U2E", "start": 752.4, "end": 811.0,
       "transitionIn": { "type": "fadeFromBlack", "duration": 2.0 },
       "transitionOut": { "type": "fadeToWhite", "duration": 1.5 },
       "params": {},
-      "notes": "3D city polygon flyover — U2E (PSI)"
+      "notes": "3D city polygon flyover — U2E (PSI). Sync: U2E_START→U2E_END."
     },
     {
-      "id": "c23", "effect": "ENDLOGO", "start": 650.0, "end": 658.0,
+      "id": "c23", "effect": "ENDLOGO", "start": 811.0, "end": 823.5,
       "transitionIn": { "type": "flash", "duration": 0.5 },
       "transitionOut": { "type": "fadeToBlack", "duration": 2.0 },
       "params": {},
-      "notes": "End picture flash — ENDLOGO"
+      "notes": "End picture flash — ENDLOGO. Sync: U2E_END→CREDITS_START."
     },
     {
-      "id": "c24", "effect": "CREDITS", "start": 658.0, "end": 710.0,
+      "id": "c24", "effect": "CREDITS", "start": 823.5, "end": 951.1,
       "transitionIn": { "type": "fadeFromBlack", "duration": 2.0 },
       "transitionOut": { "type": "fadeToBlack", "duration": 2.0 },
       "params": {},
-      "notes": "Scrolling credits with demo screenshots — CREDITS"
+      "notes": "Scrolling credits with demo screenshots — CREDITS. Sync: CREDITS_START→CREDITS_END."
     },
     {
-      "id": "c25", "effect": "ENDSCRL", "start": 710.0, "end": 750.0,
+      "id": "c25", "effect": "ENDSCRL", "start": 951.1, "end": 970.0,
       "transitionIn": { "type": "fadeFromBlack", "duration": 1.5 },
       "transitionOut": { "type": "fadeToBlack", "duration": 3.0 },
       "params": {},
-      "notes": "Vertical text scroller (greetings) — ENDSCRL (WILDFIRE)"
+      "notes": "Vertical text scroller (greetings) — ENDSCRL (WILDFIRE). After CREDITS_END."
     }
   ],
   "cues": {
     "music0Start": 0.0,
-    "music0Stop": 85.0,
-    "music1Start": 93.0,
-    "music1Stop": 600.0,
-    "music0Resume": 605.0,
-    "musicFadeOut": 730.0
+    "music0Stop": 108.9,
+    "music1Start": 108.9,
+    "music1Stop": 752.4,
+    "music0Resume": 752.4,
+    "musicFadeOut": 940.0
   },
   "beatMap": {
     "track0BPM": 120,
