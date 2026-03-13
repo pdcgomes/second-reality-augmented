@@ -62,6 +62,15 @@ uniform float uSmokeWarmth;
 uniform float uPlasmaIntensity;
 uniform float uPlasmaSpeed;
 uniform float uEmberIntensity;
+uniform float uEmberHue;
+uniform float uEmberSmSize;
+uniform float uEmberSmDensity;
+uniform float uEmberSmScatter;
+uniform float uEmberSmSpeed;
+uniform float uEmberLgSize;
+uniform float uEmberLgDensity;
+uniform float uEmberLgScatter;
+uniform float uEmberLgSpeed;
 
 uniform float uHorizonGlow;
 uniform float uHorizonPulseSpeed;
@@ -232,22 +241,72 @@ vec4 lavaCore(vec2 uv, float t) {
 
   fireColor *= mix(0.5, 1.0, sphereZ);
 
-  // ── Ember / firefly particles ──
+  // ── Tier 1: small orbital embers ──
   float emberBright = 0.0;
-  for (int i = 0; i < 20; i++) {
+  for (int i = 0; i < 24; i++) {
     float fi = float(i);
-    float phase = hash21(vec2(fi, 7.7)) * TAU;
-    float spd = 0.6 + hash21(vec2(fi, 13.3)) * 1.2;
+    if (fi / 24.0 >= uEmberSmDensity) break;
+
+    float tiltA = hash21(vec2(fi, 7.7)) * PI;
+    float tiltB = hash21(vec2(fi, 11.3)) * PI;
+    float orbitR = (0.35 + hash21(vec2(fi, 23.1)) * 0.55) * uEmberSmScatter;
+    float spd = (0.3 + hash21(vec2(fi, 13.3)) * 0.7) * uEmberSmSpeed;
+    float phase = hash21(vec2(fi, 17.9)) * TAU;
+
     float angle = phase + t * spd;
-    float r = 0.25 + hash21(vec2(fi, 23.1)) * 0.65;
-    vec2 ePos = vec2(cos(angle), sin(angle)) * r;
-    ePos += vec2(sin(t * 1.3 + fi * 2.7), cos(t * 1.7 + fi * 3.1)) * 0.12;
+    vec3 lp = vec3(cos(angle) * orbitR, 0.0, sin(angle) * orbitR);
+
+    float ca = cos(tiltA), sa = sin(tiltA);
+    lp = vec3(lp.x, lp.y * ca - lp.z * sa, lp.y * sa + lp.z * ca);
+    float cb = cos(tiltB), sb = sin(tiltB);
+    lp = vec3(lp.x * cb - lp.y * sb, lp.x * sb + lp.y * cb, lp.z);
+
+    vec2 ePos = lp.xy;
+    float depth = lp.z;
+    float behindFade = smoothstep(-0.15, 0.1, depth);
+
     float d = length(sphereUV - ePos);
-    float sz = 0.03 + hash21(vec2(fi, 37.7)) * 0.04;
-    float flicker = sin(t * (5.0 + fi * 0.7) + fi * 3.1) * 0.4 + 0.6;
-    emberBright += smoothstep(sz, 0.0, d) * flicker;
+    float eSz = (0.025 + hash21(vec2(fi, 37.7)) * 0.035) * uEmberSmSize;
+    eSz *= 0.85 + 0.3 * (depth * 0.5 + 0.5);
+
+    float flicker = sin(t * (4.0 + fi * 0.6) + fi * 3.1) * 0.3 + 0.7;
+    emberBright += smoothstep(eSz, 0.0, d) * flicker * behindFade;
   }
-  vec3 emberColor = vec3(1.0, 0.7, 0.15) * emberBright * uEmberIntensity;
+
+  // ── Tier 2: large orbital sparks ──
+  float sparkBright = 0.0;
+  for (int i = 0; i < 10; i++) {
+    float fi = float(i) + 100.0;
+    if (float(i) / 10.0 >= uEmberLgDensity) break;
+
+    float tiltA = hash21(vec2(fi, 5.3)) * PI;
+    float tiltB = hash21(vec2(fi, 9.1)) * PI;
+    float orbitR = (0.2 + hash21(vec2(fi, 19.7)) * 0.5) * uEmberLgScatter;
+    float spd = (0.2 + hash21(vec2(fi, 31.3)) * 0.5) * uEmberLgSpeed;
+    float phase = hash21(vec2(fi, 41.1)) * TAU;
+
+    float angle = phase + t * spd;
+    vec3 lp = vec3(cos(angle) * orbitR, 0.0, sin(angle) * orbitR);
+
+    float ca = cos(tiltA), sa = sin(tiltA);
+    lp = vec3(lp.x, lp.y * ca - lp.z * sa, lp.y * sa + lp.z * ca);
+    float cb = cos(tiltB), sb = sin(tiltB);
+    lp = vec3(lp.x * cb - lp.y * sb, lp.x * sb + lp.y * cb, lp.z);
+
+    vec2 ePos = lp.xy;
+    float depth = lp.z;
+    float behindFade = smoothstep(-0.15, 0.1, depth);
+
+    float d = length(sphereUV - ePos);
+    float eSz = (0.05 + hash21(vec2(fi, 53.3)) * 0.05) * uEmberLgSize;
+    eSz *= 0.85 + 0.3 * (depth * 0.5 + 0.5);
+
+    float flicker = sin(t * (2.5 + fi * 0.4) + fi * 1.7) * 0.25 + 0.75;
+    sparkBright += smoothstep(eSz, 0.0, d) * flicker * behindFade * 1.3;
+  }
+
+  vec3 emberColor = hueShift(vec3(1.0, 0.7, 0.15), uEmberHue)
+                  * (emberBright + sparkBright) * uEmberIntensity;
 
   // ── Halo glow ──
   float halo = smoothstep(coreRadius * 2.0, coreRadius * 0.7, dist);
@@ -453,11 +512,13 @@ void main() {
   // Sample background (frame-00)
   vec3 bg = texture(uBgTex, bgUV).rgb;
 
-  // Overlay core frame (frames 00-06 progression) — composited via alpha difference
+  // Overlay core frame — only the broad ambient glow, bright sparks fully suppressed
   vec3 coreFrame = texture(uCoreTex, bgUV).rgb;
   vec3 frameDiff = max(coreFrame - bg, vec3(0.0));
   float diffLuma = dot(frameDiff, vec3(0.299, 0.587, 0.114));
-  bg = mix(bg, coreFrame, smoothstep(0.01, 0.05, diffLuma) * uCoreAlpha);
+  float frameMix = smoothstep(0.06, 0.2, diffLuma) * uCoreAlpha * 0.35;
+  frameMix *= smoothstep(0.4, 0.15, diffLuma);
+  bg = mix(bg, coreFrame, frameMix);
 
   // Phase 2: horizon glow
   bg += horizonGlow(uv, uTime);
@@ -648,7 +709,16 @@ export default {
     gp('Explosion', { key: 'smokeWarmth',    label: 'Smoke Warmth',      type: 'float', min: 0,   max: 1,   step: 0.01, default: 0.48 }),
     gp('Core', { key: 'plasmaIntensity', label: 'Plasma Intensity', type: 'float', min: 0, max: 2,   step: 0.01, default: 1.0 }),
     gp('Core', { key: 'plasmaSpeed',     label: 'Plasma Speed',     type: 'float', min: 0, max: 5,   step: 0.1,  default: 1.5 }),
-    gp('Core', { key: 'emberIntensity',  label: 'Ember Intensity',  type: 'float', min: 0, max: 2,   step: 0.01, default: 0.8 }),
+    gp('Core', { key: 'emberIntensity',  label: 'Ember Intensity',  type: 'float', min: 0, max: 3,   step: 0.01, default: 0.8 }),
+    gp('Core', { key: 'emberHue',        label: 'Ember Hue',        type: 'float', min: -3.14, max: 3.14, step: 0.01, default: 0.0 }),
+    gp('Embers (Small)', { key: 'emberSmSize',    label: 'Size',      type: 'float', min: 0.1, max: 3, step: 0.01, default: 1.0 }),
+    gp('Embers (Small)', { key: 'emberSmDensity', label: 'Density',   type: 'float', min: 0,   max: 1, step: 0.01, default: 1.0 }),
+    gp('Embers (Small)', { key: 'emberSmScatter', label: 'Scatter',   type: 'float', min: 0.1, max: 3, step: 0.01, default: 1.0 }),
+    gp('Embers (Small)', { key: 'emberSmSpeed',   label: 'Orbit Speed',type: 'float', min: 0,  max: 3, step: 0.01, default: 1.0 }),
+    gp('Embers (Large)', { key: 'emberLgSize',    label: 'Size',      type: 'float', min: 0.1, max: 3, step: 0.01, default: 1.0 }),
+    gp('Embers (Large)', { key: 'emberLgDensity', label: 'Density',   type: 'float', min: 0,   max: 1, step: 0.01, default: 1.0 }),
+    gp('Embers (Large)', { key: 'emberLgScatter', label: 'Scatter',   type: 'float', min: 0.1, max: 3, step: 0.01, default: 1.0 }),
+    gp('Embers (Large)', { key: 'emberLgSpeed',   label: 'Orbit Speed',type: 'float', min: 0,  max: 3, step: 0.01, default: 1.0 }),
     gp('Atmosphere', { key: 'horizonGlow',      label: 'Horizon Glow',      type: 'float', min: 0,   max: 1,   step: 0.01, default: 0.15 }),
     gp('Atmosphere', { key: 'horizonPulseSpeed',label: 'Horizon Pulse Speed',type: 'float', min: 0.2, max: 5,   step: 0.1,  default: 1.5 }),
     gp('Atmosphere', { key: 'starDensity',      label: 'Star Density',      type: 'float', min: 0,   max: 1,   step: 0.01, default: 0.0 }),
@@ -708,6 +778,15 @@ export default {
       plasmaIntensity:  gl.getUniformLocation(sceneProg, 'uPlasmaIntensity'),
       plasmaSpeed:      gl.getUniformLocation(sceneProg, 'uPlasmaSpeed'),
       emberIntensity:   gl.getUniformLocation(sceneProg, 'uEmberIntensity'),
+      emberHue:         gl.getUniformLocation(sceneProg, 'uEmberHue'),
+      emberSmSize:      gl.getUniformLocation(sceneProg, 'uEmberSmSize'),
+      emberSmDensity:   gl.getUniformLocation(sceneProg, 'uEmberSmDensity'),
+      emberSmScatter:   gl.getUniformLocation(sceneProg, 'uEmberSmScatter'),
+      emberSmSpeed:     gl.getUniformLocation(sceneProg, 'uEmberSmSpeed'),
+      emberLgSize:      gl.getUniformLocation(sceneProg, 'uEmberLgSize'),
+      emberLgDensity:   gl.getUniformLocation(sceneProg, 'uEmberLgDensity'),
+      emberLgScatter:   gl.getUniformLocation(sceneProg, 'uEmberLgScatter'),
+      emberLgSpeed:     gl.getUniformLocation(sceneProg, 'uEmberLgSpeed'),
       beatReactivity:   gl.getUniformLocation(sceneProg, 'uBeatReactivity'),
       horizonGlow:      gl.getUniformLocation(sceneProg, 'uHorizonGlow'),
       horizonPulseSpeed:gl.getUniformLocation(sceneProg, 'uHorizonPulseSpeed'),
@@ -803,6 +882,15 @@ export default {
     gl.uniform1f(su.plasmaIntensity, p('plasmaIntensity', 1.0));
     gl.uniform1f(su.plasmaSpeed, p('plasmaSpeed', 1.5));
     gl.uniform1f(su.emberIntensity, p('emberIntensity', 0.8));
+    gl.uniform1f(su.emberHue, p('emberHue', 0.0));
+    gl.uniform1f(su.emberSmSize, p('emberSmSize', 1.0));
+    gl.uniform1f(su.emberSmDensity, p('emberSmDensity', 1.0));
+    gl.uniform1f(su.emberSmScatter, p('emberSmScatter', 1.0));
+    gl.uniform1f(su.emberSmSpeed, p('emberSmSpeed', 1.0));
+    gl.uniform1f(su.emberLgSize, p('emberLgSize', 1.0));
+    gl.uniform1f(su.emberLgDensity, p('emberLgDensity', 1.0));
+    gl.uniform1f(su.emberLgScatter, p('emberLgScatter', 1.0));
+    gl.uniform1f(su.emberLgSpeed, p('emberLgSpeed', 1.0));
     gl.uniform1f(su.beatReactivity, p('beatReactivity', 0.3));
     gl.uniform1f(su.horizonGlow, p('horizonGlow', 0.15));
     gl.uniform1f(su.horizonPulseSpeed, p('horizonPulseSpeed', 1.5));
