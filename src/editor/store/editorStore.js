@@ -18,6 +18,7 @@ export const useEditorStore = create((set, get) => ({
   previewFit: 'fill',
   linked: false,
   loopEffect: false,
+  screenshotToken: 0,
   clock,
   modPlayer,
   musicLoaded: false,
@@ -103,6 +104,7 @@ export const useEditorStore = create((set, get) => ({
   togglePreviewFit: () => set((s) => ({ previewFit: s.previewFit === 'fill' ? 'native' : 'fill' })),
   toggleLinked: () => set((s) => ({ linked: !s.linked })),
   toggleLoop: () => set((s) => ({ loopEffect: !s.loopEffect })),
+  requestScreenshot: () => set((s) => ({ screenshotToken: s.screenshotToken + 1 })),
 
   getSelectedClip: () => {
     const { project, selectedClipId } = get();

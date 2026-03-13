@@ -30,6 +30,7 @@ export default function Preview({ variantOverride }) {
   const rafRef = useRef(null);
   const effectsRef = useRef({});
   const fpsRef = useRef({ frames: 0, lastTime: performance.now() });
+  const lastScreenshotTokenRef = useRef(0);
   const variantOverrideRef = useRef(variantOverride);
   variantOverrideRef.current = variantOverride;
   const [status, setStatus] = useState('Initializing...');
@@ -50,7 +51,7 @@ export default function Preview({ variantOverride }) {
     gl.clearColor(0, 0, 0, 1);
 
     const effects = listEffects();
-    setStatus(effects.length ? `${effects.map((e) => e.name).join(', ')}` : 'no effects registered');
+    setStatus(effects.length ? null : 'no effects registered');
 
     const variant = variantOverrideRef.current ?? useEditorStore.getState().variant;
     for (const { name } of effects) {
@@ -96,31 +97,49 @@ export default function Preview({ variantOverride }) {
         fpsRef.current.lastTime = now;
       }
 
-      const { project, playheadSeconds, variant: storeVariant, previewFit: currentFit } = useEditorStore.getState();
+      const { project, playheadSeconds, variant: storeVariant, previewFit: currentFit, screenshotToken } = useEditorStore.getState();
       const currentVariant = variantOverrideRef.current ?? storeVariant;
       resizeCanvasToDisplay(canvas, currentVariant, currentFit);
       gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
       gl.clear(gl.COLOR_BUFFER_BIT);
 
+      let activeClip = null;
       if (project?.clips) {
-        const clip = project.clips.find(
+        activeClip = project.clips.find(
           (c) => playheadSeconds >= c.start && playheadSeconds < c.end,
-        );
-        if (clip) {
-          const mod = resolveEffect(clip.effect, currentVariant);
+        ) ?? null;
+        if (activeClip) {
+          const mod = resolveEffect(activeClip.effect, currentVariant);
           if (mod) {
-            const localT = playheadSeconds - clip.start;
+            const localT = playheadSeconds - activeClip.start;
             const beat = getBeatPosition(playheadSeconds, project.beatMap);
-            mod.render(gl, localT, beat, clip.params ?? {});
+            mod.render(gl, localT, beat, activeClip.params ?? {});
           }
 
-          const { inProgress, outProgress } = getTransitionProgress(clip, playheadSeconds);
-          if (clip.transitionIn && inProgress !== null) {
-            renderTransitionOverlay(gl, clip.transitionIn.type, inProgress);
+          const { inProgress, outProgress } = getTransitionProgress(activeClip, playheadSeconds);
+          if (activeClip.transitionIn && inProgress !== null) {
+            renderTransitionOverlay(gl, activeClip.transitionIn.type, inProgress);
           }
-          if (clip.transitionOut && outProgress !== null) {
-            renderTransitionOverlay(gl, clip.transitionOut.type, outProgress);
+          if (activeClip.transitionOut && outProgress !== null) {
+            renderTransitionOverlay(gl, activeClip.transitionOut.type, outProgress);
           }
+        }
+      }
+
+      if (screenshotToken > lastScreenshotTokenRef.current) {
+        lastScreenshotTokenRef.current = screenshotToken;
+        if (activeClip) {
+          const data = canvas.toDataURL('image/png');
+          const effectName = activeClip.effect.toLowerCase();
+          const filename = `screenshot-${effectName}-${currentVariant}.png`;
+          fetch('/api/screenshot', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ filename, data }),
+          })
+            .then((r) => r.json())
+            .then((res) => console.log('Screenshot saved:', res.path))
+            .catch((err) => console.error('Screenshot save failed:', err));
         }
       }
 
@@ -147,6 +166,7 @@ export default function Preview({ variantOverride }) {
     <div className="w-full h-full relative bg-black overflow-hidden">
       <canvas
         ref={canvasRef}
+        data-preview-variant={effectiveVariant}
         width={INTERNAL_WIDTH}
         height={INTERNAL_HEIGHT}
         className={isFill ? '' : 'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 border border-border'}
@@ -168,7 +188,7 @@ export default function Preview({ variantOverride }) {
         </span>
       )}
       <div className="absolute bottom-1 right-1 flex items-center gap-2">
-        <span className="text-text-dim text-[10px] font-mono opacity-60">{status}</span>
+        {status && <span className="text-text-dim text-[10px] font-mono opacity-60">{status}</span>}
         <button
           onClick={togglePreviewFit}
           className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-surface-800/80 text-text-secondary hover:text-text-primary transition-colors"

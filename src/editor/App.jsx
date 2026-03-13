@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Toolbar from './ui/Toolbar';
 import Preview from './ui/Preview';
 import Tracker from './ui/Tracker';
@@ -9,10 +9,11 @@ import { useEditorStore } from './store/editorStore';
 import { getRegionAtTime, timeToMusicPos } from '../core/musicsync.js';
 
 export default function App() {
-  const { setProject, setMusicLoaded, setMusicError, togglePlayback, stopPlayback, nudgePlayhead, jumpToClip, toggleVariant, toggleLinked, toggleLoop, isPlaying, clock, modPlayer, linked } =
+  const { setProject, setMusicLoaded, setMusicError, togglePlayback, stopPlayback, nudgePlayhead, jumpToClip, toggleVariant, toggleLinked, toggleLoop, requestScreenshot, isPlaying, clock, modPlayer, linked } =
     useEditorStore();
   const loopClipRef = useRef(null);
   const prevLoopTimeRef = useRef(null);
+  const [flashVisible, setFlashVisible] = useState(false);
 
   useEffect(() => {
     fetch('/project.json')
@@ -144,11 +145,16 @@ export default function App() {
           e.preventDefault();
           toggleLoop();
           break;
+        case 'KeyS':
+          e.preventDefault();
+          requestScreenshot();
+          setFlashVisible(true);
+          break;
       }
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [togglePlayback, stopPlayback, nudgePlayhead, jumpToClip, toggleVariant, toggleLinked, toggleLoop]);
+  }, [togglePlayback, stopPlayback, nudgePlayhead, jumpToClip, toggleVariant, toggleLinked, toggleLoop, requestScreenshot]);
 
   return (
     <div className="h-screen w-screen grid grid-rows-[auto_1fr_240px_1fr] grid-cols-[1fr_1fr] gap-px bg-border">
@@ -179,6 +185,17 @@ export default function App() {
       <div className="bg-surface-900 overflow-y-auto">
         <ClipProperties />
       </div>
+
+      {flashVisible && (
+        <>
+          <style>{`@keyframes screenshot-flash { from { opacity: 0.7; } to { opacity: 0; } }`}</style>
+          <div
+            className="fixed inset-0 bg-white pointer-events-none z-50"
+            style={{ animation: 'screenshot-flash 200ms ease-out forwards' }}
+            onAnimationEnd={() => setFlashVisible(false)}
+          />
+        </>
+      )}
     </div>
   );
 }
