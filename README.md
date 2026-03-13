@@ -92,7 +92,7 @@ All 25 parts of the original demo are implemented as classic variants:
 | 17 | Plasma cube | PLZ_CUBE | Done | Done |
 | 18 | Mini vector balls | DOTS | Done | Done |
 | 19 | Mirror ball scroller | WATER | Done | Done |
-| 20 | 3D sinusfield / voxel landscape | COMAN | Done | — |
+| 20 | 3D sinusfield / voxel landscape | COMAN | Done | Done |
 | 21 | Jelly logo | JPLOGO | Done | — |
 | 22 | 3D city flyover | U2E | Done | — |
 | 23 | End picture | ENDLOGO | Done | — |
@@ -209,6 +209,7 @@ Detailed technical design docs live in `docs/effects/`. Each effect has a classi
 | [19-water.md](docs/effects/19-water.md) | Mirror ball scroller (classic) |
 | [19-water-remastered.md](docs/effects/19-water-remastered.md) | Mirror ball scroller (remastered) |
 | [20-coman.md](docs/effects/20-coman.md) | 3D sinusfield |
+| [20-coman-remastered.md](docs/effects/20-coman-remastered.md) | 3D sinusfield (remastered) |
 | [21-jplogo.md](docs/effects/21-jplogo.md) | Jelly logo |
 | [22-u2e.md](docs/effects/22-u2e.md) | 3D city flyover |
 | [23-endlogo.md](docs/effects/23-endlogo.md) | End picture |
