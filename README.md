@@ -1,5 +1,7 @@
 # Second Reality Augmented
 
+**[▶ Play the demo](https://pdcgomes.github.io/second-reality-augmented/U2.html)** — self-contained HTML, no install required. Press spacebar to start. `X` to toggle classic ↔ remastered.
+
 A web-based recreation of [Second Reality](https://en.wikipedia.org/wiki/Second_Reality) (Future Crew, Assembly'93) built with WebGL2 shaders and Web Audio, paired with a timeline editor for sequencing and scrubbing through the demo in real time.
 
 https://github.com/mtuomi/SecondReality — original source code
@@ -80,7 +82,7 @@ graph TD
     subgraph FX["src/effects/ — init() · render(gl, t, beat, params) · destroy()"]
         Reg["<b>Effect Registry</b><br/>registerEffect() · getEffect(name, variant)"]
         Classic["<b>25 Classic Variants</b><br/>CPU software rasterize<br/>→ texSubImage2D<br/>320×256 faithful"]
-        Remastered["<b>13 Remastered Variants</b><br/>Full GLSL pipeline<br/>4K · Bloom · PBR · Raymarching"]
+        Remastered["<b>14 Remastered Variants</b><br/>Full GLSL pipeline<br/>4K · Bloom · PBR · Raymarching"]
         Bonus["<b>8 Bonus Effects</b><br/>Starfield · Fire · Tunnel<br/>Copper Bars · Grid · Wireframe"]
     end
 
@@ -158,7 +160,7 @@ All 25 parts of the original demo are implemented as classic variants:
 | 2 | 3D polygon ships flyover | U2A | Done | Done |
 | 3 | Pre-rendered explosion | PAM | Done | Done |
 | 4 | Title card | BEGLOGO | Done | — |
-| 5 | Checkerboard fall | GLENZ_TRANSITION | Done | — |
+| 5 | Checkerboard fall | GLENZ_TRANSITION | Done | Done |
 | 6 | Translucent rotating polyhedra | GLENZ_3D | Done | Done |
 | 7 | Dot tunnel | TUNNELI | Done | Done |
 | 8 | Circle interference | TECHNO_CIRCLES | Done | Done |
@@ -180,13 +182,14 @@ All 25 parts of the original demo are implemented as classic variants:
 | 24 | Scrolling credits | CREDITS | Done | — |
 | 25 | Greetings scroll | ENDSCRL | Done | — |
 
-### Remastered Effects (13/25)
+### Remastered Effects (14/25)
 
 | Effect | Techniques |
 |--------|-----------|
 | ALKU | Atmospheric purple horizon glow, dual-tier bloom, beat-reactive brightness |
 | U2A | GPU polygon ships, palette-ramp texture lighting, hardware depth buffer, horizon glow, dual-tier bloom |
 | PAM | Procedural lava core (plasma + voronoi cracks + orbiting embers), raymarched volumetric smoke with Beer-Lambert self-shadowing, dual-tier bloom |
+| GLENZ_TRANSITION | GPU checkerboard fall, physics-driven bounce, dual-tier bloom |
 | GLENZ_3D | GPU vertex pipeline, alpha blending, Phong/Fresnel glass, dual-tier bloom |
 | TUNNELI | Gaussian-splat dots, depth-based neon gradients, additive blending, dual-tier bloom |
 | TECHNO_CIRCLES | GPU texture-sampled interference, bilinear-filtered circles, smooth palette gradients, dual-tier bloom |
@@ -207,10 +210,10 @@ Starfield, Copper Bars, Fire, Wireframe 3D, Vector Balls, Bouncing Bitmap, Grid,
 | # | Effect | Classic | Remastered |
 |---|--------|---------|------------|
 | 1 | Scrolling landscape credits (ALKU) | | |
-| 2 | 3D polygon ships flyover (U2A) | | |
+| 2 | 3D polygon ships flyover (U2A) | <img src="assets/screenshots/screenshot-u2a-classic.png" width="160"> | <img src="assets/screenshots/screenshot-u2a-remastered.png" width="160"> |
 | 3 | Pre-rendered explosion (PAM) | | |
 | 4 | Title card (BEGLOGO) | | |
-| 5 | Checkerboard fall (GLENZ_TRANSITION) | | |
+| 5 | Checkerboard fall (GLENZ_TRANSITION) | <img src="assets/screenshots/screenshot-glenz_transition-classic.png" width="160"> | <img src="assets/screenshots/screenshot-glenz_transition-remastered.png" width="160"> |
 | 6 | Translucent rotating polyhedra (GLENZ_3D) | <img src="assets/screenshots/screenshot-glenz_3d-classic.png" width="160"> | <img src="assets/screenshots/screenshot-glenz_3d-remastered.png" width="160"> |
 | 7 | Dot tunnel (TUNNELI) | <img src="assets/screenshots/screenshot-tunneli-classic.png" width="160"> | <img src="assets/screenshots/screenshot-tunneli-remastered.png" width="160"> |
 | 8 | Circle interference (TECHNO_CIRCLES) | <img src="assets/screenshots/screenshot-techno_circles-classic.png" width="160"> | <img src="assets/screenshots/screenshot-techno_circles-remastered.png" width="160"> |

@@ -73,14 +73,15 @@ function exportDemoPlugin() {
             music1.toString('base64'),
             bundledJS,
           );
-          await fs.writeFile(path.join(assetsDir, 'U2.html'), html);
+          const rootDir = path.resolve(__dirname, '../..');
+          await fs.writeFile(path.join(rootDir, 'U2.html'), html);
 
           const sizeMB = (html.length / (1024 * 1024)).toFixed(1);
-          console.log(`Exported assets/U2.html (${sizeMB} MB)`);
+          console.log(`Exported U2.html (${sizeMB} MB)`);
 
           res.statusCode = 200;
           res.setHeader('Content-Type', 'application/json');
-          res.end(JSON.stringify({ ok: true, path: 'assets/U2.html', size: sizeMB }));
+          res.end(JSON.stringify({ ok: true, path: 'U2.html', size: sizeMB }));
         } catch (err) {
           console.error('Export failed:', err);
           res.statusCode = 500;
