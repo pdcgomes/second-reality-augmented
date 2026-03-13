@@ -162,6 +162,184 @@ void main() {
 }
 `;
 
+// ── Sky background shader (stars + volumetric nebula) ────────────────
+
+const SKY_FRAG = `#version 300 es
+precision highp float;
+
+in vec2 vUV;
+out vec4 fragColor;
+
+uniform float uTime;
+uniform float uBeat;
+uniform vec2 uResolution;
+
+uniform float uStarDensity;
+uniform float uStarBrightness;
+uniform float uStarTwinkle;
+uniform float uNebulaIntensity;
+uniform float uNebulaPulseSpeed;
+uniform float uNebulaBeatReactivity;
+uniform float uNebulaScale;
+uniform float uNebulaSwirl;
+
+// ── Noise primitives (same as PAM) ───────────────────────────────
+
+float hash21(vec2 p) {
+  p = fract(p * vec2(123.34, 456.21));
+  p += dot(p, p + 45.32);
+  return fract(p.x * p.y);
+}
+
+float noise(vec2 p) {
+  vec2 i = floor(p);
+  vec2 f = fract(p);
+  f = f * f * (3.0 - 2.0 * f);
+  float a = hash21(i);
+  float b = hash21(i + vec2(1.0, 0.0));
+  float c = hash21(i + vec2(0.0, 1.0));
+  float d = hash21(i + vec2(1.0, 1.0));
+  return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+}
+
+float noise3D(vec3 p) {
+  float zi = floor(p.z);
+  float zf = fract(p.z);
+  zf = zf * zf * (3.0 - 2.0 * zf);
+  float a = noise(p.xy + zi * 17.17);
+  float b = noise(p.xy + (zi + 1.0) * 17.17);
+  return mix(a, b, zf);
+}
+
+float fbm3D(vec3 p) {
+  float val = 0.0;
+  float amp = 0.5;
+  float freq = 1.0;
+  for (int i = 0; i < 4; i++) {
+    val += amp * noise3D(p * freq);
+    freq *= 2.0;
+    amp *= 0.5;
+  }
+  return val;
+}
+
+// ── Star field (jittered cells, PAM-style) ───────────────────────
+
+vec3 starField(vec2 uv) {
+  vec2 pixCoord = uv * uResolution;
+  float cellSize = mix(40.0, 12.0, uStarDensity);
+  vec2 cell = floor(pixCoord / cellSize);
+  vec2 cellUV = fract(pixCoord / cellSize);
+
+  float presence = hash21(cell * 127.1 + 311.7);
+  if (presence < 1.0 - uStarDensity * 0.15) return vec3(0.0);
+
+  vec2 starPos = vec2(
+    hash21(cell * 269.5 + 183.3),
+    hash21(cell * 413.1 + 271.9)
+  ) * 0.6 + 0.2;
+
+  float dist = length(cellUV - starPos) * cellSize;
+  float star = smoothstep(1.8, 0.0, dist);
+
+  float tier = hash21(cell * 731.1 + 97.3);
+  float brightness = tier < 0.5 ? 0.16 : (tier < 0.8 ? 0.48 : 1.0);
+
+  float phase = hash21(cell * 997.3 + 53.7) * 6.2832;
+  float speed = 1.0 + hash21(cell * 571.7) * 2.0;
+  float twinkle = 1.0 + uStarTwinkle * sin(uTime * speed + phase) * 0.3;
+
+  return vec3(brightness * star * twinkle * uStarBrightness);
+}
+
+// ── Raymarched volumetric nebula (adapted from PAM blast) ────────
+
+const int NEB_STEPS = 10;
+const int NEB_LIGHT_STEPS = 3;
+const float NEB_ABSORPTION = 6.0;
+
+float nebulaDensity(vec3 pos, float t) {
+  float swirl = t * uNebulaSwirl * 1.5;
+  float cs = cos(swirl), sn = sin(swirl);
+  vec3 sp = vec3(pos.x * cs - pos.z * sn, pos.y, pos.x * sn + pos.z * cs);
+
+  float s = uNebulaScale;
+  vec3 drift1 = vec3(sin(t * 2.0), cos(t * 1.5), sin(t * 1.7)) * 0.8;
+  vec3 drift2 = vec3(cos(t * 1.8), sin(t * 2.2), cos(t * 1.3)) * 0.6;
+  float n1 = fbm3D(sp * s + drift1);
+  float n2 = fbm3D(sp * s * 2.0 + drift2 + 50.0);
+
+  float density = n1 * 0.6 + n2 * 0.4;
+  density = smoothstep(0.28, 0.58, density);
+
+  float hDist = length(pos.xz);
+  return density * smoothstep(2.0, 0.3, hDist);
+}
+
+float nebulaLightMarch(vec3 pos, float t) {
+  vec3 lightDir = normalize(vec3(0.5, 0.8, -0.3));
+  float totalDensity = 0.0;
+  for (int i = 0; i < NEB_LIGHT_STEPS; i++) {
+    pos += lightDir * 0.1;
+    totalDensity += nebulaDensity(pos, t) * 0.1;
+  }
+  return exp(-totalDensity * NEB_ABSORPTION * 0.6);
+}
+
+vec3 nebula(vec2 uv) {
+  float t = uTime * 0.1;
+  float aspect = uResolution.x / uResolution.y;
+  vec2 screenPos = (uv - 0.5) * vec2(aspect, 1.0);
+
+  float depth = 1.2;
+  float stepSize = (depth * 2.0) / float(NEB_STEPS);
+
+  float transmittance = 1.0;
+  vec3 accumulated = vec3(0.0);
+
+  for (int i = 0; i < NEB_STEPS; i++) {
+    float z = -depth + (float(i) + 0.5) * stepSize;
+    vec3 pos = vec3(screenPos, z);
+    float density = nebulaDensity(pos, t);
+
+    if (density > 0.005) {
+      float stepTrans = exp(-density * stepSize * NEB_ABSORPTION);
+      float lightAmount = nebulaLightMarch(pos, t);
+
+      vec3 cloudColor = mix(
+        vec3(0.06, 0.01, 0.12),
+        vec3(0.3, 0.06, 0.4),
+        lightAmount
+      );
+      cloudColor = mix(cloudColor, vec3(0.45, 0.1, 0.5), density * 0.4);
+
+      vec3 stepColor = cloudColor * (lightAmount * 1.3 + 0.25);
+      accumulated += stepColor * (1.0 - stepTrans) * transmittance;
+      transmittance *= stepTrans;
+
+      if (transmittance < 0.01) break;
+    }
+  }
+
+  float pulse = sin(uTime * uNebulaPulseSpeed) * 0.5 + 0.5;
+  float beatMod = pow(1.0 - uBeat, 6.0) * uNebulaBeatReactivity;
+  accumulated *= 0.8 + 0.2 * pulse + beatMod * 0.3;
+
+  return accumulated * uNebulaIntensity;
+}
+
+void main() {
+  vec3 neb = nebula(vUV);
+
+  vec3 stars = starField(vUV);
+  float nebLuma = dot(neb, vec3(0.299, 0.587, 0.114))
+                / max(uNebulaIntensity, 0.001);
+  stars *= 1.0 - smoothstep(0.0, 0.15, nebLuma);
+
+  fragColor = vec4(neb + stars, 1.0);
+}
+`;
+
 // ── Bloom shaders ────────────────────────────────────────────────────
 
 const BLOOM_EXTRACT_FRAG = `#version 300 es
@@ -420,7 +598,7 @@ function buildProjectionMat4(fovDeg) {
 let engine = null;
 let frameCount = 0;
 
-let objProg, transitionProg, bloomExtractProg, blurProg, compositeProg;
+let objProg, transitionProg, skyProg, bloomExtractProg, blurProg, compositeProg;
 let quad;
 let paletteTex = null;
 let palette768 = null;
@@ -430,7 +608,7 @@ let meshes = [];
 let sceneFBO, bloomFBO1, bloomFBO2, bloomWideFBO1, bloomWideFBO2;
 let fboW = 0, fboH = 0;
 
-let ou = {}, tu = {}, beu = {}, blu = {}, cu = {};
+let ou = {}, tu = {}, su = {}, beu = {}, blu = {}, cu = {};
 
 // ── Effect interface ─────────────────────────────────────────────────
 
@@ -438,12 +616,20 @@ export default {
   label: 'u2e (remastered)',
 
   params: [
-    gp('Atmosphere',       { key: 'fogDensity',     label: 'Fog Density',         type: 'float', min: 0,   max: 1,    step: 0.01,  default: 0.32 }),
-    gp('Atmosphere',       { key: 'fogNear',        label: 'Fog Near',            type: 'float', min: 0,   max: 50000,step: 100,   default: 3000 }),
+    gp('Sky',              { key: 'starDensity',    label: 'Star Density',        type: 'float', min: 0,   max: 1,    step: 0.01,  default: 0.25 }),
+    gp('Sky',              { key: 'starBrightness', label: 'Star Brightness',     type: 'float', min: 0,   max: 2,    step: 0.01,  default: 1.0 }),
+    gp('Sky',              { key: 'starTwinkle',    label: 'Star Twinkle',        type: 'float', min: 0,   max: 1,    step: 0.01,  default: 0.3 }),
+    gp('Sky',              { key: 'nebulaIntensity',label: 'Nebula Intensity',    type: 'float', min: 0,   max: 1,    step: 0.01,  default: 0.44 }),
+    gp('Sky',              { key: 'nebulaPulseSpeed',label:'Nebula Pulse',        type: 'float', min: 0,   max: 3,    step: 0.01,  default: 0.89 }),
+    gp('Sky',              { key: 'nebulaBeatReactivity',label:'Nebula Beat',     type: 'float', min: 0,   max: 1,    step: 0.01,  default: 0.2 }),
+    gp('Sky',              { key: 'nebulaScale',    label: 'Nebula Scale',        type: 'float', min: 0.5, max: 5,    step: 0.1,   default: 3.8 }),
+    gp('Sky',              { key: 'nebulaSwirl',    label: 'Nebula Swirl',        type: 'float', min: 0,   max: 2,    step: 0.01,  default: 0.34 }),
+    gp('Atmosphere',       { key: 'fogDensity',     label: 'Fog Density',         type: 'float', min: 0,   max: 1,    step: 0.01,  default: 0.08 }),
+    gp('Atmosphere',       { key: 'fogNear',        label: 'Fog Near',            type: 'float', min: 0,   max: 50000,step: 100,   default: 5700 }),
     gp('Atmosphere',       { key: 'fogFar',         label: 'Fog Far',             type: 'float', min: 1000,max: 200000,step: 500,  default: 80000 }),
-    gp('Atmosphere',       { key: 'fogR',           label: 'Fog Red',             type: 'float', min: 0,   max: 1,    step: 0.01,  default: 0.02 }),
-    gp('Atmosphere',       { key: 'fogG',           label: 'Fog Green',           type: 'float', min: 0,   max: 1,    step: 0.01,  default: 0.01 }),
-    gp('Atmosphere',       { key: 'fogB',           label: 'Fog Blue',            type: 'float', min: 0,   max: 1,    step: 0.01,  default: 0.04 }),
+    gp('Atmosphere',       { key: 'fogR',           label: 'Fog Red',             type: 'float', min: 0,   max: 1,    step: 0.01,  default: 0.76 }),
+    gp('Atmosphere',       { key: 'fogG',           label: 'Fog Green',           type: 'float', min: 0,   max: 1,    step: 0.01,  default: 0.25 }),
+    gp('Atmosphere',       { key: 'fogB',           label: 'Fog Blue',            type: 'float', min: 0,   max: 1,    step: 0.01,  default: 0.22 }),
     gp('Exhaust Glow',     { key: 'exhaustGlow',    label: 'Glow Intensity',      type: 'float', min: 0,   max: 5,    step: 0.05,  default: 2.05 }),
     gp('Exhaust Glow',     { key: 'exhaustPulse',   label: 'Pulse Amount',        type: 'float', min: 0,   max: 1,    step: 0.01,  default: 0.60 }),
     gp('Exhaust Glow',     { key: 'exhaustHueShift',label: 'Hue Shift',           type: 'float', min: -0.5,max: 0.5,  step: 0.01,  default: 0.29 }),
@@ -458,6 +644,7 @@ export default {
     blurProg = createProgram(gl, FULLSCREEN_VERT, BLUR_FRAG);
     compositeProg = createProgram(gl, FULLSCREEN_VERT, COMPOSITE_FRAG);
     transitionProg = createProgram(gl, FULLSCREEN_VERT, TRANSITION_FRAG);
+    skyProg = createProgram(gl, FULLSCREEN_VERT, SKY_FRAG);
 
     {
       const vs = gl.createShader(gl.VERTEX_SHADER);
@@ -523,6 +710,20 @@ export default {
 
     tu = {
       alpha: gl.getUniformLocation(transitionProg, 'uAlpha'),
+    };
+
+    su = {
+      time: gl.getUniformLocation(skyProg, 'uTime'),
+      beat: gl.getUniformLocation(skyProg, 'uBeat'),
+      resolution: gl.getUniformLocation(skyProg, 'uResolution'),
+      starDensity: gl.getUniformLocation(skyProg, 'uStarDensity'),
+      starBrightness: gl.getUniformLocation(skyProg, 'uStarBrightness'),
+      starTwinkle: gl.getUniformLocation(skyProg, 'uStarTwinkle'),
+      nebulaIntensity: gl.getUniformLocation(skyProg, 'uNebulaIntensity'),
+      nebulaPulseSpeed: gl.getUniformLocation(skyProg, 'uNebulaPulseSpeed'),
+      nebulaBeatReactivity: gl.getUniformLocation(skyProg, 'uNebulaBeatReactivity'),
+      nebulaScale: gl.getUniformLocation(skyProg, 'uNebulaScale'),
+      nebulaSwirl: gl.getUniformLocation(skyProg, 'uNebulaSwirl'),
     };
 
     beu = {
@@ -605,11 +806,27 @@ export default {
     const proj = buildProjectionMat4(engine.fov);
     const cam = engine.camera;
 
-    // ── Pass 1: Scene → sceneFBO ─────────────────────────────
+    // ── Pass 1a: Sky background → sceneFBO ─────────────────────
     gl.bindFramebuffer(gl.FRAMEBUFFER, sceneFBO.fb);
     gl.viewport(0, 0, sw, sh);
     gl.clearColor(0, 0, 0, 1);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.depthMask(false);
+    gl.useProgram(skyProg);
+    gl.uniform1f(su.time, t);
+    gl.uniform1f(su.beat, beat);
+    gl.uniform2f(su.resolution, sw, sh);
+    gl.uniform1f(su.starDensity, p('starDensity', 0.25));
+    gl.uniform1f(su.starBrightness, p('starBrightness', 1.0));
+    gl.uniform1f(su.starTwinkle, p('starTwinkle', 0.3));
+    gl.uniform1f(su.nebulaIntensity, p('nebulaIntensity', 0.44));
+    gl.uniform1f(su.nebulaPulseSpeed, p('nebulaPulseSpeed', 0.89));
+    gl.uniform1f(su.nebulaBeatReactivity, p('nebulaBeatReactivity', 0.2));
+    gl.uniform1f(su.nebulaScale, p('nebulaScale', 3.8));
+    gl.uniform1f(su.nebulaSwirl, p('nebulaSwirl', 0.34));
+    quad.draw();
+
+    // ── Pass 1b: 3D city objects → sceneFBO ──────────────────
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LESS);
     gl.depthMask(true);
@@ -624,10 +841,10 @@ export default {
     gl.uniform1f(ou.exhaustGlow, p('exhaustGlow', 2.05));
     gl.uniform1f(ou.exhaustPulse, p('exhaustPulse', 0.60));
     gl.uniform1f(ou.exhaustHueShift, p('exhaustHueShift', 0.29));
-    gl.uniform1f(ou.fogDensity, p('fogDensity', 0.32));
-    gl.uniform1f(ou.fogNear, p('fogNear', 3000));
+    gl.uniform1f(ou.fogDensity, p('fogDensity', 0.08));
+    gl.uniform1f(ou.fogNear, p('fogNear', 5700));
     gl.uniform1f(ou.fogFar, p('fogFar', 80000));
-    gl.uniform3f(ou.fogColor, p('fogR', 0.02), p('fogG', 0.01), p('fogB', 0.04));
+    gl.uniform3f(ou.fogColor, p('fogR', 0.76), p('fogG', 0.25), p('fogB', 0.22));
 
     for (let mi = 0; mi < meshes.length; mi++) {
       const mesh = meshes[mi];
@@ -715,7 +932,7 @@ export default {
   },
 
   destroy(gl) {
-    for (const prog of [objProg, transitionProg, bloomExtractProg, blurProg, compositeProg])
+    for (const prog of [objProg, transitionProg, skyProg, bloomExtractProg, blurProg, compositeProg])
       if (prog) gl.deleteProgram(prog);
     if (quad) quad.destroy();
     if (paletteTex) gl.deleteTexture(paletteTex);
@@ -726,7 +943,7 @@ export default {
     for (const fbo of [sceneFBO, bloomFBO1, bloomFBO2, bloomWideFBO1, bloomWideFBO2])
       deleteFBO(gl, fbo);
 
-    objProg = transitionProg = null;
+    objProg = transitionProg = skyProg = null;
     bloomExtractProg = blurProg = compositeProg = null;
     quad = null;
     paletteTex = null;

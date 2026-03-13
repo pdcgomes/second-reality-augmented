@@ -27,9 +27,10 @@ Key upgrades over classic:
 | No depth buffer (painter's algorithm) | Hardware depth buffer |
 | No atmosphere | Depth-based atmospheric fog |
 | Spaceship rendered like any object | Exhaust glow with pulse/hue-shift (consistent with U2A) |
+| Black void background | Procedural starry sky + domain-warped volumetric nebula |
 | No post-processing | Dual-tier bloom |
-| No audio reactivity | Beat-reactive bloom |
-| No parameterization | 13 editor-tunable parameters |
+| No audio reactivity | Beat-reactive bloom + nebula pulse |
+| No parameterization | 21 editor-tunable parameters |
 
 ---
 
@@ -60,7 +61,14 @@ flowchart TD
     A --> B["Build projection from current FOV"]
     B --> T{"Intro transition?"}
     T -->|"Yes (frames 0–80 @70Hz)"| W["White fade overlay → screen"]
-    T -->|No| C["3D city scene → sceneFBO"]
+    T -->|No| S["Sky background → sceneFBO (no depth write)"]
+
+    subgraph S ["Sky (SKY_FRAG)"]
+      S1["Chunky procedural star field (grid hash, 3-tier brightness, twinkle)"]
+      S2["Domain-warped FBM volumetric nebula (emission + absorption + edge glow)"]
+    end
+
+    S --> C["3D city objects → sceneFBO"]
 
     subgraph C ["City Objects (OBJ_VERT + OBJ_FRAG)"]
       C1["For each visible object: build modelview + normal matrix"]
@@ -82,6 +90,7 @@ flowchart TD
 | Pass | Program | Target | Resolution |
 |------|---------|--------|------------|
 | Intro transition | `FULLSCREEN_VERT` + `TRANSITION_FRAG` | Default FB | Full |
+| Sky background | `FULLSCREEN_VERT` + `SKY_FRAG` | Scene FBO (no depth write) | Full |
 | 3D city objects | `OBJ_VERT` + `OBJ_FRAG` | Scene FBO (depth) | Full |
 | Bloom extract | `FULLSCREEN_VERT` + `BLOOM_EXTRACT_FRAG` | Bloom FBO 1 | Half |
 | Tight blur (×3) | `FULLSCREEN_VERT` + `BLUR_FRAG` | Bloom FBO 1↔2 | Half |
@@ -129,6 +138,60 @@ cross-effect consistency.
 
 ---
 
+## Sky Background
+
+A procedural sky rendered as the first pass into sceneFBO (with depth
+writes disabled) provides a starry backdrop and volumetric nebula that
+replaces the original black void. 3D geometry renders on top via the
+depth buffer, so the sky is visible only where no buildings exist —
+most impactful during the finale when the spaceship ascends.
+
+### Star Field
+
+Stars use a jittered-cell approach (same technique as PAM's twinkling
+stars) to avoid visible grid patterns. Pixel coordinates are divided
+into cells whose size varies with `starDensity`; each cell that passes
+a hash threshold contains a star at a random position within the cell.
+
+Three brightness tiers match the ALKU intro's palette:
+
+- **Dim** (50%): brightness ≈ 0.16
+- **Medium** (30%): brightness ≈ 0.48
+- **Bright** (20%): brightness = 1.0
+
+Each star has per-cell twinkle with randomized phase and speed.
+Stars dim where nebula density is high, reinforcing volumetric depth.
+
+### Volumetric Nebula
+
+Raymarched volumetric rendering adapted from PAM's blast wave system.
+Rays march through a 3D density field, accumulating color and opacity
+via Beer-Lambert attenuation. Light marching provides self-shadowing.
+
+Uses the same `hash21` → `noise` → `noise3D` → `fbm3D` pipeline as
+PAM, with 10 volume steps and 3 light-march steps per lit sample.
+
+The density field combines two scales of 3D FBM noise with a slow
+swirl rotation and time-based drift for animation:
+
+```
+swirl = t × swirlSpeed
+sp = rotateY(pos, swirl)
+n1 = fbm3D(sp × scale + drift1)
+n2 = fbm3D(sp × scale × 2 + drift2)
+density = smoothstep(0.28, 0.58, n1 × 0.6 + n2 × 0.4) × spatialFalloff
+```
+
+Color palette matches ALKU's purple gradient:
+
+- **Dark cloud**: `vec3(0.06, 0.01, 0.12)` — deep space blue-purple
+- **Lit cloud**: `vec3(0.3, 0.06, 0.4)` — ALKU `horizonGlow` purple
+- **Dense emission**: `vec3(0.45, 0.1, 0.5)` — bright magenta at cores
+
+The nebula pulses with sinusoidal oscillation plus beat reactivity.
+
+---
+
 ## Atmospheric Fog
 
 Depth-based fog adds depth perception to the city flyover:
@@ -160,6 +223,7 @@ Same dual-tier bloom pipeline as other remastered effects:
 |--------|---------|---------------|
 | Bloom boost | `tight × (bloomStr + pow(1 - beat, 4) × beatReactivity × 0.15)` | Glow halo flares on beat |
 | Wide bloom | `wide × (bloomStr × 0.5 + pow(1 - beat, 4) × beatReactivity × 0.1)` | Broad glow pulses |
+| Nebula pulse | `0.7 + 0.3 × sin(t × pulseSpeed) + pow(1 - beat, 6) × nebulaBeatReactivity × 0.3` | Nebula emission brightens on beat |
 
 ---
 
@@ -167,6 +231,14 @@ Same dual-tier bloom pipeline as other remastered effects:
 
 | Key | Label | Range | Default | Controls |
 |-----|-------|-------|---------|----------|
+| `starDensity` | Star Density | 0–1 | 0.25 | Probability of star per grid cell (scaled ×0.03) |
+| `starBrightness` | Star Brightness | 0–2 | 1.0 | Overall star intensity multiplier |
+| `starTwinkle` | Star Twinkle | 0–1 | 0.3 | Twinkle animation intensity |
+| `nebulaIntensity` | Nebula Intensity | 0–1 | 0.25 | Overall nebula brightness |
+| `nebulaPulseSpeed` | Nebula Pulse | 0–3 | 0.8 | Emission glow oscillation speed (Hz) |
+| `nebulaBeatReactivity` | Nebula Beat | 0–1 | 0.2 | Beat-driven emission pulse |
+| `nebulaScale` | Nebula Scale | 0.5–5 | 2.0 | Spatial frequency of cloud structures |
+| `nebulaSwirl` | Nebula Swirl | 0–2 | 0.8 | Cloud swirl/rotation animation speed |
 | `fogDensity` | Fog Density | 0–1 | 0.32 | Strength of distance fog |
 | `fogNear` | Fog Near | 0–50000 | 3000 | Distance where fog begins |
 | `fogFar` | Fog Far | 1000–200000 | 80000 | Distance where fog is fully opaque |
@@ -189,6 +261,7 @@ Same dual-tier bloom pipeline as other remastered effects:
 |---------|--------|----------|---------|
 | `objProg` | `OBJ_VERT` (custom) | `OBJ_FRAG` | 3D city meshes with palette lighting + fog + exhaust |
 | `transitionProg` | `FULLSCREEN_VERT` | `TRANSITION_FRAG` | White fade overlay for intro phases |
+| `skyProg` | `FULLSCREEN_VERT` | `SKY_FRAG` | Procedural star field + domain-warped volumetric nebula |
 | `bloomExtractProg` | `FULLSCREEN_VERT` | `BLOOM_EXTRACT_FRAG` | Bright-pixel extraction |
 | `blurProg` | `FULLSCREEN_VERT` | `BLUR_FRAG` | Separable 9-tap Gaussian |
 | `compositeProg` | `FULLSCREEN_VERT` | `COMPOSITE_FRAG` | Scene + bloom + scanlines composite |
@@ -204,7 +277,7 @@ fragment shader.
 
 | Resource | Count | Notes |
 |----------|-------|-------|
-| Shader programs | 5 | Object, transition, bloom extract, blur, composite |
+| Shader programs | 6 | Object, transition, sky, bloom extract, blur, composite |
 | VAOs | 42 | One per city object (buildings, trees, tunnels, roads, spaceship) |
 | Textures | 6 | Palette (256×1) + scene FBO + 2 tight bloom + 2 wide bloom |
 | Framebuffers | 5 | Scene (with depth) + bloom1 + bloom2 + wide1 + wide2 |
@@ -228,7 +301,8 @@ All resources are properly cleaned up in `destroy()`.
 | Post-processing | None | Dual-tier bloom with scanlines |
 | Audio sync | None | Beat-reactive bloom intensity |
 | Scrubbing | State cached every 100 frames, replay from checkpoint | Full animation bake, instant seekFrame() |
-| Parameterization | None | 13 tunable params for editor UI |
+| Sky/background | Black void | Procedural chunky stars + domain-warped volumetric nebula |
+| Parameterization | None | 21 tunable params for editor UI |
 
 ---
 
