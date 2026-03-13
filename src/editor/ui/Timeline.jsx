@@ -135,29 +135,78 @@ export default function Timeline() {
         });
       }
 
-      // Audio row — show music regions from cues
+      // Audio row — show music regions from cues with decorative piano-roll notes
       const audioRowY = rowH * 1;
       if (project?.cues) {
         const regions = [];
         const { music0Start, music0Stop, music1Start, music1Stop, music0Resume, musicFadeOut } = project.cues;
         if (music0Start != null && music0Stop != null) {
-          regions.push({ label: 'MUSIC0.S3M', start: music0Start, end: music0Stop, color: '#4a7cff' });
+          regions.push({ label: 'MUSIC0.S3M', start: music0Start, end: music0Stop, color: '#4a7cff', bpm: 120 });
         }
         if (music1Start != null && music1Stop != null) {
-          regions.push({ label: 'MUSIC1.S3M', start: music1Start, end: music1Stop, color: '#8855ff' });
+          regions.push({ label: 'MUSIC1.S3M', start: music1Start, end: music1Stop, color: '#8855ff', bpm: 130 });
         }
         if (music0Resume != null && musicFadeOut != null) {
-          regions.push({ label: 'MUSIC0.S3M (resume)', start: music0Resume, end: musicFadeOut, color: '#4a7cff' });
+          regions.push({ label: 'MUSIC0.S3M (resume)', start: music0Resume, end: musicFadeOut, color: '#4a7cff', bpm: 120 });
         }
+
+        const PITCH_LANES = 10;
+        const padY = 4;
+        const laneH = (rowH - padY * 2) / PITCH_LANES;
+        const noteH = Math.max(1, laneH - 1);
+
+        // Deterministic hash for pseudo-random note placement
+        const hash = (n) => {
+          let h = (n * 2654435761) >>> 0;
+          h = ((h >> 16) ^ h) * 0x45d9f3b;
+          h = ((h >> 16) ^ h) >>> 0;
+          return h;
+        };
+
         for (const r of regions) {
           const x1 = timeToX(r.start);
           const x2 = timeToX(r.end);
           if (x2 < LABEL_WIDTH || x1 > w) continue;
+          const clampX1 = Math.max(LABEL_WIDTH, x1);
+          const regionW = x2 - clampX1;
+
+          // Region background
           ctx.fillStyle = r.color + '44';
-          ctx.fillRect(Math.max(LABEL_WIDTH, x1), audioRowY + 4, x2 - Math.max(LABEL_WIDTH, x1), rowH - 8);
+          ctx.fillRect(clampX1, audioRowY + padY, regionW, rowH - padY * 2);
           ctx.strokeStyle = r.color + '88';
-          ctx.strokeRect(Math.max(LABEL_WIDTH, x1), audioRowY + 4, x2 - Math.max(LABEL_WIDTH, x1), rowH - 8);
-          if (x2 - x1 > 60) {
+          ctx.strokeRect(clampX1, audioRowY + padY, regionW, rowH - padY * 2);
+
+          // Piano-roll note markers
+          const beatSec = 60 / r.bpm;
+          const visStart = Math.max(r.start, xToTime(LABEL_WIDTH));
+          const visEnd = Math.min(r.end, xToTime(w));
+          const firstBeat = Math.ceil((visStart - r.start) / beatSec);
+          const lastBeat = Math.floor((visEnd - r.start) / beatSec);
+
+          for (let b = firstBeat; b <= lastBeat; b++) {
+            const h0 = hash(b + Math.round(r.start * 100));
+            const noteCount = 1 + (h0 % 3);
+            for (let n = 0; n < noteCount; n++) {
+              const h1 = hash(h0 + n * 7919);
+              const lane = h1 % PITCH_LANES;
+              const widthBeats = 0.25 + (h1 % 5) * 0.15;
+              const nx = timeToX(r.start + b * beatSec);
+              const nw = Math.max(2, widthBeats * beatSec * pxPerSecond);
+              const ny = audioRowY + padY + lane * laneH;
+              const alpha = 0.25 + (h1 % 100) / 200;
+
+              ctx.fillStyle = r.color + Math.round(alpha * 255).toString(16).padStart(2, '0');
+              ctx.fillRect(
+                Math.max(clampX1, nx),
+                ny,
+                Math.min(nw, x2 - Math.max(clampX1, nx)),
+                noteH,
+              );
+            }
+          }
+
+          // Region label on top
+          if (regionW > 60) {
             ctx.fillStyle = r.color;
             ctx.font = '9px monospace';
             ctx.fillText(r.label, Math.max(LABEL_WIDTH + 4, x1 + 4), audioRowY + rowH / 2 + 3);
