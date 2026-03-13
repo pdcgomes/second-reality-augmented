@@ -73,9 +73,9 @@ All 25 parts of the original demo are implemented as classic variants:
 
 | # | Effect | Original Part | Classic | Remastered |
 |---|--------|--------------|---------|------------|
-| 1 | Scrolling landscape credits | ALKU | Done | — |
-| 2 | 3D polygon ships flyover | U2A | Done | — |
-| 3 | Pre-rendered explosion | PAM | Done | — |
+| 1 | Scrolling landscape credits | ALKU | Done | Done |
+| 2 | 3D polygon ships flyover | U2A | Done | Done |
+| 3 | Pre-rendered explosion | PAM | Done | Done |
 | 4 | Title card | BEGLOGO | Done | — |
 | 5 | Checkerboard fall | GLENZ_TRANSITION | Done | — |
 | 6 | Translucent rotating polyhedra | GLENZ_3D | Done | Done |
@@ -99,10 +99,13 @@ All 25 parts of the original demo are implemented as classic variants:
 | 24 | Scrolling credits | CREDITS | Done | — |
 | 25 | Greetings scroll | ENDSCRL | Done | — |
 
-### Remastered Effects (7/25)
+### Remastered Effects (10/25)
 
 | Effect | Techniques |
 |--------|-----------|
+| ALKU | Atmospheric purple horizon glow, dual-tier bloom, beat-reactive brightness |
+| U2A | GPU polygon ships, palette-ramp texture lighting, hardware depth buffer, horizon glow, dual-tier bloom |
+| PAM | Procedural lava core (plasma + voronoi cracks + orbiting embers), raymarched volumetric smoke with Beer-Lambert self-shadowing, dual-tier bloom |
 | GLENZ_3D | GPU vertex pipeline, alpha blending, Phong/Fresnel glass, dual-tier bloom |
 | TUNNELI | Gaussian-splat dots, depth-based neon gradients, additive blending, dual-tier bloom |
 | TECHNO_CIRCLES | GPU texture-sampled interference, bilinear-filtered circles, smooth palette gradients, dual-tier bloom |
@@ -170,15 +173,20 @@ Detailed technical design docs live in `docs/effects/`. Each effect has a classi
 
 | Doc | Effect |
 |-----|--------|
-| [01-alku.md](docs/effects/01-alku.md) | Opening credits landscape |
-| [02-u2a.md](docs/effects/02-u2a.md) | 3D ships flyover |
-| [03-pam.md](docs/effects/03-pam.md) | Pre-rendered explosion |
+| [01-alku.md](docs/effects/01-alku.md) | Opening credits landscape (classic) |
+| [01-alku-remastered.md](docs/effects/01-alku-remastered.md) | Opening credits landscape (remastered) |
+| [02-u2a.md](docs/effects/02-u2a.md) | 3D ships flyover (classic) |
+| [02-u2a-remastered.md](docs/effects/02-u2a-remastered.md) | 3D ships flyover (remastered) |
+| [03-pam.md](docs/effects/03-pam.md) | Pre-rendered explosion (classic) |
+| [03-pam-remastered.md](docs/effects/03-pam-remastered.md) | Pre-rendered explosion (remastered) |
 | [04-beglogo.md](docs/effects/04-beglogo.md) | Title card |
 | [05-glenz-transition.md](docs/effects/05-glenz-transition.md) | Checkerboard fall |
 | [06-glenz-3d.md](docs/effects/06-glenz-3d.md) | Glenz vectors (classic) |
 | [06-glenz-3d-remastered.md](docs/effects/06-glenz-3d-remastered.md) | Glenz vectors (remastered) |
-| [07-tunneli.md](docs/effects/07-tunneli.md) | Dot tunnel |
-| [08-techno-circles.md](docs/effects/08-techno-circles.md) | Circle interference |
+| [07-tunneli.md](docs/effects/07-tunneli.md) | Dot tunnel (classic) |
+| [07-tunneli-remastered.md](docs/effects/07-tunneli-remastered.md) | Dot tunnel (remastered) |
+| [08-techno-circles.md](docs/effects/08-techno-circles.md) | Circle interference (classic) |
+| [08-techno-circles-remastered.md](docs/effects/08-techno-circles-remastered.md) | Circle interference (remastered) |
 | [09-techno-bars-transition.md](docs/effects/09-techno-bars-transition.md) | Bars transition |
 | [10-techno-bars.md](docs/effects/10-techno-bars.md) | Rotating bars |
 | [11-techno-troll.md](docs/effects/11-techno-troll.md) | Troll picture |
@@ -186,8 +194,10 @@ Detailed technical design docs live in `docs/effects/`. Each effect has a classi
 | [13-lens-transition.md](docs/effects/13-lens-transition.md) | Lens slide-in |
 | [14-lens-lens.md](docs/effects/14-lens-lens.md) | Bouncing crystal ball |
 | [15-lens-roto.md](docs/effects/15-lens-roto.md) | Rotozoom |
-| [16-plz-plasma.md](docs/effects/16-plz-plasma.md) | Plasma waves |
-| [17-plz-cube.md](docs/effects/17-plz-cube.md) | Plasma cube |
+| [16-plz-plasma.md](docs/effects/16-plz-plasma.md) | Plasma waves (classic) |
+| [16-plz-plasma-remastered.md](docs/effects/16-plz-plasma-remastered.md) | Plasma waves (remastered) |
+| [17-plz-cube.md](docs/effects/17-plz-cube.md) | Plasma cube (classic) |
+| [17-plz-cube-remastered.md](docs/effects/17-plz-cube-remastered.md) | Plasma cube (remastered) |
 | [18-dots.md](docs/effects/18-dots.md) | Mini vector balls (classic) |
 | [18-dots-remastered.md](docs/effects/18-dots-remastered.md) | Mini vector balls (remastered) |
 | [19-water.md](docs/effects/19-water.md) | Mirror ball scroller (classic) |
