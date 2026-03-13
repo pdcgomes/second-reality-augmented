@@ -12,8 +12,26 @@
  */
 
 import { createProgram, createFullscreenQuad, FULLSCREEN_VERT } from '../../core/webgl.js';
+import { gp } from '../index.js';
 
 const FRAME_RATE = 70;
+
+// ── Palette presets ──────────────────────────────────────────────
+// Each preset defines a 3×3 color remapping matrix (column-major).
+// Applied as: output = mat3(colorR, colorG, colorB) * paletteRGB
+// Classic = identity; other themes remap the procedural palette channels.
+
+const PALETTES = [
+  { name: 'Classic',    colorMap: [[1,0,0],       [0,1,0],       [0,0,1]]       },
+  { name: 'Ember',      colorMap: [[1,0.35,0],    [0.7,0.8,0.1], [0.4,0.08,0.05]] },
+  { name: 'Ocean',      colorMap: [[0.05,0.3,0.9],[0.1,0.8,0.5], [0.7,0.15,0.25]] },
+  { name: 'Toxic',      colorMap: [[0.15,0.9,0.1],[0.6,0.85,0.05],[0.05,0.35,0.4]] },
+  { name: 'Infrared',   colorMap: [[1,0.05,0.35], [0.8,0.6,0.05],[0.55,0.05,0.9]] },
+  { name: 'Aurora',     colorMap: [[0.1,0.85,0.4],[0.2,0.5,0.9], [0.6,0.1,0.85]] },
+  { name: 'Monochrome', colorMap: [[0.33,0.33,0.33],[0.5,0.5,0.5],[0.17,0.17,0.17]] },
+  { name: 'Sunset',     colorMap: [[1,0.35,0.25], [0.8,0.7,0.1], [0.35,0.1,0.75]] },
+  { name: 'Matrix',     colorMap: [[0.12,0.65,0.08],[0.08,0.85,0.12],[0.05,0.4,0.12]] },
+];
 const DPII = 2 * Math.PI;
 
 const INITTABLE = [
@@ -47,6 +65,9 @@ uniform float uBrightness;
 uniform int uPalette;
 uniform int uPaletteNext;
 uniform float uPaletteMix;
+uniform vec3 uColorR;
+uniform vec3 uColorG;
+uniform vec3 uColorB;
 
 #define PI  3.14159265359
 #define TAU 6.28318530718
@@ -169,6 +190,7 @@ void main() {
   vec3 color = mix(colA, colB, uPaletteMix);
 
   color /= 63.0;
+  color = clamp(mat3(uColorR, uColorG, uColorB) * color, 0.0, 1.0);
 
   if (uHueShift != 0.0) {
     color = hueRotate(color, uHueShift * TAU / 360.0);
@@ -280,13 +302,14 @@ export default {
   label: 'plasma (remastered)',
 
   params: [
-    { key: 'hueShift',        label: 'Hue Shift',        type: 'float', min: 0,   max: 360, step: 1,    default: 0 },
-    { key: 'saturationBoost', label: 'Saturation Boost',  type: 'float', min: -0.5,max: 1,   step: 0.01, default: 0.2 },
-    { key: 'brightness',      label: 'Brightness',        type: 'float', min: 0.5, max: 2,   step: 0.01, default: 1.1 },
-    { key: 'bloomThreshold',  label: 'Bloom Threshold',   type: 'float', min: 0,   max: 1,   step: 0.01, default: 0.25 },
-    { key: 'bloomStrength',   label: 'Bloom Strength',    type: 'float', min: 0,   max: 2,   step: 0.01, default: 0.45 },
-    { key: 'beatReactivity',  label: 'Beat Reactivity',   type: 'float', min: 0,   max: 1,   step: 0.01, default: 0.4 },
-    { key: 'scanlineStr',     label: 'Scanlines',         type: 'float', min: 0,   max: 0.5, step: 0.01, default: 0.02 },
+    gp('Palette',          { key: 'palette',          label: 'Theme',            type: 'select', options: PALETTES.map((p, i) => ({ value: i, label: p.name })), default: 0 }),
+    gp('Palette',          { key: 'hueShift',         label: 'Hue Shift',        type: 'float', min: 0,   max: 360, step: 1,    default: 0 }),
+    gp('Palette',          { key: 'saturationBoost',  label: 'Saturation Boost', type: 'float', min: -0.5,max: 1,   step: 0.01, default: 0.2 }),
+    gp('Palette',          { key: 'brightness',       label: 'Brightness',       type: 'float', min: 0.5, max: 2,   step: 0.01, default: 1.1 }),
+    gp('Post-Processing',  { key: 'bloomThreshold',   label: 'Bloom Threshold',  type: 'float', min: 0,   max: 1,   step: 0.01, default: 0.25 }),
+    gp('Post-Processing',  { key: 'bloomStrength',    label: 'Bloom Strength',   type: 'float', min: 0,   max: 2,   step: 0.01, default: 0.45 }),
+    gp('Post-Processing',  { key: 'beatReactivity',   label: 'Beat Reactivity',  type: 'float', min: 0,   max: 1,   step: 0.01, default: 0.4 }),
+    gp('Post-Processing',  { key: 'scanlineStr',      label: 'Scanlines',        type: 'float', min: 0,   max: 0.5, step: 0.01, default: 0.02 }),
   ],
 
   init(gl) {
@@ -316,6 +339,9 @@ export default {
       palette: gl.getUniformLocation(plasmaProg, 'uPalette'),
       paletteNext: gl.getUniformLocation(plasmaProg, 'uPaletteNext'),
       paletteMix: gl.getUniformLocation(plasmaProg, 'uPaletteMix'),
+      colorR: gl.getUniformLocation(plasmaProg, 'uColorR'),
+      colorG: gl.getUniformLocation(plasmaProg, 'uColorG'),
+      colorB: gl.getUniformLocation(plasmaProg, 'uColorB'),
     };
 
     beu = {
@@ -436,6 +462,12 @@ export default {
     gl.uniform1i(pu.palette, effectiveSeq);
     gl.uniform1i(pu.paletteNext, nextSeq);
     gl.uniform1f(pu.paletteMix, paletteMix);
+
+    const pal = PALETTES[Math.round(p('palette', 0))] ?? PALETTES[0];
+    gl.uniform3fv(pu.colorR, pal.colorMap[0]);
+    gl.uniform3fv(pu.colorG, pal.colorMap[1]);
+    gl.uniform3fv(pu.colorB, pal.colorMap[2]);
+
     quad.draw();
 
     // ── Pass 2: Bloom pipeline ───────────────────────────────────
