@@ -21,7 +21,8 @@ canvas{display:block;width:100%;height:100%;image-rendering:pixelated;image-rend
 #gh-link{position:fixed;top:10px;left:12px;display:inline-flex;align-items:center;gap:6px;color:rgba(255,255,255,.3);text-decoration:none;font-family:'Courier New',monospace;font-size:11px;z-index:5;transition:color .2s}
 #gh-link:hover{color:rgba(255,255,255,.7)}
 #gh-link svg{fill:currentColor}
-#hud{position:fixed;top:10px;right:14px;font-family:'Courier New',monospace;font-size:13px;color:rgba(255,255,255,.4);pointer-events:none;z-index:5;display:none}
+#hud{position:fixed;top:10px;right:14px;font-family:'Courier New',monospace;font-size:13px;color:rgba(255,255,255,.45);pointer-events:none;z-index:5;display:flex;align-items:center;gap:8px}
+#hud kbd{font-family:'Courier New',monospace;font-size:10px;color:rgba(255,255,255,.35);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-bottom-width:2px;border-radius:3px;padding:1px 5px;line-height:1.4}
 </style>
 </head>
 <body>

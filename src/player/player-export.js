@@ -42,9 +42,8 @@ const cache1 = {};
 // ── HUD ──────────────────────────────────────────────────────────────
 
 function updateHUD() {
-  let text = variant.toUpperCase() + '  [X] TO TOGGLE';
-  if (!playing && started) text += '  \u23F8';
-  hud.textContent = text;
+  const pause = !playing && started ? '  \u23F8' : '';
+  hud.innerHTML = `<span>${variant.toUpperCase()}${pause}</span><kbd>X</kbd><span style="color:rgba(255,255,255,.25);font-size:11px">TO TOGGLE</span>`;
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────
@@ -212,7 +211,6 @@ async function startDemo() {
   playing = true;
   overlay.remove();
   updateHUD();
-  hud.style.display = '';
   requestAnimationFrame(tick);
 }
 
@@ -233,6 +231,9 @@ function toggleVariant() {
   variant = variant === 'classic' ? 'remastered' : 'classic';
   updateHUD();
 }
+
+// Show the HUD immediately (before demo starts)
+updateHUD();
 
 // ── Input ────────────────────────────────────────────────────────────
 
