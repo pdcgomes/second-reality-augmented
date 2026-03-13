@@ -10,6 +10,22 @@ Second Reality is a legendary DOS demo by Future Crew that won the Assembly 1993
 
 This project rebuilds those effects using modern web technologies while staying faithful to the original 320×256 PAL aesthetic.
 
+## Why Second Reality Augmented?
+
+A bit of personal context — feel free to skip to the next section.
+
+I was a young teenager when this demo came out. It blew my mind then, and it still boggles my mind today that a group of teenagers pulled this off in 1992-93. Sure, a lot of these effects haven't necessarily aged well or even look that impressive, but you have to put it into context. Very little available online resources. Michael Abrash's Graphics Programming Black Book didn't come out until 1997. A combination of creativity, ingenuity, genius, experimentation, trial and error and luck brought us this and many many other amazing demos.
+
+I'll be honest, I probably peaked at Second Reality. I wanted to understand it, pull it apart, tinker with it. Graphics programming called to me in a way nothing else did. But life happened. I became a software engineer who occasionally dabbled with a few toy projects. Graphics was always on the sidelines, never quite in reach. One of many ideas filed under "I'll never have the time to do it or learn how to do it, but I'd love to one day..."
+
+That is, until 2026. I'd spent years scoffing, denying, being frustrated, scared, and who knows what else, about... yes, LLMs. Around mid-2025 something fundamental shifted. I began relying on them more and more at work, at first in small projects that wouldn't justify the ROI. Results were good, then got better. By January 2026 I decided to go all-in. I've been writing code professionally since 2003 and tinkering with it since I was 14. As of March 2026 I have barely written a line of code myself. The ability to work on ambitious and complex ideas at the speed of thought is just astonishing to me.
+
+Here's the thing: while I absolutely love writing code, my true passion has always been building **systems**. Most code I write and review isn't novel — I've seen it before, shaped slightly differently, wired differently, but it's all familiar. The real complexity lives in the architecture, the emerging concepts and sub-systems and how they all interconnect. Code has to be written for systems to exist, but that takes time, patience, and usually many build cycles. I don't want to know how much of my life has been spent **waiting** for builds and CI jobs to finish — never getting that time back.
+
+LLMs like Claude fundamentally changed this for people like me. The physical constraints that lead to slow cycles _still_ exist, but you can now parallelise across meaningful complex projects, focusing your attention on the systems you want to build rather than the boilerplate that connects them.
+
+So this project. I didn't just sit down one day, fire up Claude and say "remaster Second Reality, let me know when you're done". What you see here is code 100% LLM-written and 100% supervised and directed by me. It's a joint effort where I drive the vision and architecture while Claude takes care of the maths and shader code I could never have gotten to on my own. At the same time, I'm turning this into a learning repository — creating per-effect guides for people like me, who wished they had them when they were just a kid.
+
 ## Philosophy
 
 This project is intentionally **learning-focused** and **design-centric**:
