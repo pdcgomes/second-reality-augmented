@@ -125,8 +125,10 @@ void computeState() {
   swordHalfW = uSwordWidth * 0.5;
   swordH = uSwordHeight;
 
-  // Sword rises from the water over the first ~2.5 seconds.
-  // Start partially emerged (tip already above water), then rise to full.
+  // Sword rises continuously throughout the clip.
+  // Phase 1 (0–2.5s): smooth emergence from water (swordBottom shifts up).
+  // Phase 2 (entire clip): continuous upward drift on swordOrigin.y so the
+  //   sword exits the top of the screen before the fade-out.
   float rise = clamp(uTime * 0.4, 0.0, 1.0);
   rise = rise * rise * (3.0 - 2.0 * rise);
   swordBottom = mix(-swordH * 0.5, -swordH * 0.1, rise);
@@ -165,7 +167,7 @@ void computeState() {
   swordV = tiltedV;
   swordN = tiltedN;
 
-  swordOrigin = vec3(uSwordX, uSwordY, uSwordZ);
+  swordOrigin = vec3(uSwordX, uSwordY + uTime * 0.12, uSwordZ);
 }
 
 float rippleHeight(vec2 xz) {
