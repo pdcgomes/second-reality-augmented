@@ -110,3 +110,47 @@ principles.
 | 3 | Motion sequences | [03-motion-sequences.md](techno-bars-remastered/03-motion-sequences.md) |
 | 4 | GPU rendering | [04-gpu-rendering.md](techno-bars-remastered/04-gpu-rendering.md) |
 | 5 | Learning path | [05-learning-path.md](techno-bars-remastered/05-learning-path.md) |
+
+---
+
+### [Lens Roto Remastered](lens-roto-remastered/00-overview.md)
+
+A 5-layer walkthrough of the remastered LENS_ROTO effect (Part 15 of Second
+Reality). Covers the classic rotozoom affine transform, GPU texture sampling
+with bilinear filtering, scripted animation curves with multi-phase zoom
+physics, lens material (Blinn-Phong specular, Fresnel rim), beat-reactive eye
+glow, and a dual-tier bloom pipeline.
+
+**No prerequisites assumed** — maths and GPU concepts are explained from first
+principles.
+
+| Layer | Topic | File |
+|-------|-------|------|
+| 0 | Overview and architecture | [00-overview.md](lens-roto-remastered/00-overview.md) |
+| 1 | The rotozoom formula | [01-affine-transform.md](lens-roto-remastered/01-affine-transform.md) |
+| 2 | Texture and sampling | [02-texture-sampling.md](lens-roto-remastered/02-texture-sampling.md) |
+| 3 | Animation curves | [03-animation-curves.md](lens-roto-remastered/03-animation-curves.md) |
+| 4 | Palette and post-processing | [04-palette-and-postfx.md](lens-roto-remastered/04-palette-and-postfx.md) |
+| 5 | Learning path | [05-learning-path.md](lens-roto-remastered/05-learning-path.md) |
+
+---
+
+### [Lens Lens Remastered](lens-lens-remastered/00-overview.md)
+
+A 6-layer walkthrough of the remastered LENS_LENS effect (Part 14 of Second
+Reality). Covers Snell's law refraction optics, pre-computed displacement maps,
+bouncing physics with dampened rebounds, GPU refraction shaders with Blinn-Phong
+specular and Fresnel rim glow, and bloom post-processing.
+
+**No prerequisites assumed** — maths and GPU concepts are explained from first
+principles.
+
+| Layer | Topic | File |
+|-------|-------|------|
+| 0 | Overview and architecture | [00-overview.md](lens-lens-remastered/00-overview.md) |
+| 1 | Refraction optics | [01-refraction-optics.md](lens-lens-remastered/01-refraction-optics.md) |
+| 2 | Displacement map | [02-displacement-map.md](lens-lens-remastered/02-displacement-map.md) |
+| 3 | Bounce physics | [03-bounce-physics.md](lens-lens-remastered/03-bounce-physics.md) |
+| 4 | GPU displacement | [04-gpu-displacement.md](lens-lens-remastered/04-gpu-displacement.md) |
+| 5 | Bloom and palette | [05-bloom-and-palette.md](lens-lens-remastered/05-bloom-and-palette.md) |
+| 6 | Learning path | [06-learning-path.md](lens-lens-remastered/06-learning-path.md) |
