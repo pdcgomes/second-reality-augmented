@@ -18,6 +18,25 @@
 import { createProgram, createFullscreenQuad, FULLSCREEN_VERT } from '../../core/webgl.js';
 import { gp } from '../index.js';
 
+// ── Palette presets ──────────────────────────────────────────────
+// Each preset defines the near/far hue gradient for the tunnel rings.
+
+const PALETTES = [
+  { name: 'Classic',     hueNear: 190, hueFar: 190 },
+  { name: 'Gruvbox',     hueNear: 35,  hueFar: 140 },
+  { name: 'Monokai',     hueNear: 55,  hueFar: 325 },
+  { name: 'Dracula',     hueNear: 270, hueFar: 180 },
+  { name: 'Solarized',   hueNear: 175, hueFar: 45  },
+  { name: 'Nord',        hueNear: 200, hueFar: 220 },
+  { name: 'One Dark',    hueNear: 215, hueFar: 285 },
+  { name: 'Catppuccin',  hueNear: 225, hueFar: 340 },
+  { name: 'Tokyo Night', hueNear: 230, hueFar: 350 },
+  { name: 'Synthwave',   hueNear: 170, hueFar: 310 },
+  { name: 'Kanagawa',    hueNear: 220, hueFar: 30  },
+  { name: 'Everforest',  hueNear: 145, hueFar: 85  },
+  { name: 'Rose Pine',   hueNear: 285, hueFar: 195 },
+];
+
 const FRAME_RATE = 70;
 const VEKE = 1060;
 const PI = Math.PI;
@@ -224,10 +243,10 @@ export default {
   label: 'tunneli (remastered)',
 
   params: [
+    gp('Palette',  { key: 'palette',  label: 'Theme',     type: 'select', options: PALETTES.map((p, i) => ({ value: i, label: p.name })), default: 0 }),
+    gp('Palette',  { key: 'hueShift', label: 'Hue Shift', type: 'float', min: -180, max: 180, step: 1, default: 0 }),
     gp('Tunnel',  { key: 'dotsPerRing',    label: 'Dots per Ring',    type: 'float', min: 64,  max: 512, step: 16,   default: 256 }),
     gp('Tunnel',  { key: 'dotSize',        label: 'Dot Size',         type: 'float', min: 0.5, max: 8,   step: 0.1,  default: 3.0 }),
-    gp('Color',   { key: 'hueNear',        label: 'Near Hue',          type: 'float', min: 0,   max: 360, step: 1,    default: 190 }),
-    gp('Color',   { key: 'hueFar',         label: 'Far Hue',          type: 'float', min: 0,   max: 360, step: 1,    default: 190 }),
     gp('Post-Processing', { key: 'bloomThreshold', label: 'Bloom Threshold', type: 'float', min: 0, max: 1, step: 0.01, default: 0.15 }),
     gp('Post-Processing', { key: 'bloomStrength',  label: 'Bloom Strength',  type: 'float', min: 0, max: 2, step: 0.01, default: 0.6 }),
     gp('Post-Processing', { key: 'beatReactivity', label: 'Beat Reactivity', type: 'float', min: 0, max: 1, step: 0.01, default: 0.5 }),
@@ -404,8 +423,10 @@ export default {
       gl.uniform1f(du.dotSize, p('dotSize', 3.0));
       gl.uniform1f(du.beat, beat);
       gl.uniform1f(du.beatReact, p('beatReactivity', 0.5));
-      gl.uniform1f(du.hueNear, p('hueNear', 190));
-      gl.uniform1f(du.hueFar, p('hueFar', 190));
+      const pal = PALETTES[p('palette', 0)];
+      const hueShift = p('hueShift', 0);
+      gl.uniform1f(du.hueNear, pal.hueNear + hueShift);
+      gl.uniform1f(du.hueFar, pal.hueFar + hueShift);
       gl.uniform1f(du.fade, fade);
 
       gl.bindVertexArray(dotVAO);
