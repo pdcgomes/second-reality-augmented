@@ -86,11 +86,11 @@ The following maps to the actual Second Reality demo sequence. Each effect has a
 
 ### Part 5 — GLENZ_TRANSITION (Checkerboard Fall)
 - [x] `glenzTransition/effect.js` — checkerboard tile fall transition (PSI)
-- [ ] `glenzTransition/effect.remastered.js`
+- [x] `glenzTransition/effect.remastered.js` — GPU bounce shader, dual-tier bloom, HSV checkerboard params
 
 ### Part 6 — GLENZ_3D (Glenz Vectors)
 - [x] `glenzVectors/effect.js` — translucent rotating polyhedra (PSI) [REWRITTEN: full 1:1 port]
-- [ ] `glenzVectors/effect.remastered.js`
+- [x] `glenzVectors/effect.remastered.js` — GPU Phong/Fresnel glass, 21 palettes, dual-tier bloom, HSV ground params
 
 ### Part 7 — TUNNELI (Dot Tunnel)
 - [x] `tunneli/effect.js` — concentric circles receding into depth (TRUG) [REWRITTEN: full 1:1 port]
