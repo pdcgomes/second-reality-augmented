@@ -16,6 +16,7 @@ export const useEditorStore = create((set, get) => ({
   snapToBeat: true,
   variant: 'classic',
   previewFit: 'fill',
+  linked: false,
   loopEffect: false,
   clock,
   modPlayer,
@@ -98,8 +99,9 @@ export const useEditorStore = create((set, get) => ({
   setZoom: (zoomLevel) => set({ zoomLevel: Math.max(0.25, Math.min(16, zoomLevel)) }),
   toggleSnap: () => set((s) => ({ snapToBeat: !s.snapToBeat })),
   setVariant: (variant) => set({ variant }),
-  toggleVariant: () => set((s) => ({ variant: s.variant === 'classic' ? 'remastered' : 'classic' })),
+  toggleVariant: () => set((s) => ({ variant: s.variant === 'classic' ? 'remastered' : 'classic', linked: false })),
   togglePreviewFit: () => set((s) => ({ previewFit: s.previewFit === 'fill' ? 'native' : 'fill' })),
+  toggleLinked: () => set((s) => ({ linked: !s.linked })),
   toggleLoop: () => set((s) => ({ loopEffect: !s.loopEffect })),
 
   getSelectedClip: () => {

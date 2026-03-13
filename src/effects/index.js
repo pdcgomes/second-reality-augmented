@@ -120,6 +120,13 @@ export function getEffectParams(name, variant = 'classic') {
   return mod?.params ?? [];
 }
 
+export function hasVariant(name, variant) {
+  const entry = registry[name];
+  if (!entry) return false;
+  if (variant === 'remastered') return !!entry.remastered;
+  return !!entry.classic;
+}
+
 export function hasEffect(name) {
   return name in registry;
 }

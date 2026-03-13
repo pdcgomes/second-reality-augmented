@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import { useEditorStore } from '../store/editorStore';
-import { getEffect, listEffects } from '@effects/index.js';
+import { getEffect, listEffects, hasVariant } from '@effects/index.js';
 import { getBeatPosition } from '@core/beatmap.js';
 import { getTransitionProgress, renderTransitionOverlay, destroyTransitions } from '@core/transitions.js';
 
@@ -25,11 +25,13 @@ function resizeCanvasToDisplay(canvas, variant, fit) {
   }
 }
 
-export default function Preview() {
+export default function Preview({ variantOverride }) {
   const canvasRef = useRef(null);
   const rafRef = useRef(null);
   const effectsRef = useRef({});
   const fpsRef = useRef({ frames: 0, lastTime: performance.now() });
+  const variantOverrideRef = useRef(variantOverride);
+  variantOverrideRef.current = variantOverride;
   const [status, setStatus] = useState('Initializing...');
   const [fps, setFps] = useState(0);
 
@@ -50,9 +52,9 @@ export default function Preview() {
     const effects = listEffects();
     setStatus(effects.length ? `${effects.map((e) => e.name).join(', ')}` : 'no effects registered');
 
-    // Init all effects for the current variant eagerly
-    const variant = useEditorStore.getState().variant;
+    const variant = variantOverrideRef.current ?? useEditorStore.getState().variant;
     for (const { name } of effects) {
+      if (variantOverrideRef.current === 'remastered' && !hasVariant(name, 'remastered')) continue;
       const mod = getEffect(name, variant);
       if (mod) {
         try {
@@ -66,10 +68,12 @@ export default function Preview() {
     }
 
     function resolveEffect(name, v) {
+      if (variantOverrideRef.current === 'remastered' && !hasVariant(name, 'remastered')) {
+        return null;
+      }
       const key = `${name}:${v}`;
       if (effectsRef.current[key]) return effectsRef.current[key];
 
-      // Lazy init: first time this name+variant combo is requested
       const mod = getEffect(name, v);
       if (!mod) return null;
       try {
@@ -92,7 +96,8 @@ export default function Preview() {
         fpsRef.current.lastTime = now;
       }
 
-      const { project, playheadSeconds, variant: currentVariant, previewFit: currentFit } = useEditorStore.getState();
+      const { project, playheadSeconds, variant: storeVariant, previewFit: currentFit } = useEditorStore.getState();
+      const currentVariant = variantOverrideRef.current ?? storeVariant;
       resizeCanvasToDisplay(canvas, currentVariant, currentFit);
       gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
       gl.clear(gl.COLOR_BUFFER_BIT);
@@ -134,8 +139,9 @@ export default function Preview() {
   }, []);
 
   const isFill = previewFit === 'fill';
-  const variant = useEditorStore((s) => s.variant);
-  const isHiRes = variant === 'remastered' && isFill;
+  const storeVariant = useEditorStore((s) => s.variant);
+  const effectiveVariant = variantOverride ?? storeVariant;
+  const isHiRes = effectiveVariant === 'remastered' && isFill;
 
   return (
     <div className="w-full h-full relative bg-black overflow-hidden">
@@ -154,7 +160,13 @@ export default function Preview() {
       <span className="absolute top-1 left-1 text-[10px] font-mono text-green-400/80 pointer-events-none select-none">
         {fps} fps
       </span>
-      {/* Overlay controls */}
+      {variantOverride && (
+        <span className={`absolute top-1 right-1 text-[10px] font-mono pointer-events-none select-none ${
+          variantOverride === 'classic' ? 'text-accent-blue/80' : 'text-accent-purple/80'
+        }`}>
+          {variantOverride.toUpperCase()}
+        </span>
+      )}
       <div className="absolute bottom-1 right-1 flex items-center gap-2">
         <span className="text-text-dim text-[10px] font-mono opacity-60">{status}</span>
         <button

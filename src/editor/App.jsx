@@ -9,7 +9,7 @@ import { useEditorStore } from './store/editorStore';
 import { getRegionAtTime, timeToMusicPos } from '../core/musicsync.js';
 
 export default function App() {
-  const { setProject, setMusicLoaded, setMusicError, togglePlayback, stopPlayback, nudgePlayhead, jumpToClip, toggleVariant, toggleLoop, isPlaying, clock, modPlayer } =
+  const { setProject, setMusicLoaded, setMusicError, togglePlayback, stopPlayback, nudgePlayhead, jumpToClip, toggleVariant, toggleLoop, isPlaying, clock, modPlayer, linked } =
     useEditorStore();
   const loopClipRef = useRef(null);
   const prevLoopTimeRef = useRef(null);
@@ -153,11 +153,17 @@ export default function App() {
       </div>
 
       <div className="bg-surface-900 flex items-center justify-center">
-        <Preview />
+        <Preview variantOverride={linked ? 'classic' : undefined} />
       </div>
-      <div className="bg-surface-900">
-        <Tracker />
-      </div>
+      {linked ? (
+        <div className="bg-surface-900 flex items-center justify-center">
+          <Preview variantOverride="remastered" />
+        </div>
+      ) : (
+        <div className="bg-surface-900">
+          <Tracker />
+        </div>
+      )}
 
       <div className="col-span-2">
         <Timeline />

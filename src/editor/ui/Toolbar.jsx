@@ -6,6 +6,7 @@ export default function Toolbar() {
     playheadSeconds,
     snapToBeat,
     variant,
+    linked,
     project,
     musicLoaded,
     musicError,
@@ -16,6 +17,7 @@ export default function Toolbar() {
     toggleSnap,
     toggleLoop,
     setVariant,
+    toggleLinked,
     zoomLevel,
     setZoom,
   } = useEditorStore();
@@ -87,11 +89,11 @@ export default function Toolbar() {
 
       <div className="flex-1" />
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1">
         <button
-          onClick={() => setVariant('classic')}
+          onClick={() => { if (linked) toggleLinked(); setVariant('classic'); }}
           className={`px-2 py-1 rounded text-xs transition-colors ${
-            variant === 'classic'
+            variant === 'classic' || linked
               ? 'bg-accent-blue/30 text-accent-blue'
               : 'bg-surface-600 text-text-dim'
           }`}
@@ -99,9 +101,20 @@ export default function Toolbar() {
           CLASSIC
         </button>
         <button
-          onClick={() => setVariant('remastered')}
+          onClick={toggleLinked}
+          className={`px-1.5 py-1 rounded text-xs transition-colors ${
+            linked
+              ? 'bg-gradient-to-r from-accent-blue/30 to-accent-purple/30 text-text-primary'
+              : 'bg-surface-600 text-text-dim'
+          }`}
+          title="Compare Classic & Remastered side-by-side"
+        >
+          ⟷
+        </button>
+        <button
+          onClick={() => { if (linked) toggleLinked(); setVariant('remastered'); }}
           className={`px-2 py-1 rounded text-xs transition-colors ${
-            variant === 'remastered'
+            variant === 'remastered' || linked
               ? 'bg-accent-purple/30 text-accent-purple'
               : 'bg-surface-600 text-text-dim'
           }`}
