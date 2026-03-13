@@ -17,6 +17,25 @@ import { createProgram, createFullscreenQuad, FULLSCREEN_VERT } from '../../core
 import { gp } from '../index.js';
 import { FRAME_RATE, MAXDOTS, simulateDots } from './animation.js';
 
+// ── Palette presets ──────────────────────────────────────────────
+// Each preset defines the depth hue gradient, saturation, and ground grid tint.
+
+const PALETTES = [
+  { name: 'Classic',     hueNear: 185, hueFar: 185, sat: 0.73, ground: [0.3, 0.5, 0.6] },
+  { name: 'Gruvbox',     hueNear: 40,  hueFar: 140, sat: 0.60, ground: [0.6, 0.5, 0.2] },
+  { name: 'Monokai',     hueNear: 325, hueFar: 55,  sat: 0.85, ground: [0.7, 0.2, 0.5] },
+  { name: 'Dracula',     hueNear: 265, hueFar: 185, sat: 0.75, ground: [0.5, 0.3, 0.7] },
+  { name: 'Solarized',   hueNear: 195, hueFar: 45,  sat: 0.65, ground: [0.2, 0.5, 0.6] },
+  { name: 'Nord',        hueNear: 195, hueFar: 215, sat: 0.50, ground: [0.35, 0.5, 0.6] },
+  { name: 'One Dark',    hueNear: 210, hueFar: 290, sat: 0.70, ground: [0.3, 0.5, 0.7] },
+  { name: 'Catppuccin',  hueNear: 220, hueFar: 340, sat: 0.72, ground: [0.4, 0.4, 0.7] },
+  { name: 'Tokyo Night', hueNear: 225, hueFar: 350, sat: 0.78, ground: [0.35, 0.45, 0.7] },
+  { name: 'Synthwave',   hueNear: 310, hueFar: 170, sat: 0.90, ground: [0.6, 0.2, 0.7] },
+  { name: 'Kanagawa',    hueNear: 225, hueFar: 30,  sat: 0.55, ground: [0.35, 0.45, 0.6] },
+  { name: 'Everforest',  hueNear: 140, hueFar: 90,  sat: 0.50, ground: [0.4, 0.55, 0.35] },
+  { name: 'Rose Pine',   hueNear: 280, hueFar: 195, sat: 0.60, ground: [0.45, 0.4, 0.6] },
+];
+
 // ── Shaders ──────────────────────────────────────────────────────
 
 const SPHERE_VERT = `#version 300 es
@@ -135,6 +154,7 @@ uniform float uGroundRoughness;
 uniform float uGroundBrightness;
 uniform float uFade;
 uniform vec2 uResolution;
+uniform vec3 uGroundTint;
 
 void main() {
   if (vUV.y > 0.5) discard;
@@ -168,7 +188,7 @@ void main() {
   float lineX = 1.0 - smoothstep(0.0, 0.02, gridX);
   float lineZ = 1.0 - smoothstep(0.0, 0.03, gridZ);
   float gridLine = max(lineX, lineZ) * 0.08 * uGroundBrightness * (1.0 - t * 0.8);
-  baseGround += vec3(gridLine * 0.3, gridLine * 0.5, gridLine * 0.6);
+  baseGround += vec3(gridLine) * uGroundTint;
 
   vec3 color = mix(baseGround, refl, fresnel);
   float edgeFade = smoothstep(0.0, 0.05, t);
@@ -291,9 +311,9 @@ export default {
   label: 'dots (remastered)',
 
   params: [
-    gp('Palette',          { key: 'hueNear',          label: 'Hue (Near)',        type: 'float', min: 0,   max: 360, step: 1,     default: 185 }),
-    gp('Palette',          { key: 'hueFar',           label: 'Hue (Far)',         type: 'float', min: 0,   max: 360, step: 1,     default: 185 }),
-    gp('Palette',          { key: 'saturation',       label: 'Saturation',        type: 'float', min: 0,   max: 1,   step: 0.01,  default: 0.73 }),
+    gp('Palette',          { key: 'palette',          label: 'Theme',             type: 'select', options: PALETTES.map((p, i) => ({ value: i, label: p.name })), default: 0 }),
+    gp('Palette',          { key: 'hueShift',         label: 'Hue Shift',         type: 'float', min: -180, max: 180, step: 1,    default: 0 }),
+    gp('Palette',          { key: 'satBoost',         label: 'Saturation Adjust', type: 'float', min: -0.5, max: 0.5, step: 0.01, default: 0 }),
     gp('Lighting',         { key: 'specularPower',    label: 'Specular',          type: 'float', min: 8,   max: 128, step: 1,     default: 32 }),
     gp('Ground',           { key: 'reflectivity',     label: 'Reflectivity',      type: 'float', min: 0,   max: 1,   step: 0.01,  default: 0.6 }),
     gp('Ground',           { key: 'groundBrightness', label: 'Ground Brightness', type: 'float', min: 0,   max: 5,   step: 0.1,   default: 1.0 }),
@@ -334,6 +354,7 @@ export default {
       groundRoughness:  gl.getUniformLocation(groundProg, 'uGroundRoughness'),
       fade:             gl.getUniformLocation(groundProg, 'uFade'),
       resolution:      gl.getUniformLocation(groundProg, 'uResolution'),
+      groundTint:      gl.getUniformLocation(groundProg, 'uGroundTint'),
     };
 
     beu = {
@@ -443,9 +464,11 @@ export default {
     }
 
     const dotScale = p('dotScale', 1.0);
-    const hueNear = p('hueNear', 185);
-    const hueFar = p('hueFar', 185);
-    const saturation = p('saturation', 0.73);
+    const pal = PALETTES[p('palette', 0)];
+    const hueShift = p('hueShift', 0);
+    const hueNear = pal.hueNear + hueShift;
+    const hueFar = pal.hueFar + hueShift;
+    const saturation = Math.max(0, Math.min(1, pal.sat + p('satBoost', 0)));
     const specularPower = p('specularPower', 32);
 
     function setSphereUniforms(isReflection) {
@@ -497,6 +520,7 @@ export default {
     gl.uniform1f(gu.reflectivity, p('reflectivity', 0.6));
     gl.uniform1f(gu.groundBrightness, p('groundBrightness', 1.0));
     gl.uniform1f(gu.groundRoughness, p('groundRoughness', 0.05));
+    gl.uniform3fv(gu.groundTint, pal.ground);
     gl.uniform1f(gu.fade, fade);
     gl.uniform2f(gu.resolution, sw, sh);
     quad.draw();
