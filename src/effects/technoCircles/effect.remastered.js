@@ -413,9 +413,9 @@ export default {
   label: 'technoCircles (remastered)',
 
   params: [
-    gp('Palette',          { key: 'palette',          label: 'Theme',            type: 'select', options: PALETTES.map((p, i) => ({ value: i, label: p.name })), default: 0 }),
-    gp('Palette',          { key: 'hueShift',         label: 'Hue Shift',        type: 'float', min: 0,    max: 360,  step: 1,     default: 0 }),
-    gp('Palette',          { key: 'saturationBoost',  label: 'Saturation Boost', type: 'float', min: -0.5, max: 1,    step: 0.01,  default: 0.25 }),
+    gp('Palette',          { key: 'palette',          label: 'Theme',            type: 'select', options: PALETTES.map((p, i) => ({ value: i, label: p.name })), default: 1 }),
+    gp('Palette',          { key: 'hueShift',         label: 'Hue Shift',        type: 'float', min: 0,    max: 360,  step: 1,     default: 7 }),
+    gp('Palette',          { key: 'saturationBoost',  label: 'Saturation Boost', type: 'float', min: -0.5, max: 1,    step: 0.01,  default: 0.30 }),
     gp('Palette',          { key: 'brightness',       label: 'Brightness',       type: 'float', min: 0.5,  max: 2,    step: 0.01,  default: 1.15 }),
     gp('Effect',           { key: 'colorSmooth',      label: 'Color Smoothing',  type: 'float', min: 0,    max: 1,    step: 0.01,  default: 0.3 }),
     gp('Effect',           { key: 'distortionScale',  label: 'Distortion Scale', type: 'float', min: 0,    max: 3,    step: 0.05,  default: 1.0 }),
@@ -541,8 +541,8 @@ export default {
     gl.uniform1f(mu.fade, fade);
     gl.uniform1f(mu.beat, beat);
     gl.uniform1f(mu.beatReactivity, p('beatReactivity', 0.4));
-    gl.uniform1f(mu.hueShift, p('hueShift', 0));
-    gl.uniform1f(mu.saturationBoost, p('saturationBoost', 0.25));
+    gl.uniform1f(mu.hueShift, p('hueShift', 7));
+    gl.uniform1f(mu.saturationBoost, p('saturationBoost', 0.30));
     gl.uniform1f(mu.brightness, p('brightness', 1.15));
     gl.uniform1f(mu.distortionScale, p('distortionScale', 1.0));
     gl.uniform1f(mu.colorSmooth, p('colorSmooth', 0.3));
@@ -552,7 +552,7 @@ export default {
     gl.uniform1f(mu.sinuspower, sinuspower);
     gl.uniform1f(mu.palShift, palanimc);
 
-    const pal = PALETTES[Math.round(p('palette', 0))] ?? PALETTES[0];
+    const pal = PALETTES[Math.round(p('palette', 1))] ?? PALETTES[0];
     gl.uniform3fv(mu.phase1Color, pal.phase1);
     gl.uniform3fv(mu.pal1Tint, pal.pal1);
     gl.uniform3fv(mu.pal2Tint, pal.pal2);
