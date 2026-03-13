@@ -563,7 +563,7 @@ export default {
     gl.uniformMatrix3fv(cu_.normalMat, false, normalMat);
     gl.uniform3f(cu_.lightDir, lx / lLen, ly / lLen, lz / lLen);
     gl.uniform1f(cu_.specPow, p('specularPower', 32));
-    gl.uniform1f(cu_.ambient, p('ambient', 0.15));
+    gl.uniform1f(cu_.ambient, p('ambient', 0.49));
     gl.uniform1f(cu_.distortion, p('distortion', 1.0));
     gl.uniform1f(cu_.distOff, dd * 63);
     gl.uniform1f(cu_.beat, beat);
