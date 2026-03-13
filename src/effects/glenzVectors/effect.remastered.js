@@ -575,7 +575,7 @@ export default {
 
   render(gl, t, beat, params) {
     const p = (k, d) => params[k] ?? d;
-    const pal = PALETTES[Math.round(p('palette', 0))] ?? PALETTES[0];
+    const pal = PALETTES[Math.round(p('palette', 9))] ?? PALETTES[0];
     const sw = gl.drawingBufferWidth;
     const sh = gl.drawingBufferHeight;
 
@@ -644,12 +644,12 @@ export default {
     }
 
     // Objects
-    const specPow = p('specularPower', 64);
+    const specPow = p('specularPower', 75);
     gl.useProgram(meshProg);
     gl.uniformMatrix4fv(mu.projection, false, projection);
     gl.uniform1f(mu.beat, beat);
-    gl.uniform1f(mu.fresnelExp, p('fresnelExp', 3.0));
-    gl.uniform1f(mu.brightness, p('brightness', 1.0));
+    gl.uniform1f(mu.fresnelExp, p('fresnelExp', 2.2));
+    gl.uniform1f(mu.brightness, p('brightness', 2.9));
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 

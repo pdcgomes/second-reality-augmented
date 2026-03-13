@@ -641,7 +641,7 @@ export default {
     gl.uniform1f(cu.bloomStr, p('bloomStrength', 0.5));
     gl.uniform1f(cu.beat, beat);
     gl.uniform1f(cu.beatReactivity, p('beatReactivity', 0.4));
-    gl.uniform1f(cu.scanlineStr, p('scanlineStr', 0.02));
+    gl.uniform1f(cu.scanlineStr, p('scanlineStr', 0.08));
     quad.draw();
   },
 

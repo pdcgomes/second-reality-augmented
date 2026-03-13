@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import { useEditorStore } from '../store/editorStore';
-import { getEffect, listEffects, hasVariant } from '@effects/index.js';
+import { getEffect, listEffects, hasVariant, resolveParams } from '@effects/index.js';
 import { getBeatPosition } from '@core/beatmap.js';
 import { getTransitionProgress, renderTransitionOverlay, destroyTransitions } from '@core/transitions.js';
 
@@ -113,7 +113,8 @@ export default function Preview({ variantOverride }) {
           if (mod) {
             const localT = playheadSeconds - activeClip.start;
             const beat = getBeatPosition(playheadSeconds, project.beatMap);
-            mod.render(gl, localT, beat, activeClip.params ?? {});
+            const resolved = resolveParams(activeClip.effect, currentVariant, activeClip.params);
+            mod.render(gl, localT, beat, resolved);
           }
 
           const { inProgress, outProgress } = getTransitionProgress(activeClip, playheadSeconds);

@@ -872,8 +872,8 @@ export default {
     gl.uniform1f(su.whiteFlash, whiteFlash);
     gl.uniform1f(su.coreAlpha, coreAlpha);
     gl.uniform2f(su.resolution, sw, sh);
-    gl.uniform2f(su.center, p('centerX', 0.5), p('centerY', 0.5));
-    gl.uniform1f(su.explosionSpeed, p('explosionSpeed', 1.0));
+    gl.uniform2f(su.center, p('centerX', 0.5), p('centerY', 0.565));
+    gl.uniform1f(su.explosionSpeed, p('explosionSpeed', 1.26));
     gl.uniform1f(su.coreIntensity, p('coreIntensity', 2.72));
     gl.uniform1f(su.smokeDetail, p('smokeDetail', 0.73));
     gl.uniform1f(su.shockwaveWidth, p('shockwaveWidth', 0.26));
@@ -894,7 +894,7 @@ export default {
     gl.uniform1f(su.beatReactivity, p('beatReactivity', 0.3));
     gl.uniform1f(su.horizonGlow, p('horizonGlow', 0.15));
     gl.uniform1f(su.horizonPulseSpeed, p('horizonPulseSpeed', 1.5));
-    gl.uniform1f(su.starDensity, p('starDensity', 0.3));
+    gl.uniform1f(su.starDensity, p('starDensity', 0.0));
     gl.uniform1f(su.starTwinkleSpeed, p('starTwinkleSpeed', 2.0));
     gl.uniform1f(su.starBrightness, p('starBrightness', 0.8));
     quad.draw();

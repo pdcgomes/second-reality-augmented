@@ -807,7 +807,7 @@ export default {
     gl.uniform1f(shu.time, t);
     gl.uniform1f(shu.exhaustGlow, p('exhaustGlow', 2.0));
     gl.uniform1f(shu.exhaustPulse, p('exhaustPulse', 0.6));
-    gl.uniform1f(shu.exhaustHueShift, p('exhaustHueShift', 0.0));
+    gl.uniform1f(shu.exhaustHueShift, p('exhaustHueShift', 0.29));
 
     for (let mi = 0; mi < shipMeshes.length; mi++) {
       const co = engine.getObject(shipMeshes[mi].objIndex);

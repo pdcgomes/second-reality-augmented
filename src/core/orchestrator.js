@@ -75,13 +75,24 @@ export class Orchestrator {
       if (entry?.initialized) {
         const localT = t - clip.start;
         const beat = this._getBeatPosition(t);
-        entry.module.render(this.gl, localT, beat, clip.params ?? {});
+        const resolved = this._resolveParams(entry.module, clip.params);
+        entry.module.render(this.gl, localT, beat, resolved);
       }
 
       this.activeClip = clip;
     }
 
     this._rafId = requestAnimationFrame(() => this._tick());
+  }
+
+  _resolveParams(mod, clipParams = {}) {
+    const defs = mod.params;
+    if (!defs?.length) return clipParams;
+    const resolved = {};
+    for (const def of defs) {
+      resolved[def.key] = clipParams[def.key] ?? def.default;
+    }
+    return resolved;
   }
 
   _getBeatPosition(t) {

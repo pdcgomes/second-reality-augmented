@@ -334,7 +334,7 @@ export default {
     }
 
     const frame = Math.floor(t * FRAME_RATE);
-    const dotsPerRing = Math.min(MAX_DOTS_PER_RING, Math.round(p('dotsPerRing', 256)));
+    const dotsPerRing = Math.min(MAX_DOTS_PER_RING, Math.round(p('dotsPerRing', 144)));
 
     // Reference circle (putki[5]) for viewport tracking
     const birth5 = frame - 94;
@@ -420,11 +420,11 @@ export default {
 
       gl.useProgram(dotProg);
       gl.uniform2f(du.resolution, sw, sh);
-      gl.uniform1f(du.dotSize, p('dotSize', 3.0));
+      gl.uniform1f(du.dotSize, p('dotSize', 2.7));
       gl.uniform1f(du.beat, beat);
       gl.uniform1f(du.beatReact, p('beatReactivity', 0.5));
-      const pal = PALETTES[p('palette', 0)];
-      const hueShift = p('hueShift', 0);
+      const pal = PALETTES[p('palette', 7)];
+      const hueShift = p('hueShift', -20);
       gl.uniform1f(du.hueNear, pal.hueNear + hueShift);
       gl.uniform1f(du.hueFar, pal.hueFar + hueShift);
       gl.uniform1f(du.fade, fade);
@@ -448,7 +448,7 @@ export default {
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, sceneFBO.tex);
     gl.uniform1i(beu.scene, 0);
-    gl.uniform1f(beu.threshold, p('bloomThreshold', 0.15));
+    gl.uniform1f(beu.threshold, p('bloomThreshold', 0.24));
     quad.draw();
 
     // Tight bloom: blur
@@ -504,10 +504,10 @@ export default {
     gl.activeTexture(gl.TEXTURE2);
     gl.bindTexture(gl.TEXTURE_2D, bloomWideFBO1.tex);
     gl.uniform1i(cou.bloomWide, 2);
-    gl.uniform1f(cou.bloomStr, p('bloomStrength', 0.6));
+    gl.uniform1f(cou.bloomStr, p('bloomStrength', 0.69));
     gl.uniform1f(cou.beat, beat);
     gl.uniform1f(cou.beatReact, p('beatReactivity', 0.5));
-    gl.uniform1f(cou.scanlineStr, p('scanlineStr', 0));
+    gl.uniform1f(cou.scanlineStr, p('scanlineStr', 0.07));
     quad.draw();
   },
 

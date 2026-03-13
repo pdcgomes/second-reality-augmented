@@ -132,6 +132,20 @@ export function getEffectParams(name, variant = 'classic') {
   return mod?.params ?? [];
 }
 
+/**
+ * Merge descriptor defaults with clip-level overrides so render() always
+ * receives the fully-resolved values — no reliance on hardcoded fallbacks.
+ */
+export function resolveParams(name, variant, clipParams = {}) {
+  const defs = getEffectParams(name, variant);
+  if (!defs.length) return clipParams;
+  const resolved = {};
+  for (const def of defs) {
+    resolved[def.key] = clipParams[def.key] ?? def.default;
+  }
+  return resolved;
+}
+
 export function hasVariant(name, variant) {
   const entry = registry[name];
   if (!entry) return false;
