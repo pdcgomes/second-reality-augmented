@@ -14,8 +14,10 @@
 
 // ── Original demo sequence (25 visual parts) ──────────────────────
 import alkuClassic from './alku/effect.js';
+import alkuRemastered from './alku/effect.remastered.js';
 import u2aClassic from './u2a/effect.js';
 import pamClassic from './pam/effect.js';
+import pamRemastered from './pam/effect.remastered.js';
 import beglogoClassic from './beglogo/effect.js';
 import glenzTransitionClassic from './glenzTransition/effect.js';
 import glenzVectorsClassic from './glenzVectors/effect.js';
@@ -59,9 +61,9 @@ import tunnelClassic from './tunnel/effect.js';
 const registry = {};
 
 // Original demo sequence — names match the original Second Reality part identifiers
-registerEffect('ALKU', alkuClassic);
+registerEffect('ALKU', alkuClassic, alkuRemastered);
 registerEffect('U2A', u2aClassic);
-registerEffect('PAM', pamClassic);
+registerEffect('PAM', pamClassic, pamRemastered);
 registerEffect('BEGLOGO', beglogoClassic);
 registerEffect('GLENZ_TRANSITION', glenzTransitionClassic);
 registerEffect('GLENZ_3D', glenzVectorsClassic, glenzVectorsRemastered);
