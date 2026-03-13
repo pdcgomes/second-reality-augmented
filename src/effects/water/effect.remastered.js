@@ -21,6 +21,28 @@ import { gp } from '../index.js';
 const FRAME_RATE = 70;
 const SCP_MAX = 390;
 
+// ── Palette presets ──────────────────────────────────────────────
+// Each preset defines a 3×3 color remapping matrix (column-major).
+// Applied as: output = mat3(colorR, colorG, colorB) * sceneRGB
+// Classic = identity; other themes remap the raymarched scene colors.
+// The sword texture is intentionally excluded from the remap.
+
+const PALETTES = [
+  { name: 'Classic',     colorMap: [[1,0,0],       [0,1,0],       [0,0,1]]       },
+  { name: 'Gruvbox',     colorMap: [[0.8,0.37,0.05], [0.6,0.59,0.1],  [0.27,0.53,0.35]] },
+  { name: 'Monokai',     colorMap: [[0.98,0.15,0.45],[0.65,0.89,0.18],[0.4,0.85,0.94]]  },
+  { name: 'Dracula',     colorMap: [[1,0.33,0.33],   [0.31,0.98,0.48],[0.74,0.58,0.98]] },
+  { name: 'Solarized',   colorMap: [[0.86,0.2,0.18], [0.52,0.6,0],    [0.15,0.55,0.82]] },
+  { name: 'Nord',        colorMap: [[0.75,0.38,0.42],[0.64,0.74,0.55],[0.37,0.51,0.67]] },
+  { name: 'One Dark',    colorMap: [[0.88,0.42,0.46],[0.6,0.76,0.47], [0.38,0.69,0.94]] },
+  { name: 'Catppuccin',  colorMap: [[0.95,0.55,0.66],[0.65,0.89,0.63],[0.54,0.71,0.98]] },
+  { name: 'Tokyo Night', colorMap: [[0.97,0.47,0.56],[0.62,0.81,0.42],[0.48,0.81,1]]    },
+  { name: 'Synthwave',   colorMap: [[1,0.49,0.86],   [0.45,0.98,0.72],[0.21,0.98,0.96]] },
+  { name: 'Kanagawa',    colorMap: [[0.76,0.25,0.26],[0.46,0.58,0.42],[0.5,0.61,0.85]]  },
+  { name: 'Everforest',  colorMap: [[0.9,0.5,0.5],   [0.65,0.75,0.5], [0.5,0.73,0.7]]   },
+  { name: 'Rose Pine',   colorMap: [[0.92,0.44,0.57],[0.96,0.76,0.47],[0.77,0.65,0.9]]  },
+];
+
 // ── Shaders ──────────────────────────────────────────────────────
 
 const SCENE_FRAG = `#version 300 es
@@ -61,6 +83,9 @@ uniform float uSwordHeight;
 uniform vec4 uSphere0;
 uniform vec4 uSphere1;
 uniform vec4 uSphere2;
+uniform vec3 uColorR;
+uniform vec3 uColorG;
+uniform vec3 uColorB;
 
 #define MAX_STEPS 80
 #define MAX_DIST 50.0
@@ -365,9 +390,9 @@ void main() {
   if (swordT > 0.0 && (sceneT < 0.0 || swordT < sceneT)) {
     col = swordCol;
   } else if (sceneT > 0.0) {
-    col = shade(ro, rd, sceneT, objId);
+    col = clamp(mat3(uColorR, uColorG, uColorB) * shade(ro, rd, sceneT, objId), 0.0, 1.0);
   } else {
-    col = vec3(0.005, 0.008, 0.03);
+    col = clamp(mat3(uColorR, uColorG, uColorB) * vec3(0.005, 0.008, 0.03), 0.0, 1.0);
   }
 
   col *= uFade;
@@ -505,6 +530,8 @@ export default {
   label: 'water (remastered)',
 
   params: [
+    gp('Palette', { key: 'palette', label: 'Theme', type: 'select', options: PALETTES.map((p, i) => ({ value: i, label: p.name })), default: 0 }),
+
     gp('Animation', { key: 'bobAmplitude', label: 'Bob Amplitude', type: 'float', min: 0.0, max: 2.0, step: 0.01, default: 0.5 }),
     gp('Animation', { key: 'bobSpeed', label: 'Bob Speed', type: 'float', min: 0.1, max: 4.0, step: 0.05, default: 0.7 }),
     gp('Animation', { key: 'beatScale', label: 'Beat Bob Scale', type: 'float', min: 0, max: 1, step: 0.01, default: 0.15 }),
@@ -593,6 +620,9 @@ export default {
       sphere2: gl.getUniformLocation(sceneProg, 'uSphere2'),
       cameraHeight: gl.getUniformLocation(sceneProg, 'uCameraHeight'),
       cameraAngle: gl.getUniformLocation(sceneProg, 'uCameraAngle'),
+      colorR: gl.getUniformLocation(sceneProg, 'uColorR'),
+      colorG: gl.getUniformLocation(sceneProg, 'uColorG'),
+      colorB: gl.getUniformLocation(sceneProg, 'uColorB'),
     };
 
     beu = {
@@ -694,6 +724,11 @@ export default {
     gl.uniform4f(su.sphere2, p('sphere2X', 2.5), p('sphere2Y', 0.7), p('sphere2Z', -0.3), p('sphere2R', 1.1));
     gl.uniform1f(su.cameraHeight, p('cameraHeight', 2.2));
     gl.uniform1f(su.cameraAngle, p('cameraAngle', 5.0));
+
+    const pal = PALETTES[p('palette', 0)];
+    gl.uniform3fv(su.colorR, pal.colorMap[0]);
+    gl.uniform3fv(su.colorG, pal.colorMap[1]);
+    gl.uniform3fv(su.colorB, pal.colorMap[2]);
 
     quad.draw();
 
