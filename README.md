@@ -232,6 +232,11 @@ Starfield, Copper Bars, Fire, Wireframe 3D, Vector Balls, Bouncing Bitmap, Grid,
 | 24 | Scrolling credits (CREDITS) | | |
 | 25 | Greetings scroll (ENDSCRL) | | |
 
+
+### Editor 
+
+<img src="assets/screenshots/screenshot-editor-dots.png">
+
 ## Learning Guides
 
 The `docs/learning/` directory contains deep-dive tutorials that use effects from this project to teach real-time graphics programming. Each guide is self-contained with inline code snippets — readable on GitHub without cloning the repo.
