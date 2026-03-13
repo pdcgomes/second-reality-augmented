@@ -98,7 +98,7 @@ The following maps to the actual Second Reality demo sequence. Each effect has a
 
 ### Part 8 — TECHNO_CIRCLES (Circle Interference)
 - [x] `technoCircles/effect.js` — circle interference Moire patterns (PSI) [REWRITTEN: full 1:1 port]
-- [ ] `technoCircles/effect.remastered.js`
+- [x] `technoCircles/effect.remastered.js` — GPU texture-sampled circle interference, tunable palette smoothing, dual-tier bloom
 
 ### Part 9 — TECHNO_BARS_TRANSITION (Bars Transition)
 - [x] `technoBarsTransition/effect.js` — four synced bars transition (PSI)
