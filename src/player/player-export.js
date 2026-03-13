@@ -24,7 +24,6 @@ const W = 320, H = 256;
 let started = false;
 let playing = false;
 let variant = 'classic';
-let sideBySide = false;
 
 const modPlayer = new ModPlayer();
 const project = window.__DEMO_PROJECT__;
@@ -33,31 +32,19 @@ const project = window.__DEMO_PROJECT__;
 
 const overlay = document.getElementById('overlay');
 const canvas1 = document.getElementById('c1');
-const canvas2 = document.getElementById('c2');
 const hud = document.getElementById('hud');
 
-// ── GL contexts & effect caches ──────────────────────────────────────
+// ── GL context & effect cache ────────────────────────────────────────
 
-let gl1 = null, gl2 = null;
-const cache1 = {}, cache2 = {};
+let gl1 = null;
+const cache1 = {};
 
 // ── HUD ──────────────────────────────────────────────────────────────
 
-let hudTimer = null;
-
-function showHUD(persist) {
-  hud.style.opacity = '1';
-  clearTimeout(hudTimer);
-  if (!persist) {
-    hudTimer = setTimeout(() => { hud.style.opacity = '0'; }, 2500);
-  }
-}
-
 function updateHUD() {
-  let text = sideBySide ? 'CLASSIC | REMASTERED' : variant.toUpperCase();
+  let text = variant.toUpperCase();
   if (!playing && started) text += '  \u23F8';
   hud.textContent = text;
-  showHUD(!playing && started);
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────
@@ -128,7 +115,7 @@ function resolve(name, v, gl, cache) {
   }
 }
 
-// ── Render a single frame on one canvas ──────────────────────────────
+// ── Render a single frame ────────────────────────────────────────────
 
 function renderFrame(gl, cache, v, t) {
   gl.clear(gl.COLOR_BUFFER_BIT);
@@ -178,17 +165,8 @@ function tick() {
     }
   }
 
-  if (sideBySide) {
-    sizeCanvas(canvas1, gl1, 'classic');
-    renderFrame(gl1, cache1, 'classic', t);
-
-    if (!gl2) gl2 = initGL(canvas2);
-    sizeCanvas(canvas2, gl2, 'remastered');
-    renderFrame(gl2, cache2, 'remastered', t);
-  } else {
-    sizeCanvas(canvas1, gl1, variant);
-    renderFrame(gl1, cache1, variant, t);
-  }
+  sizeCanvas(canvas1, gl1, variant);
+  renderFrame(gl1, cache1, variant, t);
 
   requestAnimationFrame(tick);
 }
@@ -211,6 +189,7 @@ async function startDemo() {
   playing = true;
   overlay.remove();
   updateHUD();
+  hud.style.display = '';
   requestAnimationFrame(tick);
 }
 
@@ -227,15 +206,8 @@ function togglePause() {
 }
 
 function toggleVariant() {
-  if (!started || sideBySide) return;
-  variant = variant === 'classic' ? 'remastered' : 'classic';
-  updateHUD();
-}
-
-function toggleSBS() {
   if (!started) return;
-  sideBySide = !sideBySide;
-  canvas2.style.display = sideBySide ? 'block' : 'none';
+  variant = variant === 'classic' ? 'remastered' : 'classic';
   updateHUD();
 }
 
@@ -250,10 +222,6 @@ document.addEventListener('keydown', (e) => {
     case 'KeyX':
       e.preventDefault();
       toggleVariant();
-      break;
-    case 'KeyV':
-      e.preventDefault();
-      toggleSBS();
       break;
   }
 });
