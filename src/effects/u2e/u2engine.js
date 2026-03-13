@@ -716,6 +716,48 @@ export function createU2Engine() {
     }
   }
 
+  // --- Snapshot helpers (for bakeAnimation / seekFrame) ---
+
+  let snapshots = null;
+
+  function snapshot() {
+    const s = { anim_pointer, animation_end, fov, on: new Uint8Array(co.length), r0: [] };
+    for (let i = 0; i < co.length; i++) {
+      if (!co[i]) { s.on[i] = 0; s.r0[i] = new Float64Array(12); continue; }
+      s.on[i] = i === 0 ? 0 : co[i].on;
+      s.r0[i] = Float64Array.from(co[i].o.r0);
+    }
+    return s;
+  }
+
+  function restoreSnapshot(s) {
+    anim_pointer = s.anim_pointer;
+    animation_end = s.animation_end;
+    fov = s.fov;
+    vid_cameraangle(fov);
+    for (let i = 0; i < co.length; i++) {
+      if (!co[i]) continue;
+      if (i > 0) co[i].on = s.on[i];
+      for (let j = 0; j < 12; j++) co[i].o.r0[j] = s.r0[i][j];
+    }
+    cam = co[0].o.r0;
+  }
+
+  function bakeAnimation() {
+    reset();
+    snapshots = [snapshot()];
+    while (!animation_end) {
+      stepOneAnimationFrame();
+      snapshots.push(snapshot());
+    }
+  }
+
+  function seekFrame(n) {
+    if (!snapshots) bakeAnimation();
+    const idx = Math.max(0, Math.min(n, snapshots.length - 1));
+    restoreSnapshot(snapshots[idx]);
+  }
+
   // --- Public API ---
 
   return {
@@ -752,5 +794,15 @@ export function createU2Engine() {
         for (let j = 0; j < 12; j++) cam[j] = s.cam[j];
       }
     },
+
+    bakeAnimation,
+    seekFrame,
+    get baked() { return !!snapshots; },
+    get ended() { return animation_end; },
+    get totalFrames() { return snapshots ? snapshots.length : 0; },
+    get camera() { return cam; },
+    get fov() { return fov; },
+    get objectCount() { return co.length; },
+    getObject(i) { return co[i]; },
   };
 }
