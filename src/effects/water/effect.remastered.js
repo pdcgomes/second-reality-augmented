@@ -539,7 +539,7 @@ export default {
     gp('Scene', { key: 'rippleFreq', label: 'Ripple Frequency', type: 'float', min: 1, max: 30, step: 0.5, default: 8.0 }),
     gp('Scene', { key: 'rippleSpeed', label: 'Ripple Speed', type: 'float', min: 0.2, max: 6.0, step: 0.1, default: 2.0 }),
     gp('Scene', { key: 'rippleAmp', label: 'Ripple Amplitude', type: 'float', min: 0.001, max: 0.15, step: 0.001, default: 0.03 }),
-    gp('Scene', { key: 'waterDarkness', label: 'Water Darkness', type: 'float', min: 0, max: 1, step: 0.01, default: 0.5 }),
+    gp('Scene', { key: 'waterDarkness', label: 'Water Darkness', type: 'float', min: 0, max: 1, step: 0.01, default: 0.31 }),
     gp('Scene', { key: 'specularPower', label: 'Specular Power', type: 'float', min: 8, max: 512, step: 1, default: 256 }),
     gp('Scene', { key: 'fresnelExp', label: 'Fresnel Exponent', type: 'float', min: 0.5, max: 10, step: 0.1, default: 3.0 }),
     gp('Scene', { key: 'chromeReflect', label: 'Chrome Reflectivity', type: 'float', min: 0, max: 4, step: 0.05, default: 2.5 }),
@@ -547,31 +547,31 @@ export default {
     gp('Camera', { key: 'cameraHeight', label: 'Height', type: 'float', min: 0.5, max: 5.0, step: 0.1, default: 2.2 }),
     gp('Camera', { key: 'cameraAngle', label: 'Angle', type: 'float', min: -30, max: 30, step: 0.5, default: 5.0 }),
 
-    gp('Sword', { key: 'swordBrightness', label: 'Brightness', type: 'float', min: 0.2, max: 6, step: 0.05, default: 1.3 }),
+    gp('Sword', { key: 'swordBrightness', label: 'Brightness', type: 'float', min: 0.2, max: 6, step: 0.05, default: 1.80 }),
     gp('Sword', { key: 'swordX', label: 'X', type: 'float', min: -4, max: 4, step: 0.1, default: 0.0 }),
-    gp('Sword', { key: 'swordY', label: 'Y', type: 'float', min: -1, max: 3, step: 0.05, default: 0.05 }),
-    gp('Sword', { key: 'swordZ', label: 'Z', type: 'float', min: -3, max: 3, step: 0.1, default: 0.0 }),
-    gp('Sword', { key: 'swordPitch', label: 'Pitch', type: 'float', min: -90, max: 90, step: 1, default: -5 }),
-    gp('Sword', { key: 'swordYaw', label: 'Yaw', type: 'float', min: -45, max: 45, step: 1, default: 0 }),
-    gp('Sword', { key: 'swordRoll', label: 'Roll', type: 'float', min: -180, max: 180, step: 1, default: 35 }),
-    gp('Sword', { key: 'swordTilt', label: 'Tilt', type: 'float', min: -90, max: 90, step: 1, default: -25 }),
+    gp('Sword', { key: 'swordY', label: 'Y', type: 'float', min: -1, max: 3, step: 0.05, default: -0.35 }),
+    gp('Sword', { key: 'swordZ', label: 'Z', type: 'float', min: -3, max: 3, step: 0.1, default: -1.6 }),
+    gp('Sword', { key: 'swordPitch', label: 'Pitch', type: 'float', min: -90, max: 90, step: 1, default: 4 }),
+    gp('Sword', { key: 'swordYaw', label: 'Yaw', type: 'float', min: -45, max: 45, step: 1, default: -5 }),
+    gp('Sword', { key: 'swordRoll', label: 'Roll', type: 'float', min: -180, max: 180, step: 1, default: 64 }),
+    gp('Sword', { key: 'swordTilt', label: 'Tilt', type: 'float', min: -90, max: 90, step: 1, default: -20 }),
     gp('Sword', { key: 'swordWidth', label: 'Width', type: 'float', min: 2, max: 16, step: 0.5, default: 10.0 }),
     gp('Sword', { key: 'swordHeight', label: 'Height', type: 'float', min: 0.2, max: 3, step: 0.05, default: 0.45 }),
 
-    gp('Sphere 1 (L)', { key: 'sphere0X', label: 'X', type: 'float', min: -5, max: 5, step: 0.1, default: -1.8 }),
-    gp('Sphere 1 (L)', { key: 'sphere0Y', label: 'Y', type: 'float', min: -1, max: 4, step: 0.05, default: 0.85 }),
-    gp('Sphere 1 (L)', { key: 'sphere0Z', label: 'Z', type: 'float', min: -3, max: 3, step: 0.1, default: -0.5 }),
+    gp('Sphere 1 (L)', { key: 'sphere0X', label: 'X', type: 'float', min: -5, max: 5, step: 0.1, default: -1.4 }),
+    gp('Sphere 1 (L)', { key: 'sphere0Y', label: 'Y', type: 'float', min: -1, max: 4, step: 0.05, default: 0.20 }),
+    gp('Sphere 1 (L)', { key: 'sphere0Z', label: 'Z', type: 'float', min: -3, max: 3, step: 0.1, default: -3.0 }),
     gp('Sphere 1 (L)', { key: 'sphere0R', label: 'Radius', type: 'float', min: 0.2, max: 3, step: 0.05, default: 1.3 }),
 
-    gp('Sphere 2 (C)', { key: 'sphere1X', label: 'X', type: 'float', min: -5, max: 5, step: 0.1, default: 0.0 }),
-    gp('Sphere 2 (C)', { key: 'sphere1Y', label: 'Y', type: 'float', min: -1, max: 4, step: 0.05, default: 0.55 }),
-    gp('Sphere 2 (C)', { key: 'sphere1Z', label: 'Z', type: 'float', min: -3, max: 3, step: 0.1, default: 0.8 }),
-    gp('Sphere 2 (C)', { key: 'sphere1R', label: 'Radius', type: 'float', min: 0.1, max: 2, step: 0.05, default: 0.45 }),
+    gp('Sphere 2 (C)', { key: 'sphere1X', label: 'X', type: 'float', min: -5, max: 5, step: 0.1, default: -1.9 }),
+    gp('Sphere 2 (C)', { key: 'sphere1Y', label: 'Y', type: 'float', min: -1, max: 4, step: 0.05, default: 0.05 }),
+    gp('Sphere 2 (C)', { key: 'sphere1Z', label: 'Z', type: 'float', min: -3, max: 3, step: 0.1, default: 1.3 }),
+    gp('Sphere 2 (C)', { key: 'sphere1R', label: 'Radius', type: 'float', min: 0.1, max: 2, step: 0.05, default: 1.85 }),
 
     gp('Sphere 3 (R)', { key: 'sphere2X', label: 'X', type: 'float', min: -5, max: 5, step: 0.1, default: 2.5 }),
-    gp('Sphere 3 (R)', { key: 'sphere2Y', label: 'Y', type: 'float', min: -1, max: 4, step: 0.05, default: 0.7 }),
-    gp('Sphere 3 (R)', { key: 'sphere2Z', label: 'Z', type: 'float', min: -3, max: 3, step: 0.1, default: -0.3 }),
-    gp('Sphere 3 (R)', { key: 'sphere2R', label: 'Radius', type: 'float', min: 0.2, max: 3, step: 0.05, default: 1.1 }),
+    gp('Sphere 3 (R)', { key: 'sphere2Y', label: 'Y', type: 'float', min: -1, max: 4, step: 0.05, default: 0.65 }),
+    gp('Sphere 3 (R)', { key: 'sphere2Z', label: 'Z', type: 'float', min: -3, max: 3, step: 0.1, default: -2.1 }),
+    gp('Sphere 3 (R)', { key: 'sphere2R', label: 'Radius', type: 'float', min: 0.2, max: 3, step: 0.05, default: 1.15 }),
 
     gp('Post-Processing', { key: 'bloomThreshold', label: 'Bloom Threshold', type: 'float', min: 0, max: 1, step: 0.01, default: 0.45 }),
     gp('Post-Processing', { key: 'bloomTightStr', label: 'Bloom Tight', type: 'float', min: 0, max: 3, step: 0.01, default: 0.3 }),
@@ -704,24 +704,24 @@ export default {
     gl.uniform1f(su.rippleFreq, p('rippleFreq', 8.0));
     gl.uniform1f(su.rippleSpeed, p('rippleSpeed', 2.0));
     gl.uniform1f(su.rippleAmp, p('rippleAmp', 0.03));
-    gl.uniform1f(su.waterDarkness, p('waterDarkness', 0.5));
+    gl.uniform1f(su.waterDarkness, p('waterDarkness', 0.31));
     gl.uniform1f(su.specularPower, p('specularPower', 256));
     gl.uniform1f(su.fresnelExp, p('fresnelExp', 3.0));
     gl.uniform1f(su.chromeReflect, p('chromeReflect', 2.5));
-    gl.uniform1f(su.swordBrightness, p('swordBrightness', 1.3));
+    gl.uniform1f(su.swordBrightness, p('swordBrightness', 1.80));
     gl.uniform1f(su.swordX, p('swordX', 0.0));
-    gl.uniform1f(su.swordY, p('swordY', 0.05));
-    gl.uniform1f(su.swordZ, p('swordZ', 0.0));
-    gl.uniform1f(su.swordPitch, p('swordPitch', -5));
-    gl.uniform1f(su.swordYaw, p('swordYaw', 0));
-    gl.uniform1f(su.swordRoll, p('swordRoll', 35));
-    gl.uniform1f(su.swordTilt, p('swordTilt', -25));
+    gl.uniform1f(su.swordY, p('swordY', -0.35));
+    gl.uniform1f(su.swordZ, p('swordZ', -1.6));
+    gl.uniform1f(su.swordPitch, p('swordPitch', 4));
+    gl.uniform1f(su.swordYaw, p('swordYaw', -5));
+    gl.uniform1f(su.swordRoll, p('swordRoll', 64));
+    gl.uniform1f(su.swordTilt, p('swordTilt', -20));
     gl.uniform1f(su.swordWidth, p('swordWidth', 10.0));
     gl.uniform1f(su.swordHeight, p('swordHeight', 0.45));
     gl.uniform1f(su.beatScale, p('beatScale', 0.15));
-    gl.uniform4f(su.sphere0, p('sphere0X', -1.8), p('sphere0Y', 0.85), p('sphere0Z', -0.5), p('sphere0R', 1.3));
-    gl.uniform4f(su.sphere1, p('sphere1X', 0.0), p('sphere1Y', 0.55), p('sphere1Z', 0.8), p('sphere1R', 0.45));
-    gl.uniform4f(su.sphere2, p('sphere2X', 2.5), p('sphere2Y', 0.7), p('sphere2Z', -0.3), p('sphere2R', 1.1));
+    gl.uniform4f(su.sphere0, p('sphere0X', -1.4), p('sphere0Y', 0.20), p('sphere0Z', -3.0), p('sphere0R', 1.3));
+    gl.uniform4f(su.sphere1, p('sphere1X', -1.9), p('sphere1Y', 0.05), p('sphere1Z', 1.3), p('sphere1R', 1.85));
+    gl.uniform4f(su.sphere2, p('sphere2X', 2.5), p('sphere2Y', 0.65), p('sphere2Z', -2.1), p('sphere2R', 1.15));
     gl.uniform1f(su.cameraHeight, p('cameraHeight', 2.2));
     gl.uniform1f(su.cameraAngle, p('cameraAngle', 5.0));
 
