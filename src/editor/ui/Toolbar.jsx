@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useEditorStore } from '../store/editorStore';
 
 export default function Toolbar() {
@@ -21,6 +22,28 @@ export default function Toolbar() {
     zoomLevel,
     setZoom,
   } = useEditorStore();
+
+  const [exportStatus, setExportStatus] = useState(null);
+
+  async function handleExport() {
+    setExportStatus('exporting');
+    try {
+      const res = await fetch('/api/export', { method: 'POST' });
+      const data = await res.json();
+      if (data.ok) {
+        setExportStatus(`done (${data.size} MB)`);
+        setTimeout(() => setExportStatus(null), 4000);
+      } else {
+        console.error('Export error:', data.error);
+        setExportStatus('error');
+        setTimeout(() => setExportStatus(null), 5000);
+      }
+    } catch (e) {
+      console.error('Export failed:', e);
+      setExportStatus('error');
+      setTimeout(() => setExportStatus(null), 5000);
+    }
+  }
 
   const bpm = project?.beatMap?.track0BPM ?? project?.beatMap?.bpm ?? '—';
   const musicPos = musicLoaded && modPlayer ? `P${modPlayer.position}:R${modPlayer.row}` : null;
@@ -126,8 +149,20 @@ export default function Toolbar() {
       <button className="h-7 px-3 inline-flex items-center rounded bg-surface-600 hover:bg-accent-blue/30 text-text-secondary text-xs transition-colors">
         SAVE
       </button>
-      <button className="h-7 px-3 inline-flex items-center rounded bg-accent-blue/20 hover:bg-accent-blue/40 text-accent-blue text-xs font-bold transition-colors">
-        EXPORT DEMO
+      <button
+        onClick={handleExport}
+        disabled={exportStatus === 'exporting'}
+        className={`h-7 px-3 inline-flex items-center rounded text-xs font-bold transition-colors ${
+          exportStatus === 'done' ? 'bg-accent-green/20 text-accent-green'
+            : exportStatus === 'error' ? 'bg-red-500/20 text-red-400'
+            : exportStatus === 'exporting' ? 'bg-surface-600 text-text-dim cursor-wait'
+            : 'bg-accent-blue/20 hover:bg-accent-blue/40 text-accent-blue'
+        }`}
+      >
+        {exportStatus === 'exporting' ? 'EXPORTING\u2026'
+          : exportStatus?.startsWith('done') ? `\u2713 ${exportStatus.replace('done ', '')}`
+          : exportStatus === 'error' ? 'EXPORT FAILED'
+          : 'EXPORT DEMO'}
       </button>
     </div>
   );
