@@ -123,3 +123,11 @@ export function getEffectParams(name, variant = 'classic') {
 export function hasEffect(name) {
   return name in registry;
 }
+
+/**
+ * Shorthand for defining a parameter within a named group.
+ * Equivalent to { ...def, group }.
+ */
+export function gp(group, def) {
+  return { ...def, group };
+}

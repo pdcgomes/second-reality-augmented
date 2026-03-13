@@ -1,6 +1,24 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useEditorStore } from '../store/editorStore';
 import { getEffectParams } from '@effects/index.js';
+
+function groupParams(defs) {
+  const ungrouped = [];
+  const groups = {};
+  const groupOrder = [];
+  for (const def of defs) {
+    if (!def.group) {
+      ungrouped.push(def);
+    } else {
+      if (!groups[def.group]) {
+        groups[def.group] = [];
+        groupOrder.push(def.group);
+      }
+      groups[def.group].push(def);
+    }
+  }
+  return { ungrouped, groups, groupOrder };
+}
 
 export default function ClipProperties() {
   const selectedClipId = useEditorStore((s) => s.selectedClipId);
@@ -8,8 +26,19 @@ export default function ClipProperties() {
   const variant = useEditorStore((s) => s.variant);
   const setClipParam = useEditorStore((s) => s.setClipParam);
   const resetClipParam = useEditorStore((s) => s.resetClipParam);
+  const [collapsed, setCollapsed] = useState({});
 
   const clip = project?.clips?.find((c) => c.id === selectedClipId) ?? null;
+
+  const paramDefs = useMemo(
+    () => (clip ? getEffectParams(clip.effect, variant) : []),
+    [clip?.effect, variant],
+  );
+  const { ungrouped, groups, groupOrder } = useMemo(() => groupParams(paramDefs), [paramDefs]);
+
+  const toggleGroup = useCallback((name) => {
+    setCollapsed((prev) => ({ ...prev, [name]: !prev[name] }));
+  }, []);
 
   if (!clip) {
     return (
@@ -21,7 +50,6 @@ export default function ClipProperties() {
   }
 
   const duration = clip.end - clip.start;
-  const paramDefs = getEffectParams(clip.effect, variant);
   const clipParams = clip.params ?? {};
 
   return (
@@ -41,19 +69,70 @@ export default function ClipProperties() {
             <h3 className="text-text-dim text-xs font-bold tracking-widest">EFFECT PARAMS</h3>
             <CopyParamsButton paramDefs={paramDefs} clipParams={clipParams} />
           </div>
-          <div className="space-y-3">
-            {paramDefs.map((def) => (
-              <ParamControl
-                key={def.key}
-                def={def}
-                value={clipParams[def.key]}
-                clipId={clip.id}
-                onChange={setClipParam}
-                onReset={resetClipParam}
-              />
-            ))}
-          </div>
+
+          {ungrouped.length > 0 && (
+            <div className="space-y-3">
+              {ungrouped.map((def) => (
+                <ParamControl
+                  key={def.key}
+                  def={def}
+                  value={clipParams[def.key]}
+                  clipId={clip.id}
+                  onChange={setClipParam}
+                  onReset={resetClipParam}
+                />
+              ))}
+            </div>
+          )}
+
+          {groupOrder.map((name) => (
+            <ParamGroup
+              key={name}
+              name={name}
+              defs={groups[name]}
+              clipParams={clipParams}
+              clipId={clip.id}
+              collapsed={!!collapsed[name]}
+              onToggle={toggleGroup}
+              onChange={setClipParam}
+              onReset={resetClipParam}
+            />
+          ))}
         </>
+      )}
+    </div>
+  );
+}
+
+function ParamGroup({ name, defs, clipParams, clipId, collapsed, onToggle, onChange, onReset }) {
+  const handleToggle = useCallback(() => onToggle(name), [name, onToggle]);
+  return (
+    <div className="mt-3">
+      <button
+        onClick={handleToggle}
+        className="flex items-center gap-1.5 w-full text-left mb-2 group"
+      >
+        <span className={`text-[9px] text-text-dim transition-transform ${collapsed ? '' : 'rotate-90'}`}>
+          ▶
+        </span>
+        <span className="text-text-dim text-[10px] font-bold tracking-widest uppercase group-hover:text-text-secondary transition-colors">
+          {name}
+        </span>
+        <span className="flex-1 border-b border-surface-500 ml-1 mb-px" />
+      </button>
+      {!collapsed && (
+        <div className="space-y-3 ml-2.5">
+          {defs.map((def) => (
+            <ParamControl
+              key={def.key}
+              def={def}
+              value={clipParams[def.key]}
+              clipId={clipId}
+              onChange={onChange}
+              onReset={onReset}
+            />
+          ))}
+        </div>
       )}
     </div>
   );
