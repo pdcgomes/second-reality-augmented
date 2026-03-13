@@ -59,6 +59,10 @@ uniform float uBeatReactivity;
 uniform float uSmokeHue;
 uniform float uSmokeWarmth;
 
+uniform float uPlasmaIntensity;
+uniform float uPlasmaSpeed;
+uniform float uEmberIntensity;
+
 uniform float uHorizonGlow;
 uniform float uHorizonPulseSpeed;
 
@@ -154,6 +158,27 @@ vec3 hueShift(vec3 col, float angle) {
   return col * c + cross(k, col) * s + k * dot(k, col) * (1.0 - c);
 }
 
+// ── Core plasma (swirling FBM vortex) ────────────────────────────
+
+float corePlasma(vec2 p, float t) {
+  float s = uPlasmaSpeed;
+  float r = length(p);
+
+  // Vortex swirl: rotation increases toward center (molten churning)
+  float swirl = t * s * 0.4 / (r + 0.4);
+  float cs = cos(swirl), sn = sin(swirl);
+  vec2 sp = vec2(p.x * cs - p.y * sn, p.x * sn + p.y * cs);
+
+  // Multi-scale FBM noise — isotropic, no directional banding
+  float n1 = fbm(sp * 2.5 + t * s * vec2(0.2, -0.15), 4);
+  float n2 = fbm(sp * 5.0 - t * s * vec2(0.1, 0.2) + 37.0, 3);
+
+  // Radial pulse — brighter at center, expanding outward
+  float pulse = 0.5 + 0.5 * sin(r * 8.0 - t * s * 3.0);
+
+  return n1 * 0.5 + n2 * 0.3 + pulse * 0.2;
+}
+
 // ── Lava core ────────────────────────────────────────────────────
 
 vec4 lavaCore(vec2 uv, float t) {
@@ -172,48 +197,71 @@ vec4 lavaCore(vec2 uv, float t) {
   float r2 = dot(sphereUV, sphereUV);
   float sphereZ = sqrt(max(0.0, 1.0 - r2 * 0.5));
 
-  vec2 crackUV = sphereUV * 4.0 + t * vec2(0.15, -0.1);
+  // ── Plasma body ──
+  float pVal = corePlasma(sphereUV, t);
+
+  // ── Voronoi crack veins ──
+  vec2 crackUV = sphereUV * 3.5 + t * vec2(0.12, -0.08);
   float cracks = voronoi(crackUV);
-  float crackEdge = smoothstep(0.05, 0.15, cracks);
+  float crackHeat = 1.0 - smoothstep(0.03, 0.2, cracks);
 
   float fineCracks = voronoi(crackUV * 2.5 + 7.0);
-  float fineEdge = smoothstep(0.03, 0.12, fineCracks);
+  float fineHeat = 1.0 - smoothstep(0.02, 0.15, fineCracks);
 
-  float surfNoise = fbm(sphereUV * 3.0 + t * 0.2, 3);
+  // Plasma + cracks fused into a single heat map
+  float heat = pVal * 0.5 + crackHeat * 0.35 + fineHeat * 0.15;
+  heat = pow(heat, 0.85);
 
-  vec3 coolRock = vec3(0.15, 0.06, 0.03);
-  vec3 warmRock = vec3(0.35, 0.12, 0.04);
-  vec3 hotLava = vec3(1.0, 0.55, 0.05);
-  vec3 brightLava = vec3(1.0, 0.85, 0.3);
+  // ── Fire color ramp: dark ember → deep red → orange → yellow → white-hot ──
+  vec3 c1 = vec3(0.08, 0.02, 0.0);
+  vec3 c2 = vec3(0.55, 0.08, 0.0);
+  vec3 c3 = vec3(1.0, 0.4, 0.0);
+  vec3 c4 = vec3(1.0, 0.75, 0.1);
+  vec3 c5 = vec3(1.0, 0.97, 0.8);
 
-  vec3 surface = mix(coolRock, warmRock, surfNoise);
-  float crackHeat = (1.0 - crackEdge) * 0.7 + (1.0 - fineEdge) * 0.3;
-  crackHeat = pow(crackHeat, 1.3);
-  vec3 lavaColor = mix(surface, hotLava, crackHeat);
-  lavaColor = mix(lavaColor, brightLava, crackHeat * crackHeat);
+  vec3 fireColor = c1;
+  fireColor = mix(fireColor, c2, smoothstep(0.0, 0.25, heat));
+  fireColor = mix(fireColor, c3, smoothstep(0.25, 0.5, heat));
+  fireColor = mix(fireColor, c4, smoothstep(0.5, 0.75, heat));
+  fireColor = mix(fireColor, c5, smoothstep(0.75, 1.0, heat));
 
-  // Two-layer pulsing for a living, breathing core
-  float emberPulse = sin(t * 4.0 + surfNoise * TAU) * 0.2 + 0.9;
-  float deepPulse = sin(t * 1.7 + 2.5) * 0.15 + 0.85;
-  lavaColor *= emberPulse * deepPulse;
+  // Pulsing glow
+  float pulse = sin(t * 3.5 + pVal * TAU) * 0.15 + 0.92;
+  float deepPulse = sin(t * 1.5 + 2.5) * 0.1 + 0.9;
+  fireColor *= pulse * deepPulse;
 
-  float shading = mix(0.6, 1.0, sphereZ);
-  lavaColor *= shading;
+  fireColor *= mix(0.5, 1.0, sphereZ);
 
-  // Wider halo glow around the core
+  // ── Ember / firefly particles ──
+  float emberBright = 0.0;
+  for (int i = 0; i < 20; i++) {
+    float fi = float(i);
+    float phase = hash21(vec2(fi, 7.7)) * TAU;
+    float spd = 0.6 + hash21(vec2(fi, 13.3)) * 1.2;
+    float angle = phase + t * spd;
+    float r = 0.25 + hash21(vec2(fi, 23.1)) * 0.65;
+    vec2 ePos = vec2(cos(angle), sin(angle)) * r;
+    ePos += vec2(sin(t * 1.3 + fi * 2.7), cos(t * 1.7 + fi * 3.1)) * 0.12;
+    float d = length(sphereUV - ePos);
+    float sz = 0.03 + hash21(vec2(fi, 37.7)) * 0.04;
+    float flicker = sin(t * (5.0 + fi * 0.7) + fi * 3.1) * 0.4 + 0.6;
+    emberBright += smoothstep(sz, 0.0, d) * flicker;
+  }
+  vec3 emberColor = vec3(1.0, 0.7, 0.15) * emberBright * uEmberIntensity;
+
+  // ── Halo glow ──
   float halo = smoothstep(coreRadius * 2.0, coreRadius * 0.7, dist);
   float haloOnly = halo * (1.0 - coreMask) * 0.6;
   vec3 haloColor = vec3(0.9, 0.3, 0.02) * haloOnly;
 
-  lavaColor *= uCoreIntensity;
+  vec3 finalColor = fireColor * uCoreIntensity * uPlasmaIntensity + emberColor + haloColor;
   float alpha = coreMask;
 
-  // Core persists much longer before fading
   float explosionT = max(0.0, t - 0.4) * uExplosionSpeed;
   float coreFade = smoothstep(5.0, 1.0, explosionT);
   alpha *= coreFade;
 
-  return vec4(lavaColor + haloColor, alpha);
+  return vec4(finalColor, alpha);
 }
 
 // ── Raymarched volumetric blast ───────────────────────────────────
@@ -598,6 +646,9 @@ export default {
     gp('Explosion', { key: 'shockwaveWidth',  label: 'Shockwave Width',   type: 'float', min: 0.02,max: 0.5, step: 0.01, default: 0.26 }),
     gp('Explosion', { key: 'smokeHue',       label: 'Smoke Hue',         type: 'float', min: -3.14, max: 3.14, step: 0.01, default: -1.80 }),
     gp('Explosion', { key: 'smokeWarmth',    label: 'Smoke Warmth',      type: 'float', min: 0,   max: 1,   step: 0.01, default: 0.48 }),
+    gp('Core', { key: 'plasmaIntensity', label: 'Plasma Intensity', type: 'float', min: 0, max: 2,   step: 0.01, default: 1.0 }),
+    gp('Core', { key: 'plasmaSpeed',     label: 'Plasma Speed',     type: 'float', min: 0, max: 5,   step: 0.1,  default: 1.5 }),
+    gp('Core', { key: 'emberIntensity',  label: 'Ember Intensity',  type: 'float', min: 0, max: 2,   step: 0.01, default: 0.8 }),
     gp('Atmosphere', { key: 'horizonGlow',      label: 'Horizon Glow',      type: 'float', min: 0,   max: 1,   step: 0.01, default: 0.15 }),
     gp('Atmosphere', { key: 'horizonPulseSpeed',label: 'Horizon Pulse Speed',type: 'float', min: 0.2, max: 5,   step: 0.1,  default: 1.5 }),
     gp('Atmosphere', { key: 'starDensity',      label: 'Star Density',      type: 'float', min: 0,   max: 1,   step: 0.01, default: 0.0 }),
@@ -654,6 +705,9 @@ export default {
       shockwaveWidth:   gl.getUniformLocation(sceneProg, 'uShockwaveWidth'),
       smokeHue:         gl.getUniformLocation(sceneProg, 'uSmokeHue'),
       smokeWarmth:      gl.getUniformLocation(sceneProg, 'uSmokeWarmth'),
+      plasmaIntensity:  gl.getUniformLocation(sceneProg, 'uPlasmaIntensity'),
+      plasmaSpeed:      gl.getUniformLocation(sceneProg, 'uPlasmaSpeed'),
+      emberIntensity:   gl.getUniformLocation(sceneProg, 'uEmberIntensity'),
       beatReactivity:   gl.getUniformLocation(sceneProg, 'uBeatReactivity'),
       horizonGlow:      gl.getUniformLocation(sceneProg, 'uHorizonGlow'),
       horizonPulseSpeed:gl.getUniformLocation(sceneProg, 'uHorizonPulseSpeed'),
@@ -742,10 +796,13 @@ export default {
     gl.uniform2f(su.center, p('centerX', 0.5), p('centerY', 0.5));
     gl.uniform1f(su.explosionSpeed, p('explosionSpeed', 1.0));
     gl.uniform1f(su.coreIntensity, p('coreIntensity', 2.72));
-    gl.uniform1f(su.smokeDetail, p('smokeDetail', 0.78));
+    gl.uniform1f(su.smokeDetail, p('smokeDetail', 0.73));
     gl.uniform1f(su.shockwaveWidth, p('shockwaveWidth', 0.26));
-    gl.uniform1f(su.smokeHue, p('smokeHue', 0.0));
-    gl.uniform1f(su.smokeWarmth, p('smokeWarmth', 0.5));
+    gl.uniform1f(su.smokeHue, p('smokeHue', -1.80));
+    gl.uniform1f(su.smokeWarmth, p('smokeWarmth', 0.48));
+    gl.uniform1f(su.plasmaIntensity, p('plasmaIntensity', 1.0));
+    gl.uniform1f(su.plasmaSpeed, p('plasmaSpeed', 1.5));
+    gl.uniform1f(su.emberIntensity, p('emberIntensity', 0.8));
     gl.uniform1f(su.beatReactivity, p('beatReactivity', 0.3));
     gl.uniform1f(su.horizonGlow, p('horizonGlow', 0.15));
     gl.uniform1f(su.horizonPulseSpeed, p('horizonPulseSpeed', 1.5));
