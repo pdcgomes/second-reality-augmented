@@ -23,7 +23,9 @@ function groupParams(defs) {
 export default function ClipProperties() {
   const selectedClipId = useEditorStore((s) => s.selectedClipId);
   const project = useEditorStore((s) => s.project);
-  const variant = useEditorStore((s) => s.variant);
+  const storeVariant = useEditorStore((s) => s.variant);
+  const linked = useEditorStore((s) => s.linked);
+  const variant = linked ? 'remastered' : storeVariant;
   const setClipParam = useEditorStore((s) => s.setClipParam);
   const resetClipParam = useEditorStore((s) => s.resetClipParam);
   const [collapsed, setCollapsed] = useState({});
