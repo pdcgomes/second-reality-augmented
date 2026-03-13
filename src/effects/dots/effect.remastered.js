@@ -14,6 +14,7 @@
  */
 
 import { createProgram, createFullscreenQuad, FULLSCREEN_VERT } from '../../core/webgl.js';
+import { gp } from '../index.js';
 import { FRAME_RATE, MAXDOTS, simulateDots } from './animation.js';
 
 // ── Shaders ──────────────────────────────────────────────────────
@@ -59,7 +60,8 @@ precision highp float;
 in vec2 vLocalUV;
 in float vDepth;
 
-uniform float uHue;
+uniform float uHueNear;
+uniform float uHueFar;
 uniform float uSaturation;
 uniform float uSpecularPower;
 uniform float uBeat;
@@ -101,7 +103,8 @@ void main() {
 
   float depthFactor = clamp(1.0 - vDepth / uDepthRange, 0.15, 1.0);
   float lightness = mix(0.15, 0.65, depthFactor);
-  vec3 baseColor = hsl2rgb(uHue, uSaturation, lightness);
+  float hue = mix(uHueFar, uHueNear, depthFactor);
+  vec3 baseColor = hsl2rgb(hue, uSaturation, lightness);
 
   vec3 ambient = baseColor * 0.2;
   vec3 diffuse = baseColor * diff * 0.7;
@@ -288,17 +291,18 @@ export default {
   label: 'dots (remastered)',
 
   params: [
-    { key: 'hue',            label: 'Hue',              type: 'float', min: 0,   max: 360, step: 1,     default: 185 },
-    { key: 'saturation',     label: 'Saturation',       type: 'float', min: 0,   max: 1,   step: 0.01,  default: 0.73 },
-    { key: 'specularPower',  label: 'Specular',         type: 'float', min: 8,   max: 128, step: 1,     default: 32 },
-    { key: 'reflectivity',   label: 'Reflectivity',     type: 'float', min: 0,   max: 1,   step: 0.01,  default: 0.6 },
-    { key: 'groundBrightness',label:'Ground Brightness',type: 'float', min: 0,   max: 5,   step: 0.1,   default: 1.0 },
-    { key: 'groundRoughness',label: 'Ground Roughness', type: 'float', min: 0,   max: 0.5, step: 0.01,  default: 0.05 },
-    { key: 'bloomThreshold', label: 'Bloom Threshold',  type: 'float', min: 0,   max: 1,   step: 0.01,  default: 0.3 },
-    { key: 'bloomStrength',  label: 'Bloom Strength',   type: 'float', min: 0,   max: 2,   step: 0.01,  default: 0.5 },
-    { key: 'beatBounce',     label: 'Beat Bounce',      type: 'float', min: 0,   max: 1,   step: 0.01,  default: 0.3 },
-    { key: 'dotScale',       label: 'Dot Scale',        type: 'float', min: 0.5, max: 3,   step: 0.05,  default: 1.0 },
-    { key: 'scanlineStr',    label: 'Scanlines',        type: 'float', min: 0,   max: 0.5, step: 0.01,  default: 0.03 },
+    gp('Palette',          { key: 'hueNear',          label: 'Hue (Near)',        type: 'float', min: 0,   max: 360, step: 1,     default: 185 }),
+    gp('Palette',          { key: 'hueFar',           label: 'Hue (Far)',         type: 'float', min: 0,   max: 360, step: 1,     default: 185 }),
+    gp('Palette',          { key: 'saturation',       label: 'Saturation',        type: 'float', min: 0,   max: 1,   step: 0.01,  default: 0.73 }),
+    gp('Lighting',         { key: 'specularPower',    label: 'Specular',          type: 'float', min: 8,   max: 128, step: 1,     default: 32 }),
+    gp('Ground',           { key: 'reflectivity',     label: 'Reflectivity',      type: 'float', min: 0,   max: 1,   step: 0.01,  default: 0.6 }),
+    gp('Ground',           { key: 'groundBrightness', label: 'Ground Brightness', type: 'float', min: 0,   max: 5,   step: 0.1,   default: 1.0 }),
+    gp('Ground',           { key: 'groundRoughness',  label: 'Ground Roughness',  type: 'float', min: 0,   max: 0.5, step: 0.01,  default: 0.05 }),
+    gp('Effect',           { key: 'dotScale',         label: 'Dot Scale',         type: 'float', min: 0.5, max: 3,   step: 0.05,  default: 1.0 }),
+    gp('Post-Processing',  { key: 'bloomThreshold',   label: 'Bloom Threshold',   type: 'float', min: 0,   max: 1,   step: 0.01,  default: 0.3 }),
+    gp('Post-Processing',  { key: 'bloomStrength',    label: 'Bloom Strength',    type: 'float', min: 0,   max: 2,   step: 0.01,  default: 0.5 }),
+    gp('Post-Processing',  { key: 'beatBounce',       label: 'Beat Bounce',       type: 'float', min: 0,   max: 1,   step: 0.01,  default: 0.3 }),
+    gp('Post-Processing',  { key: 'scanlineStr',      label: 'Scanlines',         type: 'float', min: 0,   max: 0.5, step: 0.01,  default: 0.03 }),
   ],
 
   init(gl) {
@@ -313,7 +317,8 @@ export default {
     su = {
       dotScale:       gl.getUniformLocation(sphereProg, 'uDotScale'),
       aspect:         gl.getUniformLocation(sphereProg, 'uAspect'),
-      hue:            gl.getUniformLocation(sphereProg, 'uHue'),
+      hueNear:        gl.getUniformLocation(sphereProg, 'uHueNear'),
+      hueFar:         gl.getUniformLocation(sphereProg, 'uHueFar'),
       saturation:     gl.getUniformLocation(sphereProg, 'uSaturation'),
       specularPower:  gl.getUniformLocation(sphereProg, 'uSpecularPower'),
       beat:           gl.getUniformLocation(sphereProg, 'uBeat'),
@@ -438,7 +443,8 @@ export default {
     }
 
     const dotScale = p('dotScale', 1.0);
-    const hue = p('hue', 185);
+    const hueNear = p('hueNear', 185);
+    const hueFar = p('hueFar', 185);
     const saturation = p('saturation', 0.73);
     const specularPower = p('specularPower', 32);
 
@@ -446,7 +452,8 @@ export default {
       gl.useProgram(sphereProg);
       gl.uniform1f(su.dotScale, dotScale);
       gl.uniform1f(su.aspect, aspect);
-      gl.uniform1f(su.hue, hue);
+      gl.uniform1f(su.hueNear, hueNear);
+      gl.uniform1f(su.hueFar, hueFar);
       gl.uniform1f(su.saturation, saturation);
       gl.uniform1f(su.specularPower, specularPower);
       gl.uniform1f(su.beat, beat);
