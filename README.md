@@ -134,17 +134,17 @@ Starfield, Copper Bars, Fire, Wireframe 3D, Vector Balls, Bouncing Bitmap, Grid,
 | 7 | Dot tunnel (TUNNELI) | <img src="assets/screenshots/screenshot-tunneli-classic.png" width="160"> | <img src="assets/screenshots/screenshot-tunneli-remastered.png" width="160"> |
 | 8 | Circle interference (TECHNO_CIRCLES) | <img src="assets/screenshots/screenshot-techno_circles-classic.png" width="160"> | <img src="assets/screenshots/screenshot-techno_circles-remastered.png" width="160"> |
 | 9 | Bars transition (TECHNO_BARS_TRANSITION) | | |
-| 10 | Rotating bars (TECHNO_BARS) | | |
+| 10 | Rotating bars (TECHNO_BARS) | <img src="assets/screenshots/screenshot-techno_bars-classic.png" width="160"> | <img src="assets/screenshots/screenshot-techno_bars-remastered.png" width="160"> |
 | 11 | Troll picture (TECHNO_TROLL) | | |
 | 12 | Mountain scroller (FOREST) | | |
 | 13 | Lens slide-in (LENS_TRANSITION) | | |
-| 14 | Bouncing crystal ball (LENS) | | |
-| 15 | Rotozoom (LENS_ROTO) | | |
+| 14 | Bouncing crystal ball (LENS) | <img src="assets/screenshots/screenshot-lens_lens-classic.png" width="160"> | <img src="assets/screenshots/screenshot-lens_lens-remastered.png" width="160"> |
+| 15 | Rotozoom (LENS_ROTO) | <img src="assets/screenshots/screenshot-lens_roto-classic.png" width="160"> | <img src="assets/screenshots/screenshot-lens_roto-remastered.png" width="160"> |
 | 16 | Plasma waves (PLZ_PLASMA) | <img src="assets/screenshots/screenshot-plz_plasma-classic.png" width="160"> | <img src="assets/screenshots/screenshot-plz_plasma-remastered.png" width="160"> |
 | 17 | Plasma cube (PLZ_CUBE) | <img src="assets/screenshots/screenshot-plz_cube-classic.png" width="160"> | <img src="assets/screenshots/screenshot-plz_cube-remastered.png" width="160"> |
 | 18 | Mini vector balls (DOTS) | <img src="assets/screenshots/screenshot-dots-classic.png" width="160"> | <img src="assets/screenshots/screenshot-dots-remastered.png" width="160"> |
 | 19 | Mirror ball scroller (WATER) | <img src="assets/screenshots/screenshot-water-classic.png" width="160"> | <img src="assets/screenshots/screenshot-water-remastered.png" width="160"> |
-| 20 | 3D sinusfield (COMAN) | | |
+| 20 | 3D sinusfield (COMAN) | <img src="assets/screenshots/screenshot-coman-classic.png" width="160"> | <img src="assets/screenshots/screenshot-coman-remastered.png" width="160"> |
 | 21 | Jelly logo (JPLOGO) | | |
 | 22 | 3D city flyover (U2E) | | |
 | 23 | End picture (ENDLOGO) | | |
