@@ -124,9 +124,9 @@ Starfield, Copper Bars, Fire, Wireframe 3D, Vector Balls, Bouncing Bitmap, Grid,
 | 3 | Pre-rendered explosion (PAM) | | |
 | 4 | Title card (BEGLOGO) | | |
 | 5 | Checkerboard fall (GLENZ_TRANSITION) | | |
-| 6 | Translucent rotating polyhedra (GLENZ_3D) | | |
-| 7 | Dot tunnel (TUNNELI) | | |
-| 8 | Circle interference (TECHNO_CIRCLES) | | |
+| 6 | Translucent rotating polyhedra (GLENZ_3D) | <img src="assets/screenshots/screenshot-glenz_3d-classic.png" width="160"> | <img src="assets/screenshots/screenshot-glenz_3d-remastered.png" width="160"> |
+| 7 | Dot tunnel (TUNNELI) | <img src="assets/screenshots/screenshot-tunneli-classic.png" width="160"> | <img src="assets/screenshots/screenshot-tunneli-remastered.png" width="160"> |
+| 8 | Circle interference (TECHNO_CIRCLES) | <img src="assets/screenshots/screenshot-techno_circles-classic.png" width="160"> | <img src="assets/screenshots/screenshot-techno_circles-remastered.png" width="160"> |
 | 9 | Bars transition (TECHNO_BARS_TRANSITION) | | |
 | 10 | Rotating bars (TECHNO_BARS) | | |
 | 11 | Troll picture (TECHNO_TROLL) | | |
@@ -134,10 +134,10 @@ Starfield, Copper Bars, Fire, Wireframe 3D, Vector Balls, Bouncing Bitmap, Grid,
 | 13 | Lens slide-in (LENS_TRANSITION) | | |
 | 14 | Bouncing crystal ball (LENS) | | |
 | 15 | Rotozoom (LENS_ROTO) | | |
-| 16 | Plasma waves (PLZ_PLASMA) | | |
-| 17 | Plasma cube (PLZ_CUBE) | | |
-| 18 | Mini vector balls (DOTS) | | |
-| 19 | Mirror ball scroller (WATER) | | |
+| 16 | Plasma waves (PLZ_PLASMA) | <img src="assets/screenshots/screenshot-plz_plasma-classic.png" width="160"> | <img src="assets/screenshots/screenshot-plz_plasma-remastered.png" width="160"> |
+| 17 | Plasma cube (PLZ_CUBE) | <img src="assets/screenshots/screenshot-plz_cube-classic.png" width="160"> | <img src="assets/screenshots/screenshot-plz_cube-remastered.png" width="160"> |
+| 18 | Mini vector balls (DOTS) | <img src="assets/screenshots/screenshot-dots-classic.png" width="160"> | <img src="assets/screenshots/screenshot-dots-remastered.png" width="160"> |
+| 19 | Mirror ball scroller (WATER) | <img src="assets/screenshots/screenshot-water-classic.png" width="160"> | <img src="assets/screenshots/screenshot-water-remastered.png" width="160"> |
 | 20 | 3D sinusfield (COMAN) | | |
 | 21 | Jelly logo (JPLOGO) | | |
 | 22 | 3D city flyover (U2E) | | |
