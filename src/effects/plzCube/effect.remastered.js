@@ -143,19 +143,32 @@ float sini(float a) {
   return sin(a / 1024.0 * PI * 4.0) * 127.0;
 }
 
-vec3 hsl2rgb(float h, float s, float l) {
-  float c = (1.0 - abs(2.0 * l - 1.0)) * s;
-  float hp = h / 60.0;
-  float x = c * (1.0 - abs(mod(hp, 2.0) - 1.0));
-  vec3 rgb;
-  if      (hp < 1.0) rgb = vec3(c, x, 0.0);
-  else if (hp < 2.0) rgb = vec3(x, c, 0.0);
-  else if (hp < 3.0) rgb = vec3(0.0, c, x);
-  else if (hp < 4.0) rgb = vec3(0.0, x, c);
-  else if (hp < 5.0) rgb = vec3(x, 0.0, c);
-  else               rgb = vec3(c, 0.0, x);
-  float m = l - c * 0.5;
-  return rgb + m;
+// Classic two-segment palette ramps (faithful to basePal in the original)
+vec3 themeColor(int theme, float t) {
+  t = clamp(t, 0.0, 1.0);
+  float lo = t * 2.0;
+  float hi = (t - 0.5) * 2.0;
+  if (theme == 0) {
+    // Blue → White: (0,0,2a) then (2a,2a,63)
+    if (t < 0.5) return vec3(0.0, 0.0, lo);
+    return vec3(hi, hi, 1.0);
+  } else if (theme == 1) {
+    // Fire: (2a,0,0) then (63,2a,0) — black → red → yellow
+    if (t < 0.5) return vec3(lo, 0.0, 0.0);
+    return vec3(1.0, hi, 0.0);
+  } else {
+    // Purple → Green: (a,0,2a/3) then (31-a,2a,21)
+    if (t < 0.5) return vec3(t, 0.0, t * 0.667);
+    return vec3(1.0 - t, hi, 0.333);
+  }
+}
+
+vec3 hueRotate(vec3 c, float angleDeg) {
+  if (abs(angleDeg) < 0.5) return c;
+  float a = angleDeg * PI / 180.0;
+  float cosA = cos(a), sinA = sin(a);
+  vec3 k = vec3(0.57735);
+  return c * cosA + cross(k, c) * sinA + k * dot(k, c) * (1.0 - cosA);
 }
 
 void main() {
@@ -169,10 +182,9 @@ void main() {
 
   float beatPulse = pow(1.0 - uBeat, 4.0) * uBeatReactivity;
 
-  float hue = uThemeHue[vTheme];
-  float lightness = mix(0.05, 0.7, plasmaVal);
-  float saturation = 0.8 + beatPulse * 0.15;
-  vec3 baseColor = hsl2rgb(hue, saturation, lightness);
+  vec3 baseColor = themeColor(vTheme, plasmaVal);
+  baseColor = hueRotate(baseColor, uThemeHue[vTheme]);
+  baseColor *= 1.0 + beatPulse * 0.15;
 
   vec3 N = normalize(vWorldNormal);
   vec3 L = normalize(uLightDir);
@@ -182,14 +194,11 @@ void main() {
   vec3 H = normalize(L + V);
   float spec = pow(max(dot(N, H), 0.0), uSpecularPower + beatPulse * 16.0);
 
-  vec3 ambient = baseColor * uAmbient;
-  vec3 diffuse = baseColor * diff * (1.0 - uAmbient);
-  vec3 specular = vec3(1.0) * spec * (0.4 + beatPulse * 0.2);
+  vec3 lit = baseColor * (uAmbient + diff * (1.0 - uAmbient));
+  lit += vec3(1.0) * spec * (0.4 + beatPulse * 0.2);
+  lit *= uFade;
 
-  vec3 color = ambient + diffuse + specular;
-  color *= uFade;
-
-  fragColor = vec4(color, 1.0);
+  fragColor = vec4(lit, 1.0);
 }
 `;
 
@@ -355,12 +364,12 @@ export default {
   label: 'plzCube (remastered)',
 
   params: [
-    gp('Face A (Blue)',   { key: 'hueA',     label: 'Hue',       type: 'float', min: 0, max: 360, step: 1,    default: 220 }),
-    gp('Face B (Red)',    { key: 'hueB',     label: 'Hue',       type: 'float', min: 0, max: 360, step: 1,    default: 10 }),
-    gp('Face C (Purple)', { key: 'hueC',     label: 'Hue',       type: 'float', min: 0, max: 360, step: 1,    default: 280 }),
+    gp('Face A (Blue)',   { key: 'hueA',     label: 'Hue Shift',  type: 'float', min: -180, max: 180, step: 1,  default: 0 }),
+    gp('Face B (Fire)',   { key: 'hueB',     label: 'Hue Shift',  type: 'float', min: -180, max: 180, step: 1,  default: 0 }),
+    gp('Face C (Purple)', { key: 'hueC',     label: 'Hue Shift',  type: 'float', min: -180, max: 180, step: 1,  default: 0 }),
     gp('Texture',     { key: 'distortion',    label: 'Distortion',      type: 'float', min: 0,   max: 3,   step: 0.01, default: 1.0 }),
     gp('Lighting',    { key: 'specularPower', label: 'Specular Power',  type: 'float', min: 4,   max: 128, step: 1,    default: 32 }),
-    gp('Lighting',    { key: 'ambient',       label: 'Ambient',         type: 'float', min: 0,   max: 0.5, step: 0.01, default: 0.15 }),
+    gp('Lighting',    { key: 'ambient',       label: 'Ambient',         type: 'float', min: 0,   max: 0.8, step: 0.01, default: 0.45 }),
     gp('Post-Processing', { key: 'bloomThreshold', label: 'Bloom Threshold', type: 'float', min: 0, max: 1, step: 0.01, default: 0.3 }),
     gp('Post-Processing', { key: 'bloomStrength',  label: 'Bloom Strength',  type: 'float', min: 0, max: 2, step: 0.01, default: 0.45 }),
     gp('Post-Processing', { key: 'beatReactivity', label: 'Beat Reactivity', type: 'float', min: 0, max: 1, step: 0.01, default: 0.4 }),
