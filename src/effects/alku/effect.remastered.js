@@ -9,9 +9,8 @@
  * top without altering the source material:
  *
  *   1. Purple horizon glow — soft pulsing band near the sky/landscape boundary
- *   2. Star shimmer — faint twinkling points in dark areas (sky and black phases)
  *
- * Both default to very low intensity so casual viewers see "the same intro."
+ * Defaults to very low intensity so casual viewers see "the same intro."
  * A dual-tier bloom pass softly diffuses bright edges for an organic feel.
  * All enhancement parameters are exposed for editor control.
  *
@@ -94,19 +93,7 @@ uniform float uHorizonPulseSpeed;
 uniform float uGlowY;
 uniform float uGlowHeight;
 
-uniform float uStarDensity;
-uniform float uStarTwinkleSpeed;
-uniform float uStarBrightness;
-
 uniform float uBeatReactivity;
-
-#define TAU 6.28318530718
-
-float hash21(vec2 p) {
-  p = fract(p * vec2(123.34, 456.21));
-  p += dot(p, p + 45.32);
-  return fract(p.x * p.y);
-}
 
 vec3 horizonGlow(vec2 uv, float t) {
   if (uHorizonGlow <= 0.0) return vec3(0.0);
@@ -120,50 +107,6 @@ vec3 horizonGlow(vec2 uv, float t) {
 
   vec3 glowColor = vec3(0.3, 0.05, 0.4);
   return glowColor * band * pulse * uHorizonGlow;
-}
-
-vec3 stars(vec2 uv, float t, bool landscape) {
-  if (uStarDensity <= 0.0 || uStarBrightness <= 0.0) return vec3(0.0);
-
-  // Stars stay in the sky — fade out approaching the mountain horizon.
-  // uGlowY tracks the ridge line; use it as the hard boundary.
-  float skyFade = smoothstep(uGlowY, uGlowY - 0.15, uv.y);
-  if (skyFade <= 0.0) return vec3(0.0);
-
-  vec3 result = vec3(0.0);
-  vec2 pixCoord = uv * uResolution;
-
-  float cellSize = mix(32.0, 12.0, uStarDensity);
-  vec2 cell = floor(pixCoord / cellSize);
-  vec2 cellUV = fract(pixCoord / cellSize);
-
-  float starPresence = hash21(cell * 127.1 + 311.7);
-  float threshold = 1.0 - uStarDensity * 0.4;
-
-  if (starPresence > threshold) {
-    vec2 starPos = vec2(
-      hash21(cell * 269.5 + 183.3),
-      hash21(cell * 413.1 + 271.9)
-    ) * 0.6 + 0.2;
-
-    float d = length(cellUV - starPos) * cellSize;
-
-    // Chunky Gaussian core (3–5 px radius) with a wide soft halo
-    float coreSize = 3.0 + hash21(cell * 731.1) * 2.0;
-    float core = exp(-d * d / (coreSize * 1.2));
-    float halo = exp(-d * d / (coreSize * 8.0)) * 0.15;
-
-    float phase = hash21(cell * 997.3) * TAU;
-    float speed = (0.5 + hash21(cell * 571.7) * 1.5) * uStarTwinkleSpeed;
-    float twinkle = sin(t * speed + phase) * 0.4 + 0.6;
-
-    float warmth = hash21(cell * 337.9);
-    vec3 starColor = mix(vec3(0.8, 0.85, 1.0), vec3(1.0, 0.95, 0.8), warmth);
-
-    result = starColor * (core + halo) * twinkle * uStarBrightness * skyFade;
-  }
-
-  return result;
 }
 
 void main() {
@@ -183,9 +126,6 @@ void main() {
 
     color += horizonGlow(uv, uTime) * uBgFade;
   }
-
-  // Stars: sky-only during landscape phase, everywhere during black phases
-  color += stars(uv, uTime, uShowLandscape > 0);
 
   // Text overlay with anti-aliased alpha
   vec4 textSample = texture(uText, uv);
@@ -531,9 +471,6 @@ export default {
     gp('Atmosphere', { key: 'horizonPulseSpeed',  label: 'Horizon Pulse Speed',type: 'float', min: 0.2, max: 5,   step: 0.1,  default: 1.2 }),
     gp('Atmosphere', { key: 'glowY',              label: 'Glow Y Position',    type: 'float', min: 0.1, max: 0.9, step: 0.01, default: 0.62 }),
     gp('Atmosphere', { key: 'glowHeight',         label: 'Glow Spread',        type: 'float', min: 0.01,max: 0.4, step: 0.01, default: 0.12 }),
-    gp('Atmosphere', { key: 'starDensity',        label: 'Star Density',       type: 'float', min: 0,   max: 1,   step: 0.01, default: 0.18 }),
-    gp('Atmosphere', { key: 'starTwinkleSpeed',   label: 'Star Twinkle Speed', type: 'float', min: 0,   max: 5,   step: 0.1,  default: 2.0 }),
-    gp('Atmosphere', { key: 'starBrightness',     label: 'Star Brightness',    type: 'float', min: 0,   max: 2,   step: 0.01, default: 0.3 }),
     gp('Post-Processing', { key: 'bloomThreshold', label: 'Bloom Threshold', type: 'float', min: 0,   max: 1,   step: 0.01, default: 0.4 }),
     gp('Post-Processing', { key: 'bloomStrength',  label: 'Bloom Strength',  type: 'float', min: 0,   max: 2,   step: 0.01, default: 0.15 }),
     gp('Post-Processing', { key: 'beatReactivity', label: 'Beat Reactivity', type: 'float', min: 0,   max: 1,   step: 0.01, default: 0.12 }),
@@ -576,9 +513,6 @@ export default {
       horizonPulseSpeed:gl.getUniformLocation(sceneProg, 'uHorizonPulseSpeed'),
       glowY:            gl.getUniformLocation(sceneProg, 'uGlowY'),
       glowHeight:       gl.getUniformLocation(sceneProg, 'uGlowHeight'),
-      starDensity:      gl.getUniformLocation(sceneProg, 'uStarDensity'),
-      starTwinkleSpeed: gl.getUniformLocation(sceneProg, 'uStarTwinkleSpeed'),
-      starBrightness:   gl.getUniformLocation(sceneProg, 'uStarBrightness'),
       beatReactivity:   gl.getUniformLocation(sceneProg, 'uBeatReactivity'),
     };
 
@@ -646,9 +580,6 @@ export default {
     gl.uniform1f(su.horizonPulseSpeed, p('horizonPulseSpeed', 1.2));
     gl.uniform1f(su.glowY, p('glowY', 0.62));
     gl.uniform1f(su.glowHeight, p('glowHeight', 0.12));
-    gl.uniform1f(su.starDensity, p('starDensity', 0.18));
-    gl.uniform1f(su.starTwinkleSpeed, p('starTwinkleSpeed', 2.0));
-    gl.uniform1f(su.starBrightness, p('starBrightness', 0.3));
     gl.uniform1f(su.beatReactivity, p('beatReactivity', 0.12));
 
     gl.activeTexture(gl.TEXTURE0);
