@@ -295,3 +295,46 @@ principles.
 | 4 | Large scene rendering | [04-large-scene-rendering.md](u2e-remastered/04-large-scene-rendering.md) |
 | 5 | GPU rendering | [05-gpu-rendering.md](u2e-remastered/05-gpu-rendering.md) |
 | 6 | Learning path | [06-learning-path.md](u2e-remastered/06-learning-path.md) |
+
+---
+
+### [Alku Remastered](alku-remastered/00-overview.md)
+
+A 5-layer walkthrough of the remastered ALKU effect (Part 1 of Second
+Reality). Covers the 640×350 pre-rendered landscape with horizontal scrolling,
+variable-width bitmap font rendering and text layout, timed palette fading
+for credit sequences, GPU texture-based rendering with purple horizon glow,
+and a dual-tier bloom pipeline.
+
+**No prerequisites assumed** — maths and GPU concepts are explained from first
+principles.
+
+| Layer | Topic | File |
+|-------|-------|------|
+| 0 | Overview and architecture | [00-overview.md](alku-remastered/00-overview.md) |
+| 1 | Landscape scroll | [01-landscape-scroll.md](alku-remastered/01-landscape-scroll.md) |
+| 2 | Bitmap font | [02-bitmap-font.md](alku-remastered/02-bitmap-font.md) |
+| 3 | Palette fading | [03-palette-fading.md](alku-remastered/03-palette-fading.md) |
+| 4 | GPU rendering | [04-gpu-rendering.md](alku-remastered/04-gpu-rendering.md) |
+| 5 | Learning path | [05-learning-path.md](alku-remastered/05-learning-path.md) |
+
+---
+
+### [PAM Remastered](pam-remastered/00-overview.md)
+
+A 4-layer walkthrough of the remastered PAM effect (Part 3 of Second Reality).
+Covers Base64-encoded FLI frame decoding with a custom RLE codec, the
+PALETTE_FADE white-flash curve for dramatic timed transitions, GPU texture
+upload with shader-based palette mapping and volumetric raymarched smoke, and
+a dual-tier bloom pipeline with beat reactivity.
+
+**No prerequisites assumed** — maths and GPU concepts are explained from first
+principles.
+
+| Layer | Topic | File |
+|-------|-------|------|
+| 0 | Overview and architecture | [00-overview.md](pam-remastered/00-overview.md) |
+| 1 | Frame sequence | [01-frame-sequence.md](pam-remastered/01-frame-sequence.md) |
+| 2 | Palette effects | [02-palette-effects.md](pam-remastered/02-palette-effects.md) |
+| 3 | GPU rendering | [03-gpu-rendering.md](pam-remastered/03-gpu-rendering.md) |
+| 4 | Learning path | [04-learning-path.md](pam-remastered/04-learning-path.md) |
