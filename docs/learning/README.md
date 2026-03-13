@@ -199,3 +199,50 @@ principles.
 | 5 | Phong lighting | [05-phong-lighting.md](glenz-remastered/05-phong-lighting.md) |
 | 6 | Bloom and composite | [06-bloom-composite.md](glenz-remastered/06-bloom-composite.md) |
 | 7 | Learning path | [07-learning-path.md](glenz-remastered/07-learning-path.md) |
+
+---
+
+### [PLZ Cube Remastered](plz-cube-remastered/00-overview.md)
+
+A 6-layer walkthrough of the remastered PLZ_CUBE effect (Part 17 of Second
+Reality). Covers procedural plasma textures via nested sine synthesis, cube
+mesh construction with interleaved vertex buffers, B-spline camera path
+interpolation, per-pixel Blinn-Phong lighting with an orbiting light source,
+and a dual-tier bloom pipeline with beat reactivity.
+
+**No prerequisites assumed** — maths and GPU concepts are explained from first
+principles.
+
+| Layer | Topic | File |
+|-------|-------|------|
+| 0 | Overview and architecture | [00-overview.md](plz-cube-remastered/00-overview.md) |
+| 1 | Plasma as texture | [01-plasma-as-texture.md](plz-cube-remastered/01-plasma-as-texture.md) |
+| 2 | Cube geometry | [02-cube-geometry.md](plz-cube-remastered/02-cube-geometry.md) |
+| 3 | Spline camera | [03-spline-camera.md](plz-cube-remastered/03-spline-camera.md) |
+| 4 | Diffuse lighting | [04-diffuse-lighting.md](plz-cube-remastered/04-diffuse-lighting.md) |
+| 5 | Bloom and post-processing | [05-bloom-and-postfx.md](plz-cube-remastered/05-bloom-and-postfx.md) |
+| 6 | Learning path | [06-learning-path.md](plz-cube-remastered/06-learning-path.md) |
+
+---
+
+### [Coman Remastered](coman-remastered/00-overview.md)
+
+A 6-layer walkthrough of the remastered COMAN effect (Part 20 of Second
+Reality). Covers the VoxelSpace terrain algorithm (Comanche, NovaLogic 1992),
+dual signed height maps with z-wave undulation, front-to-back column
+raymarching, cumulative camera paths requiring frame-0 replay, GPU fragment
+shader porting with bilinear interpolation, and atmospheric fog with bloom
+post-processing.
+
+**No prerequisites assumed** — maths and GPU concepts are explained from first
+principles.
+
+| Layer | Topic | File |
+|-------|-------|------|
+| 0 | Overview and architecture | [00-overview.md](coman-remastered/00-overview.md) |
+| 1 | Dual height maps | [01-height-maps.md](coman-remastered/01-height-maps.md) |
+| 2 | Column raymarching | [02-column-raymarching.md](coman-remastered/02-column-raymarching.md) |
+| 3 | Camera path | [03-camera-path.md](coman-remastered/03-camera-path.md) |
+| 4 | GPU VoxelSpace | [04-gpu-voxelspace.md](coman-remastered/04-gpu-voxelspace.md) |
+| 5 | Atmosphere | [05-atmosphere.md](coman-remastered/05-atmosphere.md) |
+| 6 | Learning path | [06-learning-path.md](coman-remastered/06-learning-path.md) |
