@@ -176,3 +176,26 @@ principles.
 | 3 | Image compositing | [03-image-compositing.md](water-remastered/03-image-compositing.md) |
 | 4 | GPU rendering | [04-gpu-rendering.md](water-remastered/04-gpu-rendering.md) |
 | 5 | Learning path | [05-learning-path.md](water-remastered/05-learning-path.md) |
+
+---
+
+### [Glenz Remastered](glenz-remastered/00-overview.md)
+
+A 7-layer walkthrough of the remastered GLENZ_3D effect (Part 6 of Second
+Reality). Covers Tetrakis hexahedron geometry, the jelly/bounce animation state
+machine, a custom vertex pipeline with model-view-projection matrices, Fresnel
+alpha transparency, Blinn-Phong lighting, and MSAA bloom compositing.
+
+**No prerequisites assumed** — maths and GPU concepts are explained from first
+principles.
+
+| Layer | Topic | File |
+|-------|-------|------|
+| 0 | Overview and architecture | [00-overview.md](glenz-remastered/00-overview.md) |
+| 1 | Tetrakis geometry | [01-tetrakis-geometry.md](glenz-remastered/01-tetrakis-geometry.md) |
+| 2 | Animation state machine | [02-animation-state-machine.md](glenz-remastered/02-animation-state-machine.md) |
+| 3 | Vertex pipeline | [03-vertex-pipeline.md](glenz-remastered/03-vertex-pipeline.md) |
+| 4 | Transparency | [04-transparency.md](glenz-remastered/04-transparency.md) |
+| 5 | Phong lighting | [05-phong-lighting.md](glenz-remastered/05-phong-lighting.md) |
+| 6 | Bloom and composite | [06-bloom-composite.md](glenz-remastered/06-bloom-composite.md) |
+| 7 | Learning path | [07-learning-path.md](glenz-remastered/07-learning-path.md) |
