@@ -126,10 +126,10 @@ void computeState() {
   swordH = uSwordHeight;
 
   // Sword rises from the water over the first ~2.5 seconds.
-  // swordBottom shifts upward, revealing more of the billboard above the origin.
+  // Start partially emerged (tip already above water), then rise to full.
   float rise = clamp(uTime * 0.4, 0.0, 1.0);
   rise = rise * rise * (3.0 - 2.0 * rise);
-  swordBottom = mix(-swordH * 0.85, -swordH * 0.1, rise);
+  swordBottom = mix(-swordH * 0.5, -swordH * 0.1, rise);
 
   // Build oriented sword plane from pitch/yaw.
   // Pitch tilts the top toward the camera (positive = lean forward).
