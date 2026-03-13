@@ -42,7 +42,7 @@ const cache1 = {};
 // ── HUD ──────────────────────────────────────────────────────────────
 
 function updateHUD() {
-  let text = variant.toUpperCase();
+  let text = variant.toUpperCase() + '  [X] TO TOGGLE';
   if (!playing && started) text += '  \u23F8';
   hud.textContent = text;
 }
@@ -66,23 +66,46 @@ function initGL(canvas) {
   return gl;
 }
 
+const ASPECT = W / H;
+
 function sizeCanvas(canvas, gl, v) {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  let dw, dh;
+  if (vw / vh > ASPECT) {
+    dh = vh;
+    dw = Math.round(vh * ASPECT);
+  } else {
+    dw = vw;
+    dh = Math.round(vw / ASPECT);
+  }
+
+  const s = canvas.style;
+  const sw = dw + 'px';
+  const sh = dh + 'px';
+  if (s.width !== sw || s.height !== sh) {
+    s.position = 'absolute';
+    s.left = ((vw - dw) >> 1) + 'px';
+    s.top = ((vh - dh) >> 1) + 'px';
+    s.width = sw;
+    s.height = sh;
+  }
+
   if (v === 'remastered') {
     const dpr = devicePixelRatio || 1;
-    const r = canvas.getBoundingClientRect();
-    const w = Math.round(r.width * dpr);
-    const h = Math.round(r.height * dpr);
+    const w = Math.round(dw * dpr);
+    const h = Math.round(dh * dpr);
     if (canvas.width !== w || canvas.height !== h) {
       canvas.width = w;
       canvas.height = h;
     }
-    canvas.style.imageRendering = 'auto';
+    s.imageRendering = 'auto';
   } else {
     if (canvas.width !== W || canvas.height !== H) {
       canvas.width = W;
       canvas.height = H;
     }
-    canvas.style.imageRendering = 'pixelated';
+    s.imageRendering = 'pixelated';
   }
   gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
 }
