@@ -66,17 +66,19 @@ const TRANSITION_TYPES = {
   flash: { color: [1, 1, 1], dir: 'flash' },
 };
 
-let fadeProgram = null;
-let crtProgram = null;
-let checkerProgram = null;
-let quad = null;
+const contextResources = new WeakMap();
 
 function ensureResources(gl) {
-  if (quad) return;
-  quad = createFullscreenQuad(gl);
-  fadeProgram = createProgram(gl, VERT, FADE_FRAG);
-  crtProgram = createProgram(gl, VERT, CRT_SHUTDOWN_FRAG);
-  checkerProgram = createProgram(gl, VERT, CHECKER_FRAG);
+  let res = contextResources.get(gl);
+  if (res) return res;
+  res = {
+    quad: createFullscreenQuad(gl),
+    fadeProgram: createProgram(gl, VERT, FADE_FRAG),
+    crtProgram: createProgram(gl, VERT, CRT_SHUTDOWN_FRAG),
+    checkerProgram: createProgram(gl, VERT, CHECKER_FRAG),
+  };
+  contextResources.set(gl, res);
+  return res;
 }
 
 /**
@@ -113,24 +115,24 @@ export function getTransitionProgress(clip, currentTime) {
 export function renderTransitionOverlay(gl, type, progress) {
   if (!type || type === 'none' || progress === null) return;
 
-  ensureResources(gl);
+  const res = ensureResources(gl);
 
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
   if (type === 'crtShutdown') {
-    gl.useProgram(crtProgram);
-    gl.uniform1f(gl.getUniformLocation(crtProgram, 'uProgress'), progress);
-    quad.draw();
+    gl.useProgram(res.crtProgram);
+    gl.uniform1f(gl.getUniformLocation(res.crtProgram, 'uProgress'), progress);
+    res.quad.draw();
   } else if (type === 'checkerboardWipe') {
-    gl.useProgram(checkerProgram);
-    gl.uniform1f(gl.getUniformLocation(checkerProgram, 'uProgress'), progress);
+    gl.useProgram(res.checkerProgram);
+    gl.uniform1f(gl.getUniformLocation(res.checkerProgram, 'uProgress'), progress);
     gl.uniform2f(
-      gl.getUniformLocation(checkerProgram, 'uResolution'),
+      gl.getUniformLocation(res.checkerProgram, 'uResolution'),
       gl.drawingBufferWidth,
       gl.drawingBufferHeight,
     );
-    quad.draw();
+    res.quad.draw();
   } else {
     const info = TRANSITION_TYPES[type];
     if (!info) { gl.disable(gl.BLEND); return; }
@@ -144,19 +146,21 @@ export function renderTransitionOverlay(gl, type, progress) {
       alpha = progress < 0.15 ? 1.0 : Math.max(0, 1.0 - (progress - 0.15) / 0.85);
     }
 
-    gl.useProgram(fadeProgram);
-    gl.uniform3f(gl.getUniformLocation(fadeProgram, 'uColor'), ...info.color);
-    gl.uniform1f(gl.getUniformLocation(fadeProgram, 'uAlpha'), alpha);
-    quad.draw();
+    gl.useProgram(res.fadeProgram);
+    gl.uniform3f(gl.getUniformLocation(res.fadeProgram, 'uColor'), ...info.color);
+    gl.uniform1f(gl.getUniformLocation(res.fadeProgram, 'uAlpha'), alpha);
+    res.quad.draw();
   }
 
   gl.disable(gl.BLEND);
 }
 
 export function destroyTransitions(gl) {
-  if (fadeProgram) gl.deleteProgram(fadeProgram);
-  if (crtProgram) gl.deleteProgram(crtProgram);
-  if (checkerProgram) gl.deleteProgram(checkerProgram);
-  if (quad) quad.destroy();
-  fadeProgram = crtProgram = checkerProgram = quad = null;
+  const res = contextResources.get(gl);
+  if (!res) return;
+  gl.deleteProgram(res.fadeProgram);
+  gl.deleteProgram(res.crtProgram);
+  gl.deleteProgram(res.checkerProgram);
+  res.quad.destroy();
+  contextResources.delete(gl);
 }
