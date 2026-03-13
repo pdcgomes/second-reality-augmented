@@ -114,5 +114,12 @@ export function simulateDots(targetFrame) {
     fade = Math.max(0, 1.0 - a / 32);
   }
 
-  return { dots, positions, rotSin: rotsin, rotCos: rotcos, frame, fade };
+  let whiteFlash = 0;
+  if (frame >= 2360 && frame < 2400) {
+    whiteFlash = (frame - 2360) / 40;
+  } else if (frame >= 2400) {
+    whiteFlash = Math.max(0, 1.0 - (frame - 2400) / 32);
+  }
+
+  return { dots, positions, rotSin: rotsin, rotCos: rotcos, frame, fade, whiteFlash };
 }

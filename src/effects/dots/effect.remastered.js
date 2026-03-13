@@ -242,6 +242,7 @@ uniform sampler2D uBloomWide;
 uniform float uBloomStr;
 uniform float uBeat;
 uniform float uScanlineStr;
+uniform float uWhiteFlash;
 void main() {
   vec3 scene = texture(uScene, vUV).rgb;
   vec3 tight = texture(uBloomTight, vUV).rgb;
@@ -252,6 +253,7 @@ void main() {
     + wide  * (uBloomStr * 0.6 + beatPulse * 0.12);
   float scanline = (1.0 - uScanlineStr) + uScanlineStr * sin(gl_FragCoord.y * 3.14159);
   color *= scanline;
+  color = mix(color, vec3(1.0), uWhiteFlash);
   fragColor = vec4(color, 1.0);
 }
 `;
@@ -375,6 +377,7 @@ export default {
       bloomStr:   gl.getUniformLocation(compositeProg, 'uBloomStr'),
       beat:       gl.getUniformLocation(compositeProg, 'uBeat'),
       scanlineStr:gl.getUniformLocation(compositeProg, 'uScanlineStr'),
+      whiteFlash: gl.getUniformLocation(compositeProg, 'uWhiteFlash'),
     };
 
     sphereVAO = gl.createVertexArray();
@@ -427,6 +430,7 @@ export default {
     const targetFrame = Math.floor(t * FRAME_RATE);
     const sim = simulateDots(targetFrame);
     const fade = sim.fade;
+    const whiteFlash = sim.whiteFlash;
     const rotcos = sim.rotCos;
     const rotsin = sim.rotSin;
 
@@ -607,6 +611,7 @@ export default {
     gl.uniform1f(cu.bloomStr, p('bloomStrength', 0.5));
     gl.uniform1f(cu.beat, beat);
     gl.uniform1f(cu.scanlineStr, p('scanlineStr', 0.03));
+    gl.uniform1f(cu.whiteFlash, whiteFlash);
     quad.draw();
   },
 
