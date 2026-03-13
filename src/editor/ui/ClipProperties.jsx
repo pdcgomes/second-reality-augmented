@@ -187,6 +187,35 @@ function ParamControl({ def, value, clipId, onChange, onReset }) {
     );
   }
 
+  if (def.type === 'select') {
+    const handleSelect = (e) => onChange(clipId, def.key, Number(e.target.value));
+    return (
+      <div className="font-mono">
+        <div className="flex items-center justify-between mb-0.5">
+          <label className="text-text-dim text-xs">{def.label}</label>
+          {isOverridden && (
+            <button
+              onClick={handleReset}
+              className="text-[9px] text-text-dim hover:text-accent-magenta px-1"
+              title={`Reset to ${def.options[def.default]?.label ?? def.default}`}
+            >
+              ↺
+            </button>
+          )}
+        </div>
+        <select
+          value={current}
+          onChange={handleSelect}
+          className="w-full bg-surface-600 text-text-primary text-xs rounded px-1.5 py-1 border border-surface-500 focus:border-accent-cyan outline-none cursor-pointer"
+        >
+          {def.options.map((opt) => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
+      </div>
+    );
+  }
+
   return null;
 }
 
@@ -196,9 +225,14 @@ function CopyParamsButton({ paramDefs, clipParams }) {
   const handleCopy = useCallback(() => {
     const lines = paramDefs.map((def) => {
       const val = clipParams[def.key] ?? def.default;
-      const formatted = def.type === 'float'
-        ? (def.step < 0.01 ? val.toFixed(3) : def.step < 0.1 ? val.toFixed(2) : def.step < 1 ? val.toFixed(1) : String(val))
-        : String(val);
+      let formatted;
+      if (def.type === 'float') {
+        formatted = def.step < 0.01 ? val.toFixed(3) : def.step < 0.1 ? val.toFixed(2) : def.step < 1 ? val.toFixed(1) : String(val);
+      } else if (def.type === 'select') {
+        formatted = def.options.find((o) => o.value === val)?.label ?? String(val);
+      } else {
+        formatted = String(val);
+      }
       return `- ${def.label}: ${formatted}`;
     });
     navigator.clipboard.writeText(lines.join('\n')).then(() => {
