@@ -86,7 +86,7 @@ All 25 parts of the original demo are implemented as classic variants:
 | 11 | Troll picture | TECHNO_TROLL | Done | — |
 | 12 | Mountain scroller | FOREST | Done | — |
 | 13 | Lens slide-in | LENS_TRANSITION | Done | — |
-| 14 | Bouncing crystal ball | LENS | Done | — |
+| 14 | Bouncing crystal ball | LENS | Done | Done |
 | 15 | Rotozoom | LENS_ROTO | Done | Done |
 | 16 | Plasma waves | PLZ_PLASMA | Done | Done |
 | 17 | Plasma cube | PLZ_CUBE | Done | Done |
@@ -99,7 +99,7 @@ All 25 parts of the original demo are implemented as classic variants:
 | 24 | Scrolling credits | CREDITS | Done | — |
 | 25 | Greetings scroll | ENDSCRL | Done | — |
 
-### Remastered Effects (12/25)
+### Remastered Effects (13/25)
 
 | Effect | Techniques |
 |--------|-----------|
@@ -110,6 +110,7 @@ All 25 parts of the original demo are implemented as classic variants:
 | TUNNELI | Gaussian-splat dots, depth-based neon gradients, additive blending, dual-tier bloom |
 | TECHNO_CIRCLES | GPU texture-sampled interference, bilinear-filtered circles, smooth palette gradients, dual-tier bloom |
 | TECHNO_BARS | GPU analytical bar geometry, 4-plane compositing via modular SDF, smooth popcount palette, dual-tier bloom |
+| LENS_LENS | Analytical Snell's law refraction, Blinn-Phong specular + Fresnel crystal ball, chromatic aberration, shared KOE visual treatment with LENS_ROTO, dual-tier bloom |
 | LENS_ROTO | GPU rotozoom, bilinear filtering, Blinn-Phong specular + Fresnel lens material, beat-reactive eye glow, procedural nebula background, dual-tier bloom |
 | PLZ_PLASMA | Full GLSL plasma computation, continuous palette interpolation, color theme presets, dual-tier bloom |
 | PLZ_CUBE | GPU vertex pipeline, per-pixel Phong lighting, perspective-correct texturing, procedural plasma faces, dual-tier bloom |
@@ -196,6 +197,7 @@ Detailed technical design docs live in `docs/effects/`. Each effect has a classi
 | [12-forest.md](docs/effects/12-forest.md) | Mountain scroller |
 | [13-lens-transition.md](docs/effects/13-lens-transition.md) | Lens slide-in |
 | [14-lens-lens.md](docs/effects/14-lens-lens.md) | Bouncing crystal ball |
+| [14-lens-lens-remastered.md](docs/effects/14-lens-lens-remastered.md) | Bouncing crystal ball (remastered) |
 | [15-lens-roto.md](docs/effects/15-lens-roto.md) | Rotozoom (classic) |
 | [15-lens-roto-remastered.md](docs/effects/15-lens-roto-remastered.md) | Rotozoom (remastered) |
 | [16-plz-plasma.md](docs/effects/16-plz-plasma.md) | Plasma waves (classic) |

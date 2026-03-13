@@ -122,7 +122,7 @@ The following maps to the actual Second Reality demo sequence. Each effect has a
 
 ### Part 14 — LENS_LENS (Bouncing Crystal Ball)
 - [x] `lens/effect.js` — bouncing crystal ball over background (PSI) [REWRITTEN: full 1:1 port]
-- [ ] `lens/effect.remastered.js`
+- [x] `lens/effect.remastered.js`
 
 ### Part 15 — LENS_ROTO (Rotozoom)
 - [x] `rotozoom/effect.js` — rotozoom of picture (PSI) [REWRITTEN: full 1:1 port]
