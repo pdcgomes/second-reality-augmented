@@ -13,6 +13,7 @@
  */
 
 import { createProgram, createFullscreenQuad, FULLSCREEN_VERT } from '../../core/webgl.js';
+import { gp } from '../index.js';
 import { CHECKERBOARD_B64 } from '../glenzTransition/data.js';
 import { G1_VERTS, G2_VERTS, G1_FACES, G2_FACES } from './data.js';
 import {
@@ -383,24 +384,62 @@ function sortFacesByDepth(faces, verts, modelView) {
   return sorted;
 }
 
-// ── Glenz1 face color mapping ────────────────────────────────────
+// ── Palette presets ──────────────────────────────────────────────
+// Each preset defines 5 RGBA face colors for the two Glenz polyhedra:
+//   g1Front    — Glenz1 primary faces (odd face-color)
+//   g1FrontAlt — Glenz1 secondary faces (even face-color)
+//   g1Back     — Glenz1 back faces (odd face-color)
+//   g2Front    — Glenz2 front faces
+//   g2Back     — Glenz2 back faces
 
-function getGlenz1Color(faceColor, isFront) {
+const PALETTES = [
+  { name: 'Classic',
+    g1Front: [0.2,0.5,1,0.55],   g1FrontAlt: [0.85,0.9,1,0.45],   g1Back: [0.15,0.25,0.9,0.25],
+    g2Front: [1,0.25,0.15,0.45], g2Back: [0.7,0.1,0.08,0.3] },
+  { name: 'Emerald',
+    g1Front: [0.15,0.9,0.4,0.55],g1FrontAlt: [0.7,1,0.85,0.45],   g1Back: [0.1,0.6,0.25,0.25],
+    g2Front: [1,0.8,0.2,0.45],   g2Back: [0.7,0.55,0.1,0.3] },
+  { name: 'Amethyst',
+    g1Front: [0.6,0.2,1,0.55],   g1FrontAlt: [0.85,0.75,1,0.45],  g1Back: [0.4,0.1,0.8,0.25],
+    g2Front: [0.1,0.85,0.9,0.45],g2Back: [0.05,0.6,0.65,0.3] },
+  { name: 'Ice',
+    g1Front: [0.4,0.75,1,0.55],  g1FrontAlt: [0.9,0.95,1,0.5],    g1Back: [0.25,0.5,0.8,0.2],
+    g2Front: [0.95,0.95,1,0.45], g2Back: [0.7,0.75,0.85,0.3] },
+  { name: 'Sunset',
+    g1Front: [1,0.5,0.15,0.55],  g1FrontAlt: [1,0.8,0.5,0.45],    g1Back: [0.8,0.3,0.1,0.25],
+    g2Front: [0.6,0.15,0.9,0.45],g2Back: [0.4,0.08,0.65,0.3] },
+  { name: 'Toxic',
+    g1Front: [0.3,1,0.1,0.55],   g1FrontAlt: [0.7,1,0.5,0.45],    g1Back: [0.2,0.7,0.05,0.25],
+    g2Front: [1,0.15,0.6,0.45],  g2Back: [0.7,0.08,0.4,0.3] },
+  { name: 'Monochrome',
+    g1Front: [0.9,0.9,0.95,0.55],g1FrontAlt: [1,1,1,0.45],        g1Back: [0.6,0.6,0.65,0.25],
+    g2Front: [0.5,0.5,0.55,0.45],g2Back: [0.35,0.35,0.4,0.3] },
+  { name: 'Ruby',
+    g1Front: [0.9,0.1,0.2,0.55], g1FrontAlt: [1,0.6,0.65,0.45],   g1Back: [0.65,0.05,0.12,0.25],
+    g2Front: [0.1,0.7,0.65,0.45],g2Back: [0.06,0.5,0.45,0.3] },
+  { name: 'Aurora',
+    g1Front: [0.1,0.85,0.85,0.55],g1FrontAlt: [0.6,1,0.95,0.45],  g1Back: [0.05,0.6,0.6,0.25],
+    g2Front: [1,0.35,0.55,0.45], g2Back: [0.7,0.2,0.35,0.3] },
+];
+
+// ── Glenz face color mapping ─────────────────────────────────────
+
+function getGlenz1Color(pal, faceColor, isFront) {
   if (!isFront) {
-    if (faceColor & 1) return { r: 0.15, g: 0.25, b: 0.9, a: 0.25 };
+    if (faceColor & 1) return pal.g1Back;
     return null;
   }
-  if (faceColor & 1) return { r: 0.2, g: 0.5, b: 1.0, a: 0.55 };
-  return { r: 0.85, g: 0.9, b: 1.0, a: 0.45 };
+  if (faceColor & 1) return pal.g1Front;
+  return pal.g1FrontAlt;
 }
 
-function getGlenz2Color(faceColor, isFront) {
+function getGlenz2Color(pal, faceColor, isFront) {
   if (isFront) {
-    if ((faceColor >> 1) & 1) return { r: 1.0, g: 0.25, b: 0.15, a: 0.45 };
+    if ((faceColor >> 1) & 1) return pal.g2Front;
     return null;
   }
   if (faceColor === 0) return null;
-  return { r: 0.7, g: 0.1, b: 0.08, a: 0.3 };
+  return pal.g2Back;
 }
 
 // ── Module state ─────────────────────────────────────────────────
@@ -421,14 +460,15 @@ export default {
   label: 'glenzVectors (remastered)',
 
   params: [
-    { key: 'bloomThreshold', label: 'Bloom Threshold', type: 'float', min: 0, max: 1, step: 0.01, default: 0.2 },
-    { key: 'bloomTightStr', label: 'Bloom Tight', type: 'float', min: 0, max: 2, step: 0.01, default: 0.5 },
-    { key: 'bloomWideStr', label: 'Bloom Wide', type: 'float', min: 0, max: 2, step: 0.01, default: 0.35 },
-    { key: 'specularPower', label: 'Specular', type: 'float', min: 4, max: 256, step: 1, default: 64 },
-    { key: 'fresnelExp', label: 'Fresnel', type: 'float', min: 0.5, max: 8, step: 0.1, default: 3.0 },
-    { key: 'scanlineStr', label: 'Scanlines', type: 'float', min: 0, max: 0.5, step: 0.01, default: 0.05 },
-    { key: 'beatScale', label: 'Beat Scale', type: 'float', min: 0, max: 0.2, step: 0.005, default: 0.02 },
-    { key: 'beatBloom', label: 'Beat Bloom', type: 'float', min: 0, max: 1, step: 0.01, default: 0.25 },
+    gp('Palette',         { key: 'palette',        label: 'Theme',           type: 'select', options: PALETTES.map((p, i) => ({ value: i, label: p.name })), default: 0 }),
+    gp('Lighting',        { key: 'specularPower',  label: 'Specular',        type: 'float', min: 4,   max: 256, step: 1,     default: 64 }),
+    gp('Lighting',        { key: 'fresnelExp',     label: 'Fresnel',         type: 'float', min: 0.5, max: 8,   step: 0.1,   default: 3.0 }),
+    gp('Post-Processing', { key: 'bloomThreshold', label: 'Bloom Threshold', type: 'float', min: 0,   max: 1,   step: 0.01,  default: 0.2 }),
+    gp('Post-Processing', { key: 'bloomTightStr',  label: 'Bloom Tight',     type: 'float', min: 0,   max: 2,   step: 0.01,  default: 0.5 }),
+    gp('Post-Processing', { key: 'bloomWideStr',   label: 'Bloom Wide',      type: 'float', min: 0,   max: 2,   step: 0.01,  default: 0.35 }),
+    gp('Post-Processing', { key: 'beatScale',      label: 'Beat Scale',      type: 'float', min: 0,   max: 0.2, step: 0.005, default: 0.02 }),
+    gp('Post-Processing', { key: 'beatBloom',      label: 'Beat Bloom',      type: 'float', min: 0,   max: 1,   step: 0.01,  default: 0.25 }),
+    gp('Post-Processing', { key: 'scanlineStr',    label: 'Scanlines',       type: 'float', min: 0,   max: 0.5, step: 0.01,  default: 0.05 }),
   ],
 
   init(gl) {
@@ -496,6 +536,7 @@ export default {
 
   render(gl, t, beat, params) {
     const p = (k, d) => params[k] ?? d;
+    const pal = PALETTES[Math.round(p('palette', 0))] ?? PALETTES[0];
     const sw = gl.drawingBufferWidth;
     const sh = gl.drawingBufferHeight;
 
@@ -594,17 +635,17 @@ export default {
       gl.bindVertexArray(g2VAO.vao);
       for (const { idx } of sorted2) {
         const col = G2_FACES[idx][0];
-        const frontColor = getGlenz2Color(col, true);
-        if (frontColor) {
-          gl.uniform3f(mu.baseColor, frontColor.r, frontColor.g, frontColor.b);
-          gl.uniform1f(mu.alpha, frontColor.a);
+        const fc2 = getGlenz2Color(pal, col, true);
+        if (fc2) {
+          gl.uniform3f(mu.baseColor, fc2[0], fc2[1], fc2[2]);
+          gl.uniform1f(mu.alpha, fc2[3]);
           gl.uniform1i(mu.isBackFace, 0);
           gl.drawArrays(gl.TRIANGLES, idx * 3, 3);
         }
-        const backColor = getGlenz2Color(col, false);
-        if (backColor) {
-          gl.uniform3f(mu.baseColor, backColor.r, backColor.g, backColor.b);
-          gl.uniform1f(mu.alpha, backColor.a);
+        const bc2 = getGlenz2Color(pal, col, false);
+        if (bc2) {
+          gl.uniform3f(mu.baseColor, bc2[0], bc2[1], bc2[2]);
+          gl.uniform1f(mu.alpha, bc2[3]);
           gl.uniform1i(mu.isBackFace, 1);
           gl.drawArrays(gl.TRIANGLES, idx * 3, 3);
         }
@@ -632,17 +673,17 @@ export default {
       gl.bindVertexArray(g1VAO.vao);
       for (const { idx } of sorted1) {
         const col = G1_FACES[idx][0];
-        const frontColor = getGlenz1Color(col, true);
-        if (frontColor) {
-          gl.uniform3f(mu.baseColor, frontColor.r, frontColor.g, frontColor.b);
-          gl.uniform1f(mu.alpha, frontColor.a);
+        const fc1 = getGlenz1Color(pal, col, true);
+        if (fc1) {
+          gl.uniform3f(mu.baseColor, fc1[0], fc1[1], fc1[2]);
+          gl.uniform1f(mu.alpha, fc1[3]);
           gl.uniform1i(mu.isBackFace, 0);
           gl.drawArrays(gl.TRIANGLES, idx * 3, 3);
         }
-        const backColor = getGlenz1Color(col, false);
-        if (backColor) {
-          gl.uniform3f(mu.baseColor, backColor.r, backColor.g, backColor.b);
-          gl.uniform1f(mu.alpha, backColor.a);
+        const bc1 = getGlenz1Color(pal, col, false);
+        if (bc1) {
+          gl.uniform3f(mu.baseColor, bc1[0], bc1[1], bc1[2]);
+          gl.uniform1f(mu.alpha, bc1[3]);
           gl.uniform1i(mu.isBackFace, 1);
           gl.drawArrays(gl.TRIANGLES, idx * 3, 3);
         }
