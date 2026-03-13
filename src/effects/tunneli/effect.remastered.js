@@ -244,9 +244,9 @@ export default {
 
   params: [
     gp('Palette',  { key: 'palette',  label: 'Theme',     type: 'select', options: PALETTES.map((p, i) => ({ value: i, label: p.name })), default: 7 }),
-    gp('Palette',  { key: 'hueShift', label: 'Hue Shift', type: 'float', min: -180, max: 180, step: 1, default: 1 }),
+    gp('Palette',  { key: 'hueShift', label: 'Hue Shift', type: 'float', min: -180, max: 180, step: 1, default: -20 }),
     gp('Tunnel',  { key: 'dotsPerRing',    label: 'Dots per Ring',    type: 'float', min: 64,  max: 512, step: 16,   default: 144 }),
-    gp('Tunnel',  { key: 'dotSize',        label: 'Dot Size',         type: 'float', min: 0.5, max: 8,   step: 0.1,  default: 2.9 }),
+    gp('Tunnel',  { key: 'dotSize',        label: 'Dot Size',         type: 'float', min: 0.5, max: 8,   step: 0.1,  default: 2.7 }),
     gp('Post-Processing', { key: 'bloomThreshold', label: 'Bloom Threshold', type: 'float', min: 0, max: 1, step: 0.01, default: 0.24 }),
     gp('Post-Processing', { key: 'bloomStrength',  label: 'Bloom Strength',  type: 'float', min: 0, max: 2, step: 0.01, default: 0.69 }),
     gp('Post-Processing', { key: 'beatReactivity', label: 'Beat Reactivity', type: 'float', min: 0, max: 1, step: 0.01, default: 0.5 }),
