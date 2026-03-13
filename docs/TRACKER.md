@@ -78,7 +78,7 @@ The following maps to the actual Second Reality demo sequence. Each effect has a
 
 ### Part 3 — PAM (Explosion)
 - [x] `pam/effect.js` — pre-rendered explosion animation (TRUG/WILDFIRE)
-- [ ] `pam/effect.remastered.js`
+- [x] `pam/effect.remastered.js`
 
 ### Part 4 — BEGLOGO (Title Card)
 - [x] `beglogo/effect.js` — "Second Reality" title display
