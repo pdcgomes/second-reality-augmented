@@ -226,7 +226,6 @@ export function createU2Engine() {
           fov = a / 256 * 360;
           return;
         } else if (a === 0xff) {
-          reset();
           animation_end = true;
           return;
         }
@@ -743,8 +742,21 @@ export function createU2Engine() {
     cam = co[0].o.r0;
   }
 
+  function resetAnimationState() {
+    anim_pointer = 0;
+    animation_end = false;
+    fov = 40;
+    vid_cameraangle(fov);
+    for (let c = 0; c < co.length; c++) {
+      if (!co[c]) continue;
+      if (c > 0) co[c].on = 0;
+      co[c].o.r0.fill(0);
+    }
+    cam = co[0].o.r0;
+  }
+
   function bakeAnimation() {
-    reset();
+    resetAnimationState();
     snapshots = [snapshot()];
     while (!animation_end) {
       stepOneAnimationFrame();
