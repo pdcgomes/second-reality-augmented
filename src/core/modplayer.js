@@ -14,7 +14,8 @@
  */
 
 import { Modplayer as RawModplayer, buildTimeMap } from '../../lib/webaudio-mod-player/index.js';
-import { musicPosToTime, timeToMusicPos, SPEED_GAIN, setTimeMaps, getRegionStopBoundary, findRegionIndex } from './musicsync.js';
+import { musicPosToTime, timeToMusicPos, SPEED_GAIN, setTimeMaps, getRegions, getRegionStopBoundary, findRegionIndex } from './musicsync.js';
+import { generateBeatsFromTimeMaps } from './beatmap.js';
 
 export class ModPlayer {
   constructor() {
@@ -22,6 +23,7 @@ export class ModPlayer {
     this._activeIndex = -1;
     this._loaded = false;
     this._timeOffset = 0;
+    this.generatedBeats = null;
   }
 
   get audioContext() {
@@ -160,6 +162,9 @@ export class ModPlayer {
 
     if (maps[0]) console.log(`MUSIC0 time map: ${maps[0].totalDuration.toFixed(1)}s, ${maps[0].syncs.length} sync marks`);
     if (maps[1]) console.log(`MUSIC1 time map: ${maps[1].totalDuration.toFixed(1)}s, ${maps[1].syncs.length} sync marks`);
+
+    this.generatedBeats = generateBeatsFromTimeMaps(maps, getRegions());
+    console.log(`Beat map generated: ${this.generatedBeats.beats.length} beats, ${this.generatedBeats.bars.length} bars`);
 
     this._loaded = true;
   }

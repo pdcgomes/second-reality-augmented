@@ -2,6 +2,7 @@
  * Orchestrator — manages the effect lifecycle, tick loop, and cue dispatch.
  * Shared by both editor and player.
  */
+import { getBeatPosition } from './beatmap.js';
 export class Orchestrator {
   constructor(project, gl, clock) {
     this.project = project;
@@ -96,13 +97,7 @@ export class Orchestrator {
   }
 
   _getBeatPosition(t) {
-    const { beatMap } = this.project;
-    if (!beatMap?.beats?.length) return 0;
-
-    const bpm = beatMap.track0BPM ?? beatMap.bpm ?? 125;
-    const beatDuration = 60 / bpm;
-    const barDuration = beatDuration * 4;
-    return (t % barDuration) / barDuration;
+    return getBeatPosition(t, this.project?.beatMap);
   }
 
   destroy() {

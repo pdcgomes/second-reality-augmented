@@ -318,6 +318,15 @@ export function getTotalDuration() {
 }
 
 /**
+ * Get all computed music regions. Each region has: music, startPos, startRow,
+ * endPos, endRow, bpm, speed, absStart, absEnd, s3mStart, s3mEnd,
+ * effectiveBpm, msPerRow.
+ */
+export function getRegions() {
+  return _getRegions();
+}
+
+/**
  * Get the music region active at a given absolute time, or null if past end.
  */
 export function getRegionAtTime(seconds) {

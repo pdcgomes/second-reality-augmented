@@ -33,6 +33,16 @@ export default function App() {
       .then(([m0, m1]) => modPlayer.loadBoth(m0, m1))
       .then(() => {
         setMusicLoaded(true);
+        if (modPlayer.generatedBeats) {
+          const { project, setProject } = useEditorStore.getState();
+          if (project?.beatMap) {
+            setProject({
+              ...project,
+              beatMap: { ...project.beatMap, ...modPlayer.generatedBeats },
+            });
+            console.log('Beat map merged into project');
+          }
+        }
         console.log('S3M music loaded (MUSIC0 + MUSIC1)');
       })
       .catch((e) => {
