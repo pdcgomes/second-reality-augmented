@@ -7,6 +7,10 @@
  * then cleared from top to bottom with accelerating speed, each
  * triggered by a beat-synced flash. A final flash ends the transition.
  *
+ * Bar timing is derived from the authoritative music sync points
+ * (TECHNO_BAR1–4, TECHNO_BAR_FINAL_FLASH) so the bars land exactly
+ * on the beat, regardless of clip boundaries.
+ *
  * The blue palette: r = i*3, g = i*3.5, b = i*4 (6-bit VGA values)
  * for indices 0–15. Index 0 = black, index 15 = brightest blue.
  *
@@ -17,6 +21,7 @@
  */
 
 import { createProgram, createFullscreenQuad, FULLSCREEN_VERT } from '../../core/webgl.js';
+import { getSyncTime } from '../../core/musicsync.js';
 
 const W = 320, H = 200;
 const FRAME_RATE = 70;
@@ -50,13 +55,40 @@ for (let i = 0; i < 16; i++) {
   BLUE_PAL[i * 3 + 2] = i * 4;
 }
 
-// Timing (frame numbers at 70fps) — approximates original music sync points.
-// The clip is ~0.7s (49 frames). Bars are spaced at ~8-frame intervals
-// (~114ms ≈ 16th note at 130 BPM).
-const FLASH_IN_FRAMES = 4;
-const BAR_SYNC = [6, 14, 22, 30];
-const BAR_FLASH_FRAMES = 8;
-const FINAL_FLASH_FRAME = 44;
+// Flash durations (in seconds, from original 70fps frame counts)
+const FLASH_IN_DUR = 4 / FRAME_RATE;       // initial flash ramp-up: 4 frames
+const BAR_FLASH_DUR = 8 / FRAME_RATE;      // per-bar flash decay: 8 frames
+const FINAL_FLASH_DUR = 4 / FRAME_RATE;    // final flash ramp-up: 4 frames
+
+// Fallback timing from constant-BPM estimate (MUSIC1: 130 BPM, speed 3)
+// Row offsets from TECHNO_BARS_TRANSITION: BAR1=12, BAR2=20, BAR3=28, BAR4=36, FINAL=43
+const MS_PER_ROW = 2500 / (130 * 1.00231) * 3;
+const FALLBACK_BARS = [12, 20, 28, 36].map(r => r * MS_PER_ROW / 1000);
+const FALLBACK_FINAL = 43 * MS_PER_ROW / 1000;
+
+let _cachedTiming = null;
+
+function getBarTiming() {
+  if (_cachedTiming) return _cachedTiming;
+
+  const base = getSyncTime('TECHNO_BARS_TRANSITION');
+  const b1 = getSyncTime('TECHNO_BAR1');
+
+  if (base != null && b1 != null) {
+    _cachedTiming = {
+      bars: [
+        b1 - base,
+        getSyncTime('TECHNO_BAR2') - base,
+        getSyncTime('TECHNO_BAR3') - base,
+        getSyncTime('TECHNO_BAR4') - base,
+      ],
+      finalFlash: getSyncTime('TECHNO_BAR_FINAL_FLASH') - base,
+    };
+    return _cachedTiming;
+  }
+
+  return { bars: FALLBACK_BARS, finalFlash: FALLBACK_FINAL };
+}
 
 function clamp(v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; }
 
@@ -85,16 +117,19 @@ export default {
   },
 
   render(gl, t, _beat, _params) {
-    const frame = Math.floor(t * FRAME_RATE);
-    const blueReady = frame >= FLASH_IN_FRAMES;
+    const timing = getBarTiming();
+    const barTimes = timing.bars;
+    const finalFlashTime = timing.finalFlash;
 
-    // ── Build indexed framebuffer (O(1) — reconstructed each call) ──
+    const blueReady = t >= FLASH_IN_DUR;
+
+    // ── Build indexed framebuffer ──
 
     if (blueReady) {
       fb.fill(15);
       for (let b = 0; b < 4; b++) {
-        if (frame >= BAR_SYNC[b]) {
-          const barFrame = frame - BAR_SYNC[b];
+        if (t >= barTimes[b]) {
+          const barFrame = Math.floor((t - barTimes[b]) * FRAME_RATE);
           const nLines = BAR_CLEAR[Math.min(barFrame, BAR_CLEAR.length - 1)];
           for (let y = 0; y < nLines; y++) {
             const row = y * W;
@@ -110,32 +145,31 @@ export default {
 
     let flashLevel = 0;
 
-    if (frame >= FINAL_FLASH_FRAME) {
-      flashLevel = clamp(Math.floor((frame - FINAL_FLASH_FRAME) * 256 / FLASH_IN_FRAMES), 0, 256);
+    if (t >= finalFlashTime) {
+      flashLevel = clamp(Math.floor((t - finalFlashTime) / FINAL_FLASH_DUR * 256), 0, 256);
     } else if (!blueReady) {
-      flashLevel = clamp(Math.floor(frame * 256 / FLASH_IN_FRAMES), 0, 256);
-    } else if (frame < BAR_SYNC[0]) {
+      flashLevel = clamp(Math.floor(t / FLASH_IN_DUR * 256), 0, 256);
+    } else if (t < barTimes[0]) {
       flashLevel = 256;
     } else {
       let latestBar = -1;
       for (let b = 3; b >= 0; b--) {
-        if (frame >= BAR_SYNC[b]) { latestBar = b; break; }
+        if (t >= barTimes[b]) { latestBar = b; break; }
       }
       if (latestBar >= 0) {
-        const dt = frame - BAR_SYNC[latestBar];
-        flashLevel = 256 - clamp(Math.floor(dt * 256 / BAR_FLASH_FRAMES), 0, 256);
+        const dt = t - barTimes[latestBar];
+        flashLevel = 256 - clamp(Math.floor(dt / BAR_FLASH_DUR * 256), 0, 256);
       }
     }
 
     // ── Apply flash: mix palette with white (63 in 6-bit VGA) ──
 
-    const savedPal = blueReady ? BLUE_PAL : BLUE_PAL;
     const pal = new Float64Array(16 * 3);
     const j = 256 - flashLevel;
     for (let a = 0; a < 16; a++) {
-      pal[a * 3] = Math.floor((savedPal[a * 3] * j + 63 * flashLevel) >> 8);
-      pal[a * 3 + 1] = Math.floor((savedPal[a * 3 + 1] * j + 63 * flashLevel) >> 8);
-      pal[a * 3 + 2] = Math.floor((savedPal[a * 3 + 2] * j + 63 * flashLevel) >> 8);
+      pal[a * 3] = Math.floor((BLUE_PAL[a * 3] * j + 63 * flashLevel) >> 8);
+      pal[a * 3 + 1] = Math.floor((BLUE_PAL[a * 3 + 1] * j + 63 * flashLevel) >> 8);
+      pal[a * 3 + 2] = Math.floor((BLUE_PAL[a * 3 + 2] * j + 63 * flashLevel) >> 8);
     }
 
     // ── Convert indexed framebuffer → RGBA ──
@@ -170,5 +204,6 @@ export default {
     quad = null;
     frameTex = null;
     fb = rgba = null;
+    _cachedTiming = null;
   },
 };

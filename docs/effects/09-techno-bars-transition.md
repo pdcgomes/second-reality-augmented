@@ -1,6 +1,6 @@
 # Part 9 — TECHNO_BARS_TRANSITION: Synced Bars Wipe
 
-**Time range:** 185.8s–186.5s (0.7s)  
+**Time range:** 185.8s–188.3s (~2.5s)  
 **Original code:** TECHNO/KOE*.C by PSI  
 **Frame rate:** 70 fps (VGA Mode 13h, 320×200, 16-color indexed)
 
@@ -41,9 +41,9 @@ color[i] = (savedPal[i] × j + 63 × flashLevel) >> 8
 
 Flash level ramps 0 → 256 over 4 frames (~57ms). The screen goes from whatever the previous effect showed to full white. When the flash peaks, the framebuffer is secretly filled with index 15 (brightest blue) and the palette is swapped to the blue shades.
 
-### Phase 2: Bar Clearing (frames 6, 14, 22, 30)
+### Phase 2: Bar Clearing (TECHNO_BAR1–4 sync points)
 
-Each bar starts at a beat-synced moment. When a bar's sync point fires:
+Each bar starts at a music-synced moment (TECHNO_BAR1 through TECHNO_BAR4), spaced 8 S3M rows apart (~461ms at 130 BPM, speed 3). When a bar's sync point fires:
 
 1. Flash resets to 256 (white) and fades over 8 frames
 2. The bar begins clearing from top to bottom using the `BarClear[]` table
@@ -66,9 +66,9 @@ Formula: `zy += ++zya` each frame (triangular numbers), clamped to 199.
 
 Each bar takes 20 frames (~286ms) to fully clear. Bars overlap in time — bar 1 starts before bar 0 finishes.
 
-### Phase 3: Final Flash (frame 44+)
+### Phase 3: Final Flash (TECHNO_BAR_FINAL_FLASH sync point)
 
-Flash ramps up over 4 frames, ending the transition in white before Part 10 (TECHNO_BARS) takes over.
+Flash ramps up over 4 frames at the TECHNO_BAR_FINAL_FLASH sync point (~2.5s into the transition), ending in white before Part 10 (TECHNO_BARS) takes over.
 
 ## Scrubbing
 

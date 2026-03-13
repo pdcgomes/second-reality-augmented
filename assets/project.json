@@ -69,18 +69,18 @@
       "notes": "Circle interference / Moire patterns — TECHNO (PSI). Sync: TECHNO_CIRCLES2_START→TECHNO_BARS_TRANSITION."
     },
     {
-      "id": "c09", "effect": "TECHNO_BARS_TRANSITION", "start": 185.8, "end": 186.5,
+      "id": "c09", "effect": "TECHNO_BARS_TRANSITION", "start": 185.8, "end": 188.3,
       "transitionIn": { "type": "none" },
-      "transitionOut": { "type": "flash", "duration": 0.3 },
+      "transitionOut": { "type": "none" },
       "params": {},
-      "notes": "4 synced bars transition — TECHNO (PSI). Sync: TECHNO_BARS_TRANSITION→TECHNO_BAR1."
+      "notes": "4 synced bars transition — TECHNO (PSI). Sync: TECHNO_BARS_TRANSITION→TECHNO_BAR_FINAL_FLASH. Bar timing derived from musicsync."
     },
     {
-      "id": "c10", "effect": "TECHNO_BARS", "start": 186.5, "end": 217.0,
+      "id": "c10", "effect": "TECHNO_BARS", "start": 188.3, "end": 217.0,
       "transitionIn": { "type": "none" },
       "transitionOut": { "type": "fadeToBlack", "duration": 1.5 },
       "params": {},
-      "notes": "Rotating layered bars with palette pulse — TECHNO (PSI). Sync: TECHNO_BAR1→TECHNO_TROLL."
+      "notes": "Rotating layered bars with palette pulse — TECHNO (PSI). Sync: TECHNO_BAR_FINAL_FLASH→TECHNO_TROLL."
     },
     {
       "id": "c11", "effect": "TECHNO_TROLL", "start": 217.0, "end": 231.3,
