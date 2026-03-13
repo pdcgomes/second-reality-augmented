@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import { Clock } from '@core/clock.js';
 import { nearestBeat } from '@core/beatmap.js';
 import { ModPlayer } from '@core/modplayer.js';
@@ -7,7 +8,9 @@ import { timeToMusicPos } from '@core/musicsync.js';
 const clock = new Clock();
 const modPlayer = new ModPlayer();
 
-export const useEditorStore = create((set, get) => ({
+export const useEditorStore = create(
+  persist(
+    (set, get) => ({
   project: null,
   playheadSeconds: 0,
   isPlaying: false,
@@ -142,4 +145,23 @@ export const useEditorStore = create((set, get) => ({
       if (prev) get().setPlayheadRaw(prev.start);
     }
   },
-}));
+    }),
+    {
+      name: 'sr-editor',
+      partialize: (state) => ({
+        playheadSeconds: state.playheadSeconds,
+        loopEffect: state.loopEffect,
+        variant: state.variant,
+        linked: state.linked,
+        previewFit: state.previewFit,
+        zoomLevel: state.zoomLevel,
+        snapToBeat: state.snapToBeat,
+      }),
+      onRehydrate: () => (state) => {
+        if (state?.playheadSeconds) {
+          state.clock.seek(state.playheadSeconds);
+        }
+      },
+    }
+  )
+);
