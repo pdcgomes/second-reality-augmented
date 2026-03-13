@@ -21,9 +21,28 @@
  */
 
 import { createProgram, createFullscreenQuad, FULLSCREEN_VERT } from '../../core/webgl.js';
+import { gp } from '../index.js';
 import { CIRCLE1_B64, CIRCLE2_B64 } from './data.js';
 
 const FRAME_RATE = 70;
+
+// ── Palette presets ──────────────────────────────────────────────
+// Each preset defines 3 RGB tint vectors (0–1):
+//   phase1 — bright ring color for Phase 1 (PAL0 highlight)
+//   pal1   — tint for palette bank 0–7 (classic: warm purple-gray)
+//   pal2   — tint for palette bank 8–15 (classic: cool purple-gray)
+
+const PALETTES = [
+  { name: 'Classic',    phase1: [0, 0.476, 0.635], pal1: [1.0, 0.889, 1.0],  pal2: [1.0, 0.778, 1.0]  },
+  { name: 'Ember',      phase1: [1.0, 0.5, 0.05],  pal1: [1.0, 0.6, 0.2],    pal2: [1.0, 0.3, 0.1]    },
+  { name: 'Ocean',      phase1: [0.0, 0.6, 1.0],   pal1: [0.3, 0.7, 1.0],    pal2: [0.1, 0.9, 0.8]    },
+  { name: 'Toxic',      phase1: [0.2, 1.0, 0.3],   pal1: [0.4, 1.0, 0.2],    pal2: [0.2, 0.8, 0.5]    },
+  { name: 'Infrared',   phase1: [1.0, 0.1, 0.3],   pal1: [1.0, 0.2, 0.5],    pal2: [0.8, 0.1, 1.0]    },
+  { name: 'Aurora',     phase1: [0.3, 1.0, 0.5],   pal1: [0.2, 0.9, 0.7],    pal2: [0.5, 0.3, 1.0]    },
+  { name: 'Monochrome', phase1: [0.7, 0.8, 0.9],   pal1: [1.0, 1.0, 1.0],    pal2: [0.85, 0.85, 0.85] },
+  { name: 'Sunset',     phase1: [1.0, 0.4, 0.6],   pal1: [1.0, 0.5, 0.2],    pal2: [0.7, 0.2, 0.8]    },
+  { name: 'Matrix',     phase1: [0.0, 1.0, 0.3],   pal1: [0.1, 1.0, 0.3],    pal2: [0.0, 0.7, 0.2]    },
+];
 
 // ── Circle decoding (same as classic, runs once at init) ─────────
 
@@ -99,6 +118,10 @@ uniform float uPalShift;
 uniform sampler2D uCircle1;
 uniform sampler2D uCircle2;
 
+uniform vec3 uPhase1Color;
+uniform vec3 uPal1Tint;
+uniform vec3 uPal2Tint;
+
 #define PI  3.14159265359
 #define TAU 6.28318530718
 
@@ -128,9 +151,8 @@ float sampleCircle2(vec2 pixCoord) {
 // 16 entries = 8-entry pal0 repeated, rotated by shift
 vec3 phase1Pal(float ci, float shift, float palfader) {
   float idx = mod(floor(ci) + 7.0 - floor(shift) + 800.0, 8.0);
-  // Only index 0 in the 8-entry palette is lit
   float bright = idx < 0.5 ? 1.0 : 0.0;
-  vec3 base = vec3(0.0, 30.0, 40.0) * bright;
+  vec3 base = uPhase1Color * 63.0 * bright;
   if (palfader <= 256.0) {
     base *= palfader / 256.0;
   } else {
@@ -156,25 +178,20 @@ vec3 phase2Pal(float ci, float shift, float smooth_amount) {
   float s = floor(shift);
   vec3 c0, c1;
 
-  // Index 0-7 uses PAL1, 8-15 uses PAL2
   if (idx0 < 8) {
     int si = int(mod(float(idx0) + 7.0 - s, 8.0));
-    float v = PAL1_V[si];
-    c0 = vec3(v, v * 8.0 / 9.0, v);
+    c0 = vec3(PAL1_V[si]) * uPal1Tint;
   } else {
     int si = int(mod(float(idx0 - 8) + 7.0 - s, 8.0));
-    float v = PAL2_V[si];
-    c0 = vec3(v, v * 7.0 / 9.0, v);
+    c0 = vec3(PAL2_V[si]) * uPal2Tint;
   }
 
   if (idx1 < 8) {
     int si = int(mod(float(idx1) + 7.0 - s, 8.0));
-    float v = PAL1_V[si];
-    c1 = vec3(v, v * 8.0 / 9.0, v);
+    c1 = vec3(PAL1_V[si]) * uPal1Tint;
   } else {
     int si = int(mod(float(idx1 - 8) + 7.0 - s, 8.0));
-    float v = PAL2_V[si];
-    c1 = vec3(v, v * 7.0 / 9.0, v);
+    c1 = vec3(PAL2_V[si]) * uPal2Tint;
   }
 
   return mix(c0, c1, blend) / 63.0;
@@ -384,15 +401,16 @@ export default {
   label: 'technoCircles (remastered)',
 
   params: [
-    { key: 'colorSmooth',      label: 'Color Smoothing',   type: 'float', min: 0,    max: 1,    step: 0.01,  default: 0.3 },
-    { key: 'distortionScale',  label: 'Distortion Scale',  type: 'float', min: 0,    max: 3,    step: 0.05,  default: 1.0 },
-    { key: 'bloomThreshold',   label: 'Bloom Threshold',   type: 'float', min: 0,    max: 1,    step: 0.01,  default: 0.2 },
-    { key: 'bloomStrength',    label: 'Bloom Strength',    type: 'float', min: 0,    max: 2,    step: 0.01,  default: 0.5 },
-    { key: 'beatReactivity',   label: 'Beat Reactivity',   type: 'float', min: 0,    max: 1,    step: 0.01,  default: 0.4 },
-    { key: 'hueShift',         label: 'Hue Shift',         type: 'float', min: 0,    max: 360,  step: 1,     default: 0 },
-    { key: 'saturationBoost',  label: 'Saturation Boost',  type: 'float', min: -0.5, max: 1,    step: 0.01,  default: 0.25 },
-    { key: 'brightness',       label: 'Brightness',        type: 'float', min: 0.5,  max: 2,    step: 0.01,  default: 1.15 },
-    { key: 'scanlineStr',      label: 'Scanlines',         type: 'float', min: 0,    max: 0.5,  step: 0.01,  default: 0.02 },
+    gp('Palette',          { key: 'palette',          label: 'Theme',            type: 'select', options: PALETTES.map((p, i) => ({ value: i, label: p.name })), default: 0 }),
+    gp('Palette',          { key: 'hueShift',         label: 'Hue Shift',        type: 'float', min: 0,    max: 360,  step: 1,     default: 0 }),
+    gp('Palette',          { key: 'saturationBoost',  label: 'Saturation Boost', type: 'float', min: -0.5, max: 1,    step: 0.01,  default: 0.25 }),
+    gp('Palette',          { key: 'brightness',       label: 'Brightness',       type: 'float', min: 0.5,  max: 2,    step: 0.01,  default: 1.15 }),
+    gp('Effect',           { key: 'colorSmooth',      label: 'Color Smoothing',  type: 'float', min: 0,    max: 1,    step: 0.01,  default: 0.3 }),
+    gp('Effect',           { key: 'distortionScale',  label: 'Distortion Scale', type: 'float', min: 0,    max: 3,    step: 0.05,  default: 1.0 }),
+    gp('Post-Processing',  { key: 'bloomThreshold',   label: 'Bloom Threshold',  type: 'float', min: 0,    max: 1,    step: 0.01,  default: 0.2 }),
+    gp('Post-Processing',  { key: 'bloomStrength',    label: 'Bloom Strength',   type: 'float', min: 0,    max: 2,    step: 0.01,  default: 0.5 }),
+    gp('Post-Processing',  { key: 'beatReactivity',   label: 'Beat Reactivity',  type: 'float', min: 0,    max: 1,    step: 0.01,  default: 0.4 }),
+    gp('Post-Processing',  { key: 'scanlineStr',      label: 'Scanlines',        type: 'float', min: 0,    max: 0.5,  step: 0.01,  default: 0.02 }),
   ],
 
   init(gl) {
@@ -427,6 +445,9 @@ export default {
       palShift:        gl.getUniformLocation(circlesProg, 'uPalShift'),
       circle1:         gl.getUniformLocation(circlesProg, 'uCircle1'),
       circle2:         gl.getUniformLocation(circlesProg, 'uCircle2'),
+      phase1Color:     gl.getUniformLocation(circlesProg, 'uPhase1Color'),
+      pal1Tint:        gl.getUniformLocation(circlesProg, 'uPal1Tint'),
+      pal2Tint:        gl.getUniformLocation(circlesProg, 'uPal2Tint'),
     };
 
     beu = {
@@ -518,6 +539,12 @@ export default {
     gl.uniform1f(mu.sinurot, sinurot);
     gl.uniform1f(mu.sinuspower, sinuspower);
     gl.uniform1f(mu.palShift, palanimc);
+
+    const pal = PALETTES[Math.round(p('palette', 0))] ?? PALETTES[0];
+    gl.uniform3fv(mu.phase1Color, pal.phase1);
+    gl.uniform3fv(mu.pal1Tint, pal.pal1);
+    gl.uniform3fv(mu.pal2Tint, pal.pal2);
+
     quad.draw();
 
     // ── Pass 2: Bloom pipeline ───────────────────────────────────
