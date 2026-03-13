@@ -154,3 +154,25 @@ principles.
 | 4 | GPU displacement | [04-gpu-displacement.md](lens-lens-remastered/04-gpu-displacement.md) |
 | 5 | Bloom and palette | [05-bloom-and-palette.md](lens-lens-remastered/05-bloom-and-palette.md) |
 | 6 | Learning path | [06-learning-path.md](lens-lens-remastered/06-learning-path.md) |
+
+---
+
+### [Water Remastered](water-remastered/00-overview.md)
+
+A 5-layer walkthrough of the remastered WATER effect (Part 19 of Second
+Reality). Covers pre-computed position lookup tables for chrome sphere
+reflections, interlaced rendering with temporal shimmer, sliding-window image
+compositing, GPU raymarching with SDF spheres and animated water ripples, and
+dual-tier bloom post-processing.
+
+**No prerequisites assumed** — maths and GPU concepts are explained from first
+principles.
+
+| Layer | Topic | File |
+|-------|-------|------|
+| 0 | Overview and architecture | [00-overview.md](water-remastered/00-overview.md) |
+| 1 | Position lookup tables | [01-lookup-tables.md](water-remastered/01-lookup-tables.md) |
+| 2 | Interlaced rendering | [02-interlaced-rendering.md](water-remastered/02-interlaced-rendering.md) |
+| 3 | Image compositing | [03-image-compositing.md](water-remastered/03-image-compositing.md) |
+| 4 | GPU rendering | [04-gpu-rendering.md](water-remastered/04-gpu-rendering.md) |
+| 5 | Learning path | [05-learning-path.md](water-remastered/05-learning-path.md) |
