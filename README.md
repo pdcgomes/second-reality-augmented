@@ -79,8 +79,8 @@ All 25 parts of the original demo are implemented as classic variants:
 | 4 | Title card | BEGLOGO | Done | — |
 | 5 | Checkerboard fall | GLENZ_TRANSITION | Done | — |
 | 6 | Translucent rotating polyhedra | GLENZ_3D | Done | Done |
-| 7 | Dot tunnel | TUNNELI | Done | — |
-| 8 | Circle interference | TECHNO_CIRCLES | Done | — |
+| 7 | Dot tunnel | TUNNELI | Done | Done |
+| 8 | Circle interference | TECHNO_CIRCLES | Done | Done |
 | 9 | Bars transition | TECHNO_BARS_TRANSITION | Done | — |
 | 10 | Rotating bars | TECHNO_BARS | Done | — |
 | 11 | Troll picture | TECHNO_TROLL | Done | — |
@@ -88,8 +88,8 @@ All 25 parts of the original demo are implemented as classic variants:
 | 13 | Lens slide-in | LENS_TRANSITION | Done | — |
 | 14 | Bouncing crystal ball | LENS | Done | — |
 | 15 | Rotozoom | LENS_ROTO | Done | — |
-| 16 | Plasma waves | PLZ_PLASMA | Done | — |
-| 17 | Plasma cube | PLZ_CUBE | Done | — |
+| 16 | Plasma waves | PLZ_PLASMA | Done | Done |
+| 17 | Plasma cube | PLZ_CUBE | Done | Done |
 | 18 | Mini vector balls | DOTS | Done | Done |
 | 19 | Mirror ball scroller | WATER | Done | Done |
 | 20 | 3D sinusfield / voxel landscape | COMAN | Done | — |
@@ -99,17 +99,51 @@ All 25 parts of the original demo are implemented as classic variants:
 | 24 | Scrolling credits | CREDITS | Done | — |
 | 25 | Greetings scroll | ENDSCRL | Done | — |
 
-### Remastered Effects (3/25)
+### Remastered Effects (7/25)
 
 | Effect | Techniques |
 |--------|-----------|
 | GLENZ_3D | GPU vertex pipeline, alpha blending, Phong/Fresnel glass, dual-tier bloom |
+| TUNNELI | Gaussian-splat dots, depth-based neon gradients, additive blending, dual-tier bloom |
+| TECHNO_CIRCLES | GPU texture-sampled interference, bilinear-filtered circles, smooth palette gradients, dual-tier bloom |
+| PLZ_PLASMA | Full GLSL plasma computation, continuous palette interpolation, color theme presets, dual-tier bloom |
+| PLZ_CUBE | GPU vertex pipeline, per-pixel Phong lighting, perspective-correct texturing, procedural plasma faces, dual-tier bloom |
 | DOTS | Instanced sphere impostors, planar reflections, HSL colouring, dual-tier bloom |
 | WATER | Raymarched chrome spheres, procedural water surface, real-time reflections |
 
 ### Bonus Effects (8)
 
 Starfield, Copper Bars, Fire, Wireframe 3D, Vector Balls, Bouncing Bitmap, Grid, Tunnel
+
+## Screenshots
+
+| # | Effect | Classic | Remastered |
+|---|--------|---------|------------|
+| 1 | Scrolling landscape credits (ALKU) | | |
+| 2 | 3D polygon ships flyover (U2A) | | |
+| 3 | Pre-rendered explosion (PAM) | | |
+| 4 | Title card (BEGLOGO) | | |
+| 5 | Checkerboard fall (GLENZ_TRANSITION) | | |
+| 6 | Translucent rotating polyhedra (GLENZ_3D) | | |
+| 7 | Dot tunnel (TUNNELI) | | |
+| 8 | Circle interference (TECHNO_CIRCLES) | | |
+| 9 | Bars transition (TECHNO_BARS_TRANSITION) | | |
+| 10 | Rotating bars (TECHNO_BARS) | | |
+| 11 | Troll picture (TECHNO_TROLL) | | |
+| 12 | Mountain scroller (FOREST) | | |
+| 13 | Lens slide-in (LENS_TRANSITION) | | |
+| 14 | Bouncing crystal ball (LENS) | | |
+| 15 | Rotozoom (LENS_ROTO) | | |
+| 16 | Plasma waves (PLZ_PLASMA) | | |
+| 17 | Plasma cube (PLZ_CUBE) | | |
+| 18 | Mini vector balls (DOTS) | | |
+| 19 | Mirror ball scroller (WATER) | | |
+| 20 | 3D sinusfield (COMAN) | | |
+| 21 | Jelly logo (JPLOGO) | | |
+| 22 | 3D city flyover (U2E) | | |
+| 23 | End picture (ENDLOGO) | | |
+| 24 | Scrolling credits (CREDITS) | | |
+| 25 | Greetings scroll (ENDSCRL) | | |
 
 ## Learning Guides
 
