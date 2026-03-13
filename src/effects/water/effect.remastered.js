@@ -252,7 +252,7 @@ float hitSword(vec3 ro, vec3 rd, out vec3 outCol) {
   float texU = scrollNorm * 1.3 + 0.25 - localU;
   if (texU < 0.0 || texU > 1.0) return -1.0;
   float v = (lv - swordBottom) / swordH;
-  vec4 s = texture(uSwordTex, vec2(1.0 - texU, v));
+  vec4 s = texture(uSwordTex, vec2(texU, v));
   float lum = dot(s.rgb, vec3(0.299, 0.587, 0.114));
   if (lum < 0.015) return -1.0;
   outCol = s.rgb * uSwordBrightness;
