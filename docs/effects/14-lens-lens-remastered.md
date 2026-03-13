@@ -202,11 +202,11 @@ Standard dual-tier bloom pipeline (identical to LENS_ROTO remastered):
 | `bgSpeed` | Background Speed | Background | 0.1-2 | 0.50 | Nebula animation speed |
 | `lensIOR` | Refraction (IOR) | Ball | 1.0-2.5 | 1.45 | Index of refraction (distortion amount) |
 | `lensHue` | Ball Hue | Ball | 0-360 | 0 | Hue tint on refracted image |
-| `lensSpecularPower` | Specular Power | Ball | 2-128 | 57 | Specular highlight sharpness |
-| `lensSpecularIntensity` | Specular Intensity | Ball | 0-1.5 | 0.35 | Specular brightness |
+| `lensSpecularPower` | Specular Power | Ball | 2-128 | 15 | Specular highlight sharpness |
+| `lensSpecularIntensity` | Specular Intensity | Ball | 0-1.5 | 0.17 | Specular brightness |
 | `lensFresnelExponent` | Fresnel Exponent | Ball | 0.5-5 | 1.2 | Rim glow falloff curve |
 | `lensFresnelIntensity` | Fresnel Intensity | Ball | 0-1 | 0.25 | Rim glow brightness |
-| `lensReflectivity` | Reflectivity | Ball | 0-0.5 | 0.09 | Environment reflection blend |
+| `lensReflectivity` | Reflectivity | Ball | 0-0.5 | 0.10 | Environment reflection blend |
 | `lensChromaticAberration` | Chromatic Aberration | Ball | 0-3 | 0.8 | RGB channel separation at edges |
 | `bloomThreshold` | Bloom Threshold | Post-Processing | 0-1 | 0.20 | Bloom extraction cutoff |
 | `bloomStrength` | Bloom Strength | Post-Processing | 0-2 | 0.50 | Bloom overlay intensity |

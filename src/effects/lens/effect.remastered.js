@@ -400,11 +400,11 @@ export default {
     // Crystal ball
     gp('Ball',            { key: 'lensIOR',                 label: 'Refraction (IOR)',        type: 'float', min: 1.0,  max: 2.5,  step: 0.01, default: 1.45 }),
     gp('Ball',            { key: 'lensHue',                 label: 'Ball Hue',                type: 'float', min: 0,    max: 360,  step: 1,    default: 0 }),
-    gp('Ball',            { key: 'lensSpecularPower',       label: 'Specular Power',          type: 'float', min: 2,    max: 128,  step: 1,    default: 57 }),
-    gp('Ball',            { key: 'lensSpecularIntensity',   label: 'Specular Intensity',      type: 'float', min: 0,    max: 1.5,  step: 0.01, default: 0.35 }),
+    gp('Ball',            { key: 'lensSpecularPower',       label: 'Specular Power',          type: 'float', min: 2,    max: 128,  step: 1,    default: 15 }),
+    gp('Ball',            { key: 'lensSpecularIntensity',   label: 'Specular Intensity',      type: 'float', min: 0,    max: 1.5,  step: 0.01, default: 0.17 }),
     gp('Ball',            { key: 'lensFresnelExponent',     label: 'Fresnel Exponent',        type: 'float', min: 0.5,  max: 5,    step: 0.1,  default: 1.2 }),
     gp('Ball',            { key: 'lensFresnelIntensity',    label: 'Fresnel Intensity',       type: 'float', min: 0,    max: 1,    step: 0.01, default: 0.25 }),
-    gp('Ball',            { key: 'lensReflectivity',        label: 'Reflectivity',            type: 'float', min: 0,    max: 0.5,  step: 0.01, default: 0.09 }),
+    gp('Ball',            { key: 'lensReflectivity',        label: 'Reflectivity',            type: 'float', min: 0,    max: 0.5,  step: 0.01, default: 0.10 }),
     gp('Ball',            { key: 'lensChromaticAberration', label: 'Chromatic Aberration',    type: 'float', min: 0,    max: 3,    step: 0.1,  default: 0.8 }),
     // Post-processing — same defaults as LENS_ROTO remastered
     gp('Post-Processing', { key: 'bloomThreshold',          label: 'Bloom Threshold',         type: 'float', min: 0,    max: 1,    step: 0.01, default: 0.20 }),
@@ -557,11 +557,11 @@ export default {
     gl.uniform1f(su.lensOpacity, lensOpacity);
     gl.uniform1f(su.lensIOR,                  p('lensIOR', 1.45));
     gl.uniform1f(su.lensHue,                  p('lensHue', 0));
-    gl.uniform1f(su.lensSpecularPower,        p('lensSpecularPower', 57));
-    gl.uniform1f(su.lensSpecularIntensity,    p('lensSpecularIntensity', 0.35));
+    gl.uniform1f(su.lensSpecularPower,        p('lensSpecularPower', 15));
+    gl.uniform1f(su.lensSpecularIntensity,    p('lensSpecularIntensity', 0.17));
     gl.uniform1f(su.lensFresnelExponent,      p('lensFresnelExponent', 1.2));
     gl.uniform1f(su.lensFresnelIntensity,     p('lensFresnelIntensity', 0.25));
-    gl.uniform1f(su.lensReflectivity,         p('lensReflectivity', 0.09));
+    gl.uniform1f(su.lensReflectivity,         p('lensReflectivity', 0.10));
     gl.uniform1f(su.lensChromaticAberration,  p('lensChromaticAberration', 0.8));
 
     quad.draw();
