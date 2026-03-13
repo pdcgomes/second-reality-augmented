@@ -26,3 +26,23 @@ principles.
 | 6 | Bloom pipeline | [06-bloom.md](dots-remastered/06-bloom.md) |
 | 7 | Render loop | [07-render-loop.md](dots-remastered/07-render-loop.md) |
 | 8 | Learning path | [08-learning-path.md](dots-remastered/08-learning-path.md) |
+
+---
+
+### [Plasma Remastered](plasma-remastered/00-overview.md)
+
+A 4-layer walkthrough of the remastered PLZ_PLASMA effect (Part 16 of Second
+Reality). Covers multi-harmonic sine synthesis, dual-layer blending, procedural
+colour palettes with theme matrices, and bloom post-processing.
+
+**No prerequisites assumed** — maths and GPU concepts are explained from first
+principles.
+
+| Layer | Topic | File |
+|-------|-------|------|
+| 0 | Overview and architecture | [00-overview.md](plasma-remastered/00-overview.md) |
+| 1 | Sine harmonics | [01-sine-harmonics.md](plasma-remastered/01-sine-harmonics.md) |
+| 2 | Dual-layer interleave | [02-dual-layer-interleave.md](plasma-remastered/02-dual-layer-interleave.md) |
+| 3 | Palette sequences | [03-palette-sequences.md](plasma-remastered/03-palette-sequences.md) |
+| 4 | Bloom and beat reactivity | [04-bloom-and-beat.md](plasma-remastered/04-bloom-and-beat.md) |
+| 5 | Learning path | [05-learning-path.md](plasma-remastered/05-learning-path.md) |
