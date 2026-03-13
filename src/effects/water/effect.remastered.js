@@ -247,10 +247,11 @@ float hitSword(vec3 ro, vec3 rd, out vec3 outCol) {
   if (lv < swordBottom || lv > swordBottom + swordH) return -1.0;
 
   float scrollNorm = uScrollOffset / float(${FONT_W});
-  float u = (lu + swordHalfW) / (swordHalfW * 2.0);
-  u = fract(u * 0.8 - scrollNorm);
+  float localU = (lu + swordHalfW) / (swordHalfW * 2.0);
+  float texU = localU - (1.0 - scrollNorm);
+  if (texU < 0.0 || texU > 1.0) return -1.0;
   float v = (lv - swordBottom) / swordH;
-  vec4 s = texture(uSwordTex, vec2(1.0 - u, v));
+  vec4 s = texture(uSwordTex, vec2(texU, v));
   float lum = dot(s.rgb, vec3(0.299, 0.587, 0.114));
   if (lum < 0.015) return -1.0;
   outCol = s.rgb * uSwordBrightness;
@@ -314,7 +315,7 @@ vec3 shade(vec3 ro, vec3 rd, float t, int objId) {
     } else if (rt > 0.0 && rId == 0) {
       vec3 rp = p + N * 0.01 + R * rt;
       vec3 wN = waterNormal(rp);
-      vec3 waterCol = vec3(0.02, 0.03, 0.12) * (1.0 - uWaterDarkness * 0.5);
+      vec3 waterCol = vec3(0.05, 0.07, 0.25) * (1.0 - uWaterDarkness * 0.7);
       vec3 wR = reflect(R, wN);
       envColor = waterCol + reflectSword(rp + wN * 0.01, wR) * 0.5;
     } else if (rt > 0.0 && rId >= 1) {
@@ -333,7 +334,7 @@ vec3 shade(vec3 ro, vec3 rd, float t, int objId) {
   float fresnel = pow(1.0 - max(dot(N, V), 0.0), uFresnelExp * 0.7);
   fresnel = clamp(fresnel, 0.08, 1.0);
 
-  vec3 waterBase = vec3(0.015, 0.025, 0.1) * (1.0 - uWaterDarkness * 0.5);
+  vec3 waterBase = vec3(0.05, 0.07, 0.25) * (1.0 - uWaterDarkness * 0.7);
   vec3 lit = lighting(p, N, V, waterBase, 1.2);
 
   vec3 R = reflect(rd, N);
@@ -392,7 +393,7 @@ void main() {
   } else if (sceneT > 0.0) {
     col = clamp(mat3(uColorR, uColorG, uColorB) * shade(ro, rd, sceneT, objId), 0.0, 1.0);
   } else {
-    col = clamp(mat3(uColorR, uColorG, uColorB) * vec3(0.005, 0.008, 0.03), 0.0, 1.0);
+    col = clamp(mat3(uColorR, uColorG, uColorB) * vec3(0.01, 0.015, 0.06), 0.0, 1.0);
   }
 
   col *= uFade;
