@@ -428,7 +428,7 @@ export default {
     gp('Face C',  { key: 'hueC',     label: 'Hue Shift',  type: 'float', min: -180, max: 180, step: 1,  default: 0 }),
     gp('Texture',     { key: 'distortion',    label: 'Distortion',      type: 'float', min: 0,   max: 3,   step: 0.01, default: 1.0 }),
     gp('Lighting',    { key: 'specularPower', label: 'Specular Power',  type: 'float', min: 4,   max: 128, step: 1,    default: 32 }),
-    gp('Lighting',    { key: 'ambient',       label: 'Ambient',         type: 'float', min: 0,   max: 0.8, step: 0.01, default: 0.45 }),
+    gp('Lighting',    { key: 'ambient',       label: 'Ambient',         type: 'float', min: 0,   max: 0.8, step: 0.01, default: 0.49 }),
     gp('Post-Processing', { key: 'bloomThreshold', label: 'Bloom Threshold', type: 'float', min: 0, max: 1, step: 0.01, default: 0.3 }),
     gp('Post-Processing', { key: 'bloomStrength',  label: 'Bloom Strength',  type: 'float', min: 0, max: 2, step: 0.01, default: 0.45 }),
     gp('Post-Processing', { key: 'beatReactivity', label: 'Beat Reactivity', type: 'float', min: 0, max: 1, step: 0.01, default: 0.4 }),
