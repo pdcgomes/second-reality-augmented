@@ -46,3 +46,25 @@ principles.
 | 3 | Palette sequences | [03-palette-sequences.md](plasma-remastered/03-palette-sequences.md) |
 | 4 | Bloom and beat reactivity | [04-bloom-and-beat.md](plasma-remastered/04-bloom-and-beat.md) |
 | 5 | Learning path | [05-learning-path.md](plasma-remastered/05-learning-path.md) |
+
+---
+
+### [Tunneli Remastered](tunneli-remastered/00-overview.md)
+
+A 5-layer walkthrough of the remastered TUNNELI effect (Part 7 of Second
+Reality). Covers elliptical ring templates, perspective foreshortening,
+amplitude-growing sinusoidal paths, Gaussian-splat point sprites with additive
+blending, and neon bloom post-processing.
+
+**No prerequisites assumed** — maths and GPU concepts are explained from first
+principles.
+
+| Layer | Topic | File |
+|-------|-------|------|
+| 0 | Overview and architecture | [00-overview.md](tunneli-remastered/00-overview.md) |
+| 1 | Circle templates | [01-circle-templates.md](tunneli-remastered/01-circle-templates.md) |
+| 2 | Depth and perspective | [02-depth-and-perspective.md](tunneli-remastered/02-depth-and-perspective.md) |
+| 3 | Sinusoidal path | [03-sinusoidal-path.md](tunneli-remastered/03-sinusoidal-path.md) |
+| 4 | Gaussian splats | [04-gaussian-splats.md](tunneli-remastered/04-gaussian-splats.md) |
+| 5 | Neon bloom | [05-neon-bloom.md](tunneli-remastered/05-neon-bloom.md) |
+| 6 | Learning path | [06-learning-path.md](tunneli-remastered/06-learning-path.md) |
