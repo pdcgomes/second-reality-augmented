@@ -31,21 +31,21 @@ export default function Toolbar() {
       <div className="flex items-center gap-1">
         <button
           onClick={togglePlayback}
-          className="px-3 py-1 rounded bg-surface-600 hover:bg-accent-blue/30 text-text-primary transition-colors"
+          className="h-7 px-3 inline-flex items-center rounded text-xs bg-surface-600 hover:bg-accent-blue/30 text-text-primary transition-colors"
           title="Play/Pause (Space)"
         >
           {isPlaying ? '⏸' : '▶'}<Kbd>␣</Kbd>
         </button>
         <button
           onClick={stopPlayback}
-          className="px-3 py-1 rounded bg-surface-600 hover:bg-accent-blue/30 text-text-primary transition-colors"
+          className="h-7 px-3 inline-flex items-center rounded text-xs bg-surface-600 hover:bg-accent-blue/30 text-text-primary transition-colors"
           title="Stop (Home)"
         >
           ⏹<Kbd>⇱</Kbd>
         </button>
         <button
           onClick={toggleLoop}
-          className={`px-3 py-1 rounded text-xs transition-colors ${
+          className={`h-7 px-3 inline-flex items-center rounded text-xs transition-colors ${
             loopEffect ? 'bg-accent-cyan/30 text-accent-cyan' : 'bg-surface-600 text-text-dim'
           }`}
           title="Loop Effect (L)"
@@ -64,7 +64,7 @@ export default function Toolbar() {
 
       <button
         onClick={toggleSnap}
-        className={`px-2 py-1 rounded text-xs transition-colors ${
+        className={`h-7 px-2 inline-flex items-center rounded text-xs transition-colors ${
           snapToBeat ? 'bg-accent-purple/30 text-accent-purple' : 'bg-surface-600 text-text-dim'
         }`}
         title="Beat Snap"
@@ -92,7 +92,7 @@ export default function Toolbar() {
       <div className="flex items-center gap-1">
         <button
           onClick={() => { if (linked) toggleLinked(); setVariant('classic'); }}
-          className={`px-2 py-1 rounded text-xs transition-colors ${
+          className={`h-7 px-2 inline-flex items-center rounded text-xs transition-colors ${
             variant === 'classic' || linked
               ? 'bg-accent-blue/30 text-accent-blue'
               : 'bg-surface-600 text-text-dim'
@@ -102,7 +102,7 @@ export default function Toolbar() {
         </button>
         <button
           onClick={toggleLinked}
-          className={`px-1.5 py-1 rounded text-xs transition-colors ${
+          className={`h-7 px-1.5 inline-flex items-center rounded text-xs transition-colors ${
             linked
               ? 'bg-gradient-to-r from-accent-blue/30 to-accent-purple/30 text-text-primary'
               : 'bg-surface-600 text-text-dim'
@@ -113,7 +113,7 @@ export default function Toolbar() {
         </button>
         <button
           onClick={() => { if (linked) toggleLinked(); setVariant('remastered'); }}
-          className={`px-2 py-1 rounded text-xs transition-colors ${
+          className={`h-7 px-2 inline-flex items-center rounded text-xs transition-colors ${
             variant === 'remastered' || linked
               ? 'bg-accent-purple/30 text-accent-purple'
               : 'bg-surface-600 text-text-dim'
@@ -123,10 +123,10 @@ export default function Toolbar() {
         </button>
       </div>
 
-      <button className="px-3 py-1 rounded bg-surface-600 hover:bg-accent-blue/30 text-text-secondary text-xs transition-colors">
+      <button className="h-7 px-3 inline-flex items-center rounded bg-surface-600 hover:bg-accent-blue/30 text-text-secondary text-xs transition-colors">
         SAVE
       </button>
-      <button className="px-3 py-1 rounded bg-accent-blue/20 hover:bg-accent-blue/40 text-accent-blue text-xs font-bold transition-colors">
+      <button className="h-7 px-3 inline-flex items-center rounded bg-accent-blue/20 hover:bg-accent-blue/40 text-accent-blue text-xs font-bold transition-colors">
         EXPORT DEMO
       </button>
     </div>
@@ -135,7 +135,7 @@ export default function Toolbar() {
 
 function Kbd({ children }) {
   return (
-    <kbd className="ml-1.5 inline-flex items-center justify-center min-w-[1.1rem] px-1 py-px text-[9px] leading-none rounded border border-white/10 bg-white/5 text-text-dim font-mono">
+    <kbd className="ml-1.5 inline-flex items-center justify-center min-w-[1.25rem] px-1.5 py-0.5 text-[9px] leading-none rounded border border-white/20 bg-white/10 text-white/40 font-mono">
       {children}
     </kbd>
   );
