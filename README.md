@@ -46,6 +46,87 @@ The project has two entry points:
 
 Both share a common core (`src/core/`) that handles the orchestrator, clock, beat map, MOD player, and WebGL helpers.
 
+```mermaid
+graph TD
+    %% ── Assets ──
+    PJ[("project.json<br/>25 clips · transitions · beat map")]
+    S3M[("S3M Soundtrack<br/>MUSIC0 + MUSIC1")]
+    TEX[("Effect Assets<br/>Textures · Sprites · Binary data")]
+
+    %% ── Entry Points ──
+    subgraph Entry["Entry Points"]
+        Editor["<b>Editor</b><br/>React 18 · Vite · Tailwind · Zustand<br/>Timeline · Preview · Scrubbing"]
+        Player["<b>Player</b><br/>Vanilla JS · No build step<br/>Fullscreen 320×256"]
+    end
+
+    %% ── Core Runtime ──
+    subgraph Core["src/core/ — Shared Runtime (vanilla ES modules · zero dependencies)"]
+        Proj["<b>Project Loader</b><br/>Load & validate project.json<br/>Resolve clips & transitions"]
+
+        subgraph Audio["Audio Pipeline"]
+            MSync["<b>Music Sync</b><br/>80 named sync points<br/>3 playback regions<br/>time ↔ music position"]
+            ModPlay["<b>Mod Player</b><br/>Dual S3M engine<br/>Sample-counted Δt<br/>Music switching"]
+            AC["<b>AudioContext</b><br/>Web Audio API"]
+        end
+
+        Clock["<b>Master Clock</b><br/>AudioContext.currentTime<br/>Play · Pause · Seek"]
+        BeatMap["<b>Beat Map</b><br/>Beat/bar position (0.0–1.0)<br/>Nearest-beat snapping"]
+        Orch["<b>Orchestrator</b><br/>rAF tick loop<br/>Clip scheduling<br/>Effect pre-warming"]
+        Trans["<b>Transitions</b><br/>GLSL post-process overlays<br/>Fade · Flash · CRT · Checkerboard"]
+        WGL["<b>WebGL Helpers</b><br/>createShader · createProgram<br/>Fullscreen quad VAO"]
+    end
+
+    %% ── Effects Layer ──
+    subgraph FX["src/effects/ — init() · render(gl, t, beat, params) · destroy()"]
+        Reg["<b>Effect Registry</b><br/>registerEffect() · getEffect(name, variant)"]
+        Classic["<b>25 Classic Variants</b><br/>CPU software rasterize<br/>→ texSubImage2D<br/>320×256 faithful"]
+        Remastered["<b>13 Remastered Variants</b><br/>Full GLSL pipeline<br/>4K · Bloom · PBR · Raymarching"]
+        Bonus["<b>8 Bonus Effects</b><br/>Starfield · Fire · Tunnel<br/>Copper Bars · Grid · Wireframe"]
+    end
+
+    %% ── Output ──
+    Canvas["<b>WebGL2 Canvas</b><br/>Final composited output"]
+    Export["<b>tools/export.js</b><br/>→ Single self-contained HTML"]
+
+    %% ── Asset loading ──
+    PJ --> Proj
+    S3M --> ModPlay
+    TEX --> FX
+
+    %% ── Audio chain ──
+    MSync --> ModPlay
+    ModPlay --> AC
+    AC --> Clock
+
+    %% ── Core data flow ──
+    Proj --> Orch
+    Clock --> Orch
+    BeatMap --> Orch
+
+    %% ── Entry points drive the orchestrator ──
+    Editor --> Orch
+    Player --> Orch
+
+    %% ── Effect resolution ──
+    Orch --> Reg
+    Reg --> Classic
+    Reg --> Remastered
+    Reg --> Bonus
+
+    %% ── Render pipeline ──
+    Classic --> WGL
+    Remastered --> WGL
+    Bonus --> WGL
+    Orch --> Trans
+    Trans --> WGL
+    WGL --> Canvas
+
+    %% ── Distribution ──
+    Player -.-> Export
+    Core -.-> Export
+    FX -.-> Export
+```
+
 ### Effects as Modules
 
 Each visual effect is a self-contained ES module with a three-method interface (`init`, `render`, `destroy`). The orchestrator pre-warms effects before their clip starts, ensuring zero-hitch transitions. Effects come in two variants:
