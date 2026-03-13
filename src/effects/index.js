@@ -16,6 +16,7 @@
 import alkuClassic from './alku/effect.js';
 import alkuRemastered from './alku/effect.remastered.js';
 import u2aClassic from './u2a/effect.js';
+import u2aRemastered from './u2a/effect.remastered.js';
 import pamClassic from './pam/effect.js';
 import pamRemastered from './pam/effect.remastered.js';
 import beglogoClassic from './beglogo/effect.js';
@@ -62,7 +63,7 @@ const registry = {};
 
 // Original demo sequence — names match the original Second Reality part identifiers
 registerEffect('ALKU', alkuClassic, alkuRemastered);
-registerEffect('U2A', u2aClassic);
+registerEffect('U2A', u2aClassic, u2aRemastered);
 registerEffect('PAM', pamClassic, pamRemastered);
 registerEffect('BEGLOGO', beglogoClassic);
 registerEffect('GLENZ_TRANSITION', glenzTransitionClassic);

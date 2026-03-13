@@ -667,6 +667,10 @@ export function createU2Engine() {
     get totalFrames() { return snapshots ? snapshots.length : 0; },
     get width() { return W; },
     get height() { return H; },
+    get camera() { return cam; },
+    get fov() { return fov; },
+    get objectCount() { return co ? co.length : 0; },
+    getObject(i) { return co[i]; },
     clipY,
   };
 }
