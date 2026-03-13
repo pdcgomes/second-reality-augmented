@@ -68,3 +68,45 @@ principles.
 | 4 | Gaussian splats | [04-gaussian-splats.md](tunneli-remastered/04-gaussian-splats.md) |
 | 5 | Neon bloom | [05-neon-bloom.md](tunneli-remastered/05-neon-bloom.md) |
 | 6 | Learning path | [06-learning-path.md](tunneli-remastered/06-learning-path.md) |
+
+---
+
+### [Techno Circles Remastered](techno-circles-remastered/00-overview.md)
+
+A 4-layer walkthrough of the remastered TECHNO_CIRCLES effect (Part 8 of Second
+Reality). Covers EGA bit-plane circle data, moiré interference patterns,
+per-scanline sinusoidal distortion, and the rendering pipeline with palette
+themes and bloom.
+
+**No prerequisites assumed** — maths and GPU concepts are explained from first
+principles.
+
+| Layer | Topic | File |
+|-------|-------|------|
+| 0 | Overview and architecture | [00-overview.md](techno-circles-remastered/00-overview.md) |
+| 1 | Circle data and EGA bit planes | [01-circle-data.md](techno-circles-remastered/01-circle-data.md) |
+| 2 | Circle interference | [02-interference.md](techno-circles-remastered/02-interference.md) |
+| 3 | Scanline distortion | [03-scanline-distortion.md](techno-circles-remastered/03-scanline-distortion.md) |
+| 4 | Pipeline and bloom | [04-pipeline-and-bloom.md](techno-circles-remastered/04-pipeline-and-bloom.md) |
+| 5 | Learning path | [05-learning-path.md](techno-circles-remastered/05-learning-path.md) |
+
+---
+
+### [Techno Bars Remastered](techno-bars-remastered/00-overview.md)
+
+A 4-layer walkthrough of the remastered TECHNO_BARS effect (Part 10 of Second
+Reality). Covers analytical bar geometry with anti-aliased edges, the historical
+EGA bit-plane architecture, three motion phases with acceleration physics, and
+GPU rendering with overlap-based colouring.
+
+**No prerequisites assumed** — maths and GPU concepts are explained from first
+principles.
+
+| Layer | Topic | File |
+|-------|-------|------|
+| 0 | Overview and architecture | [00-overview.md](techno-bars-remastered/00-overview.md) |
+| 1 | Bar geometry and rotation | [01-bar-geometry.md](techno-bars-remastered/01-bar-geometry.md) |
+| 2 | EGA bit-plane history | [02-ega-history.md](techno-bars-remastered/02-ega-history.md) |
+| 3 | Motion sequences | [03-motion-sequences.md](techno-bars-remastered/03-motion-sequences.md) |
+| 4 | GPU rendering | [04-gpu-rendering.md](techno-bars-remastered/04-gpu-rendering.md) |
+| 5 | Learning path | [05-learning-path.md](techno-bars-remastered/05-learning-path.md) |
