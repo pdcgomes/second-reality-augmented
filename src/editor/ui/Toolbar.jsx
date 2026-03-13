@@ -34,14 +34,14 @@ export default function Toolbar() {
           className="px-3 py-1 rounded bg-surface-600 hover:bg-accent-blue/30 text-text-primary transition-colors"
           title="Play/Pause (Space)"
         >
-          {isPlaying ? '⏸' : '▶'}
+          {isPlaying ? '⏸' : '▶'}<Kbd>␣</Kbd>
         </button>
         <button
           onClick={stopPlayback}
           className="px-3 py-1 rounded bg-surface-600 hover:bg-accent-blue/30 text-text-primary transition-colors"
           title="Stop (Home)"
         >
-          ⏹
+          ⏹<Kbd>⇱</Kbd>
         </button>
         <button
           onClick={toggleLoop}
@@ -50,7 +50,7 @@ export default function Toolbar() {
           }`}
           title="Loop Effect (L)"
         >
-          ⟳ LOOP
+          ⟳ LOOP<Kbd>L</Kbd>
         </button>
       </div>
 
@@ -98,7 +98,7 @@ export default function Toolbar() {
               : 'bg-surface-600 text-text-dim'
           }`}
         >
-          CLASSIC
+          CLASSIC<Kbd>X</Kbd>
         </button>
         <button
           onClick={toggleLinked}
@@ -109,7 +109,7 @@ export default function Toolbar() {
           }`}
           title="Compare Classic & Remastered side-by-side"
         >
-          ⟷
+          ⟷<Kbd>V</Kbd>
         </button>
         <button
           onClick={() => { if (linked) toggleLinked(); setVariant('remastered'); }}
@@ -119,7 +119,7 @@ export default function Toolbar() {
               : 'bg-surface-600 text-text-dim'
           }`}
         >
-          REMASTERED
+          REMASTERED<Kbd>X</Kbd>
         </button>
       </div>
 
@@ -130,6 +130,14 @@ export default function Toolbar() {
         EXPORT DEMO
       </button>
     </div>
+  );
+}
+
+function Kbd({ children }) {
+  return (
+    <kbd className="ml-1.5 inline-flex items-center justify-center min-w-[1.1rem] px-1 py-px text-[9px] leading-none rounded border border-white/10 bg-white/5 text-text-dim font-mono">
+      {children}
+    </kbd>
   );
 }
 

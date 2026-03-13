@@ -9,7 +9,7 @@ import { useEditorStore } from './store/editorStore';
 import { getRegionAtTime, timeToMusicPos } from '../core/musicsync.js';
 
 export default function App() {
-  const { setProject, setMusicLoaded, setMusicError, togglePlayback, stopPlayback, nudgePlayhead, jumpToClip, toggleVariant, toggleLoop, isPlaying, clock, modPlayer, linked } =
+  const { setProject, setMusicLoaded, setMusicError, togglePlayback, stopPlayback, nudgePlayhead, jumpToClip, toggleVariant, toggleLinked, toggleLoop, isPlaying, clock, modPlayer, linked } =
     useEditorStore();
   const loopClipRef = useRef(null);
   const prevLoopTimeRef = useRef(null);
@@ -136,6 +136,10 @@ export default function App() {
           e.preventDefault();
           toggleVariant();
           break;
+        case 'KeyV':
+          e.preventDefault();
+          toggleLinked();
+          break;
         case 'KeyL':
           e.preventDefault();
           toggleLoop();
@@ -144,7 +148,7 @@ export default function App() {
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [togglePlayback, stopPlayback, nudgePlayhead, jumpToClip, toggleVariant, toggleLoop]);
+  }, [togglePlayback, stopPlayback, nudgePlayhead, jumpToClip, toggleVariant, toggleLinked, toggleLoop]);
 
   return (
     <div className="h-screen w-screen grid grid-rows-[auto_1fr_240px_1fr] grid-cols-[1fr_1fr] gap-px bg-border">
