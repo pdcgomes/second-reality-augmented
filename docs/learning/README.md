@@ -246,3 +246,52 @@ principles.
 | 4 | GPU VoxelSpace | [04-gpu-voxelspace.md](coman-remastered/04-gpu-voxelspace.md) |
 | 5 | Atmosphere | [05-atmosphere.md](coman-remastered/05-atmosphere.md) |
 | 6 | Learning path | [06-learning-path.md](coman-remastered/06-learning-path.md) |
+
+---
+
+### [U2A Remastered](u2a-remastered/00-overview.md)
+
+A 7-layer walkthrough of the remastered U2A effect (Part 2 of Second Reality).
+Covers binary mesh data formats, painter's algorithm depth sorting, Gouraud
+scanline shading, Sutherland-Hodgman polygon clipping, 1993-era perspective
+projection, and the modern GPU rendering pipeline with palette-texture lighting,
+depth of field, and dual-tier bloom.
+
+**No prerequisites assumed** — maths and GPU concepts are explained from first
+principles.
+
+| Layer | Topic | File |
+|-------|-------|------|
+| 0 | Overview and architecture | [00-overview.md](u2a-remastered/00-overview.md) |
+| 1 | Mesh data and animation stream | [01-mesh-data.md](u2a-remastered/01-mesh-data.md) |
+| 2 | Painter's algorithm | [02-painters-algorithm.md](u2a-remastered/02-painters-algorithm.md) |
+| 3 | Gouraud shading | [03-gouraud-shading.md](u2a-remastered/03-gouraud-shading.md) |
+| 4 | Polygon clipping | [04-polygon-clipping.md](u2a-remastered/04-polygon-clipping.md) |
+| 5 | Perspective projection | [05-projection.md](u2a-remastered/05-projection.md) |
+| 6 | GPU rendering pipeline | [06-gpu-rendering.md](u2a-remastered/06-gpu-rendering.md) |
+| 7 | Learning path | [07-learning-path.md](u2a-remastered/07-learning-path.md) |
+
+---
+
+### [U2E Remastered](u2e-remastered/00-overview.md)
+
+A 6-layer walkthrough of the remastered U2E effect (Part 22 of Second Reality).
+Covers the 42-object city scene graph with binary chunk parsing, the full U2
+polygon engine (transforms, clipping, flat + Gouraud shading), pre-baked
+animation bytecode with delta encoding and animation baking, large-scene
+rendering with painter's algorithm and depth sorting, GPU polygon rendering
+with palette-texture lighting and atmospheric fog, and a dual-tier bloom
+pipeline.
+
+**No prerequisites assumed** — maths and GPU concepts are explained from first
+principles.
+
+| Layer | Topic | File |
+|-------|-------|------|
+| 0 | Overview and architecture | [00-overview.md](u2e-remastered/00-overview.md) |
+| 1 | Scene graph | [01-scene-graph.md](u2e-remastered/01-scene-graph.md) |
+| 2 | Polygon engine | [02-polygon-engine.md](u2e-remastered/02-polygon-engine.md) |
+| 3 | Animation bake | [03-animation-bake.md](u2e-remastered/03-animation-bake.md) |
+| 4 | Large scene rendering | [04-large-scene-rendering.md](u2e-remastered/04-large-scene-rendering.md) |
+| 5 | GPU rendering | [05-gpu-rendering.md](u2e-remastered/05-gpu-rendering.md) |
+| 6 | Learning path | [06-learning-path.md](u2e-remastered/06-learning-path.md) |
