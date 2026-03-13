@@ -106,7 +106,7 @@ The following maps to the actual Second Reality demo sequence. Each effect has a
 
 ### Part 10 — TECHNO_BARS (Rotating Bars)
 - [x] `technoBars/effect.js` — rotating layered bars with palette pulse (PSI)
-- [ ] `technoBars/effect.remastered.js`
+- [x] `technoBars/effect.remastered.js` — GPU analytical bar geometry, 4-plane compositing, smooth popcount palette, dual-tier bloom
 
 ### Part 11 — TECHNO_TROLL (Troll Picture)
 - [x] `technoTroll/effect.js` — troll picture with CRT shutdown (PSI/WILDFIRE)
@@ -126,7 +126,7 @@ The following maps to the actual Second Reality demo sequence. Each effect has a
 
 ### Part 15 — LENS_ROTO (Rotozoom)
 - [x] `rotozoom/effect.js` — rotozoom of picture (PSI) [REWRITTEN: full 1:1 port]
-- [ ] `rotozoom/effect.remastered.js`
+- [x] `rotozoom/effect.remastered.js`
 
 ### Part 16 — PLZ_PLASMA (Plasma)
 - [x] `plasma/effect.js` — colorful plasma/smoke waves (WILDFIRE) [REWRITTEN: full 1:1 port]

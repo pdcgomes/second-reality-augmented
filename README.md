@@ -82,7 +82,7 @@ All 25 parts of the original demo are implemented as classic variants:
 | 7 | Dot tunnel | TUNNELI | Done | Done |
 | 8 | Circle interference | TECHNO_CIRCLES | Done | Done |
 | 9 | Bars transition | TECHNO_BARS_TRANSITION | Done | — |
-| 10 | Rotating bars | TECHNO_BARS | Done | — |
+| 10 | Rotating bars | TECHNO_BARS | Done | Done |
 | 11 | Troll picture | TECHNO_TROLL | Done | — |
 | 12 | Mountain scroller | FOREST | Done | — |
 | 13 | Lens slide-in | LENS_TRANSITION | Done | — |
@@ -99,7 +99,7 @@ All 25 parts of the original demo are implemented as classic variants:
 | 24 | Scrolling credits | CREDITS | Done | — |
 | 25 | Greetings scroll | ENDSCRL | Done | — |
 
-### Remastered Effects (10/25)
+### Remastered Effects (11/25)
 
 | Effect | Techniques |
 |--------|-----------|
@@ -109,6 +109,7 @@ All 25 parts of the original demo are implemented as classic variants:
 | GLENZ_3D | GPU vertex pipeline, alpha blending, Phong/Fresnel glass, dual-tier bloom |
 | TUNNELI | Gaussian-splat dots, depth-based neon gradients, additive blending, dual-tier bloom |
 | TECHNO_CIRCLES | GPU texture-sampled interference, bilinear-filtered circles, smooth palette gradients, dual-tier bloom |
+| TECHNO_BARS | GPU analytical bar geometry, 4-plane compositing via modular SDF, smooth popcount palette, dual-tier bloom |
 | PLZ_PLASMA | Full GLSL plasma computation, continuous palette interpolation, color theme presets, dual-tier bloom |
 | PLZ_CUBE | GPU vertex pipeline, per-pixel Phong lighting, perspective-correct texturing, procedural plasma faces, dual-tier bloom |
 | DOTS | Instanced sphere impostors, planar reflections, HSL colouring, dual-tier bloom |
@@ -188,7 +189,8 @@ Detailed technical design docs live in `docs/effects/`. Each effect has a classi
 | [08-techno-circles.md](docs/effects/08-techno-circles.md) | Circle interference (classic) |
 | [08-techno-circles-remastered.md](docs/effects/08-techno-circles-remastered.md) | Circle interference (remastered) |
 | [09-techno-bars-transition.md](docs/effects/09-techno-bars-transition.md) | Bars transition |
-| [10-techno-bars.md](docs/effects/10-techno-bars.md) | Rotating bars |
+| [10-techno-bars.md](docs/effects/10-techno-bars.md) | Rotating bars (classic) |
+| [10-techno-bars-remastered.md](docs/effects/10-techno-bars-remastered.md) | Rotating bars (remastered) |
 | [11-techno-troll.md](docs/effects/11-techno-troll.md) | Troll picture |
 | [12-forest.md](docs/effects/12-forest.md) | Mountain scroller |
 | [13-lens-transition.md](docs/effects/13-lens-transition.md) | Lens slide-in |
