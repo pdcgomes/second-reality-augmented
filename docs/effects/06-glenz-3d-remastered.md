@@ -24,7 +24,7 @@ Key upgrades over classic:
 | 320×200 fixed resolution | Native display resolution + MSAA |
 | No post-processing | Dual-tier bloom + scanlines |
 | No audio reactivity | Beat-reactive scale pulse + bloom |
-| No parameterization | 8 editor-tunable parameters |
+| No parameterization | 13 editor-tunable parameters |
 
 ---
 
@@ -196,16 +196,21 @@ keeping the pulse tight and musical.
 
 ## Editor Parameters
 
-| Key | Label | Range | Default | Controls |
-|-----|-------|-------|---------|----------|
-| `bloomThreshold` | Bloom Threshold | 0–1 | 0.2 | Brightness cutoff for bloom extraction |
-| `bloomTightStr` | Bloom Tight | 0–2 | 0.5 | Intensity of half-res bloom |
-| `bloomWideStr` | Bloom Wide | 0–2 | 0.35 | Intensity of quarter-res bloom |
-| `specularPower` | Specular | 4–256 | 64 | Sharpness of specular highlights |
-| `fresnelExp` | Fresnel | 0.5–8 | 3.0 | Edge-vs-center transparency falloff |
-| `scanlineStr` | Scanlines | 0–0.5 | 0.05 | CRT scanline overlay intensity |
-| `beatScale` | Beat Scale | 0–0.2 | 0.02 | Object scale pulse on beat |
-| `beatBloom` | Beat Bloom | 0–1 | 0.25 | Bloom intensity pulse on beat |
+| Key | Label | Group | Range | Default | Controls |
+|-----|-------|-------|-------|---------|----------|
+| `palette` | Theme | Palette | 0–20 (select) | 9 | Color palette for polyhedra faces |
+| `brightness` | Brightness | Lighting | 0.5–3 | 2.9 | Overall lighting brightness |
+| `specularPower` | Specular | Lighting | 4–256 | 75 | Sharpness of specular highlights |
+| `fresnelExp` | Fresnel | Lighting | 0.5–8 | 2.2 | Edge-vs-center transparency falloff |
+| `checkerHue` | Hue Shift | Ground | 0–360 | 0 | Hue rotation for checkerboard ground |
+| `checkerSaturation` | Saturation | Ground | 0–2 | 1 | Saturation multiplier for ground |
+| `checkerBrightness` | Brightness | Ground | 0.5–3 | 1 | Brightness multiplier for ground |
+| `bloomThreshold` | Bloom Threshold | Post-Processing | 0–1 | 0.2 | Brightness cutoff for bloom extraction |
+| `bloomTightStr` | Bloom Tight | Post-Processing | 0–2 | 0.5 | Intensity of half-res bloom |
+| `bloomWideStr` | Bloom Wide | Post-Processing | 0–2 | 0.35 | Intensity of quarter-res bloom |
+| `beatScale` | Beat Scale | Post-Processing | 0–0.2 | 0.02 | Object scale pulse on beat |
+| `beatBloom` | Beat Bloom | Post-Processing | 0–1 | 0.25 | Bloom intensity pulse on beat |
+| `scanlineStr` | Scanlines | Post-Processing | 0–0.5 | 0.05 | CRT scanline overlay intensity |
 
 ---
 
@@ -248,10 +253,10 @@ All resources are properly cleaned up in `destroy()`.
 | Shading | Flat per-face color (palette index) | Phong/Blinn + Fresnel per fragment |
 | Resolution | 320×200 fixed | Native display + 4× MSAA |
 | Post-processing | None | Dual-tier bloom + CRT scanlines |
-| Ground plane | CPU framebuffer blit | Textured fullscreen quad with depth fade |
+| Ground plane | CPU framebuffer blit | Textured fullscreen quad with HSV color control |
 | Depth ordering | Not needed (OR is commutative) | Painter's algorithm face sorting |
 | Audio sync | None | Beat-reactive scale, specular, bloom |
-| Parameterization | None | 8 tunable params for editor UI |
+| Parameterization | None | 13 tunable params across 4 groups |
 
 ---
 
