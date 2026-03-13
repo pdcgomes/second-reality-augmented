@@ -146,7 +146,7 @@ The following maps to the actual Second Reality demo sequence. Each effect has a
 
 ### Part 20 — COMAN (3D Sinusfield)
 - [x] `coman/effect.js` — 3D sinusfield / voxel landscape (PSI) [REWRITTEN: full 1:1 port]
-- [ ] `voxelLandscape/effect.remastered.js`
+- [x] `coman/effect.remastered.js` — GPU VoxelSpace terrain with bilinear height sampling, palette themes, fog, bloom
 
 ### Part 21 — JPLOGO (Jelly Logo)
 - [x] `jplogo/effect.js` — jelly-distorted Future Crew logo (PSI) [REWRITTEN: full 1:1 port]
