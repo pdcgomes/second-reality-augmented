@@ -497,10 +497,10 @@ export default {
   label: 'glenzVectors (remastered)',
 
   params: [
-    gp('Palette',         { key: 'palette',        label: 'Theme',           type: 'select', options: PALETTES.map((p, i) => ({ value: i, label: p.name })), default: 0 }),
-    gp('Lighting',        { key: 'brightness',     label: 'Brightness',      type: 'float', min: 0.5, max: 3,   step: 0.05,  default: 1.0 }),
-    gp('Lighting',        { key: 'specularPower',  label: 'Specular',        type: 'float', min: 4,   max: 256, step: 1,     default: 64 }),
-    gp('Lighting',        { key: 'fresnelExp',     label: 'Fresnel',         type: 'float', min: 0.5, max: 8,   step: 0.1,   default: 3.0 }),
+    gp('Palette',         { key: 'palette',        label: 'Theme',           type: 'select', options: PALETTES.map((p, i) => ({ value: i, label: p.name })), default: 9 }),
+    gp('Lighting',        { key: 'brightness',     label: 'Brightness',      type: 'float', min: 0.5, max: 3,   step: 0.05,  default: 2.9 }),
+    gp('Lighting',        { key: 'specularPower',  label: 'Specular',        type: 'float', min: 4,   max: 256, step: 1,     default: 75 }),
+    gp('Lighting',        { key: 'fresnelExp',     label: 'Fresnel',         type: 'float', min: 0.5, max: 8,   step: 0.1,   default: 2.2 }),
     gp('Post-Processing', { key: 'bloomThreshold', label: 'Bloom Threshold', type: 'float', min: 0,   max: 1,   step: 0.01,  default: 0.2 }),
     gp('Post-Processing', { key: 'bloomTightStr',  label: 'Bloom Tight',     type: 'float', min: 0,   max: 2,   step: 0.01,  default: 0.5 }),
     gp('Post-Processing', { key: 'bloomWideStr',   label: 'Bloom Wide',      type: 'float', min: 0,   max: 2,   step: 0.01,  default: 0.35 }),
