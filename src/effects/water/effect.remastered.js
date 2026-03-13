@@ -125,10 +125,11 @@ void computeState() {
   swordHalfW = uSwordWidth * 0.5;
   swordH = uSwordHeight;
 
-  // Sword rises: bottom edge moves upward over the first ~4 seconds
-  float rise = clamp(uTime * 0.25, 0.0, 1.0);
+  // Sword rises from the water over the first ~2.5 seconds.
+  // swordBottom shifts upward, revealing more of the billboard above the origin.
+  float rise = clamp(uTime * 0.4, 0.0, 1.0);
   rise = rise * rise * (3.0 - 2.0 * rise);
-  swordBottom = mix(-swordH * 0.15, -swordH * 0.8, rise);
+  swordBottom = mix(-swordH * 0.85, -swordH * 0.1, rise);
 
   // Build oriented sword plane from pitch/yaw.
   // Pitch tilts the top toward the camera (positive = lean forward).
@@ -248,7 +249,7 @@ float hitSword(vec3 ro, vec3 rd, out vec3 outCol) {
 
   float scrollNorm = uScrollOffset / float(${FONT_W});
   float localU = (lu + swordHalfW) / (swordHalfW * 2.0);
-  float texU = scrollNorm - localU;
+  float texU = scrollNorm * 1.3 + 0.25 - localU;
   if (texU < 0.0 || texU > 1.0) return -1.0;
   float v = (lv - swordBottom) / swordH;
   vec4 s = texture(uSwordTex, vec2(1.0 - texU, v));
@@ -550,12 +551,12 @@ export default {
 
     gp('Sword', { key: 'swordBrightness', label: 'Brightness', type: 'float', min: 0.2, max: 6, step: 0.05, default: 1.80 }),
     gp('Sword', { key: 'swordX', label: 'X', type: 'float', min: -4, max: 4, step: 0.1, default: 0.0 }),
-    gp('Sword', { key: 'swordY', label: 'Y', type: 'float', min: -1, max: 3, step: 0.05, default: -0.35 }),
-    gp('Sword', { key: 'swordZ', label: 'Z', type: 'float', min: -3, max: 3, step: 0.1, default: -1.6 }),
+    gp('Sword', { key: 'swordY', label: 'Y', type: 'float', min: -1, max: 3, step: 0.05, default: -0.10 }),
+    gp('Sword', { key: 'swordZ', label: 'Z', type: 'float', min: -3, max: 3, step: 0.1, default: -1.0 }),
     gp('Sword', { key: 'swordPitch', label: 'Pitch', type: 'float', min: -90, max: 90, step: 1, default: 4 }),
     gp('Sword', { key: 'swordYaw', label: 'Yaw', type: 'float', min: -45, max: 45, step: 1, default: -5 }),
-    gp('Sword', { key: 'swordRoll', label: 'Roll', type: 'float', min: -180, max: 180, step: 1, default: 64 }),
-    gp('Sword', { key: 'swordTilt', label: 'Tilt', type: 'float', min: -90, max: 90, step: 1, default: -20 }),
+    gp('Sword', { key: 'swordRoll', label: 'Roll', type: 'float', min: -180, max: 180, step: 1, default: 50 }),
+    gp('Sword', { key: 'swordTilt', label: 'Tilt', type: 'float', min: -90, max: 90, step: 1, default: -15 }),
     gp('Sword', { key: 'swordWidth', label: 'Width', type: 'float', min: 2, max: 16, step: 0.5, default: 10.0 }),
     gp('Sword', { key: 'swordHeight', label: 'Height', type: 'float', min: 0.2, max: 3, step: 0.05, default: 0.45 }),
 
@@ -711,12 +712,12 @@ export default {
     gl.uniform1f(su.chromeReflect, p('chromeReflect', 2.5));
     gl.uniform1f(su.swordBrightness, p('swordBrightness', 1.80));
     gl.uniform1f(su.swordX, p('swordX', 0.0));
-    gl.uniform1f(su.swordY, p('swordY', -0.35));
-    gl.uniform1f(su.swordZ, p('swordZ', -1.6));
+    gl.uniform1f(su.swordY, p('swordY', -0.10));
+    gl.uniform1f(su.swordZ, p('swordZ', -1.0));
     gl.uniform1f(su.swordPitch, p('swordPitch', 4));
     gl.uniform1f(su.swordYaw, p('swordYaw', -5));
-    gl.uniform1f(su.swordRoll, p('swordRoll', 64));
-    gl.uniform1f(su.swordTilt, p('swordTilt', -20));
+    gl.uniform1f(su.swordRoll, p('swordRoll', 50));
+    gl.uniform1f(su.swordTilt, p('swordTilt', -15));
     gl.uniform1f(su.swordWidth, p('swordWidth', 10.0));
     gl.uniform1f(su.swordHeight, p('swordHeight', 0.45));
     gl.uniform1f(su.beatScale, p('beatScale', 0.15));
