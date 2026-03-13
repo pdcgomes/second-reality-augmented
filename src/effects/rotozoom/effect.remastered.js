@@ -384,22 +384,22 @@ export default {
 
   params: [
     gp('Palette',         { key: 'hueShift',          label: 'Hue Shift',            type: 'float', min: 0,    max: 360,  step: 1,    default: 0 }),
-    gp('Palette',         { key: 'saturationBoost',   label: 'Saturation',            type: 'float', min: -0.5, max: 1,    step: 0.01, default: 0.15 }),
-    gp('Palette',         { key: 'brightness',        label: 'Brightness',            type: 'float', min: 0.5,  max: 2,    step: 0.01, default: 1.1 }),
-    gp('Lens',            { key: 'specularPower',     label: 'Specular Power',        type: 'float', min: 2,    max: 128,  step: 1,    default: 32 }),
-    gp('Lens',            { key: 'specularIntensity', label: 'Specular Intensity',    type: 'float', min: 0,    max: 1.5,  step: 0.01, default: 0.4 }),
-    gp('Lens',            { key: 'fresnelExponent',   label: 'Fresnel Exponent',      type: 'float', min: 0.5,  max: 5,    step: 0.1,  default: 2.0 }),
+    gp('Palette',         { key: 'saturationBoost',   label: 'Saturation',            type: 'float', min: -0.5, max: 1,    step: 0.01, default: 0.11 }),
+    gp('Palette',         { key: 'brightness',        label: 'Brightness',            type: 'float', min: 0.5,  max: 2,    step: 0.01, default: 0.77 }),
+    gp('Lens',            { key: 'specularPower',     label: 'Specular Power',        type: 'float', min: 2,    max: 128,  step: 1,    default: 57 }),
+    gp('Lens',            { key: 'specularIntensity', label: 'Specular Intensity',    type: 'float', min: 0,    max: 1.5,  step: 0.01, default: 0.20 }),
+    gp('Lens',            { key: 'fresnelExponent',   label: 'Fresnel Exponent',      type: 'float', min: 0.5,  max: 5,    step: 0.1,  default: 1.2 }),
     gp('Lens',            { key: 'fresnelIntensity',  label: 'Fresnel Intensity',     type: 'float', min: 0,    max: 1,    step: 0.01, default: 0.25 }),
-    gp('Lens',            { key: 'reflectivity',      label: 'Reflectivity',          type: 'float', min: 0,    max: 0.5,  step: 0.01, default: 0.1 }),
-    gp('Eyes',            { key: 'eyeGlowIntensity',  label: 'Eye Glow',              type: 'float', min: 0,    max: 3,    step: 0.01, default: 1.0 }),
+    gp('Lens',            { key: 'reflectivity',      label: 'Reflectivity',          type: 'float', min: 0,    max: 0.5,  step: 0.01, default: 0.09 }),
+    gp('Eyes',            { key: 'eyeGlowIntensity',  label: 'Eye Glow',              type: 'float', min: 0,    max: 3,    step: 0.01, default: 0.22 }),
     gp('Eyes',            { key: 'eyeGlowRadius',     label: 'Glow Radius',           type: 'float', min: 0.01, max: 0.15, step: 0.005,default: 0.05 }),
-    gp('Eyes',            { key: 'eyeGlowHue',        label: 'Glow Color',            type: 'float', min: 0,    max: 360,  step: 1,    default: 45 }),
-    gp('Background',      { key: 'bgIntensity',       label: 'Background Intensity',  type: 'float', min: 0,    max: 1,    step: 0.01, default: 0.3 }),
-    gp('Background',      { key: 'bgSpeed',           label: 'Background Speed',      type: 'float', min: 0.1,  max: 2,    step: 0.01, default: 0.5 }),
-    gp('Post-Processing', { key: 'bloomThreshold',    label: 'Bloom Threshold',       type: 'float', min: 0,    max: 1,    step: 0.01, default: 0.2 }),
-    gp('Post-Processing', { key: 'bloomStrength',     label: 'Bloom Strength',        type: 'float', min: 0,    max: 2,    step: 0.01, default: 0.5 }),
-    gp('Post-Processing', { key: 'beatReactivity',    label: 'Beat Reactivity',       type: 'float', min: 0,    max: 1,    step: 0.01, default: 0.4 }),
-    gp('Post-Processing', { key: 'scanlineStr',       label: 'Scanlines',             type: 'float', min: 0,    max: 0.5,  step: 0.01, default: 0.02 }),
+    gp('Eyes',            { key: 'eyeGlowHue',        label: 'Glow Color',            type: 'float', min: 0,    max: 360,  step: 1,    default: 6 }),
+    gp('Background',      { key: 'bgIntensity',       label: 'Background Intensity',  type: 'float', min: 0,    max: 1,    step: 0.01, default: 0.27 }),
+    gp('Background',      { key: 'bgSpeed',           label: 'Background Speed',      type: 'float', min: 0.1,  max: 2,    step: 0.01, default: 0.50 }),
+    gp('Post-Processing', { key: 'bloomThreshold',    label: 'Bloom Threshold',       type: 'float', min: 0,    max: 1,    step: 0.01, default: 0.20 }),
+    gp('Post-Processing', { key: 'bloomStrength',     label: 'Bloom Strength',        type: 'float', min: 0,    max: 2,    step: 0.01, default: 0.50 }),
+    gp('Post-Processing', { key: 'beatReactivity',    label: 'Beat Reactivity',       type: 'float', min: 0,    max: 1,    step: 0.01, default: 0.40 }),
+    gp('Post-Processing', { key: 'scanlineStr',       label: 'Scanlines',             type: 'float', min: 0,    max: 0.5,  step: 0.01, default: 0.08 }),
   ],
 
   init(gl) {
@@ -555,19 +555,19 @@ export default {
     gl.uniform2f(su.spanY, H * nlU, H * nlV);
 
     gl.uniform1f(su.hueShift,          p('hueShift', 0));
-    gl.uniform1f(su.saturationBoost,   p('saturationBoost', 0.15));
-    gl.uniform1f(su.brightness,        p('brightness', 1.1));
-    gl.uniform1f(su.specularPower,     p('specularPower', 32));
-    gl.uniform1f(su.specularIntensity, p('specularIntensity', 0.4));
-    gl.uniform1f(su.fresnelExponent,   p('fresnelExponent', 2.0));
+    gl.uniform1f(su.saturationBoost,   p('saturationBoost', 0.11));
+    gl.uniform1f(su.brightness,        p('brightness', 0.77));
+    gl.uniform1f(su.specularPower,     p('specularPower', 57));
+    gl.uniform1f(su.specularIntensity, p('specularIntensity', 0.20));
+    gl.uniform1f(su.fresnelExponent,   p('fresnelExponent', 1.2));
     gl.uniform1f(su.fresnelIntensity,  p('fresnelIntensity', 0.25));
-    gl.uniform1f(su.reflectivity,      p('reflectivity', 0.1));
-    gl.uniform1f(su.eyeGlowIntensity,  p('eyeGlowIntensity', 1.0));
+    gl.uniform1f(su.reflectivity,      p('reflectivity', 0.09));
+    gl.uniform1f(su.eyeGlowIntensity,  p('eyeGlowIntensity', 0.22));
     gl.uniform1f(su.eyeGlowRadius,     p('eyeGlowRadius', 0.05));
-    gl.uniform1f(su.eyeGlowHue,        p('eyeGlowHue', 45));
-    gl.uniform1f(su.beatReactivity,    p('beatReactivity', 0.4));
-    gl.uniform1f(su.bgIntensity,       p('bgIntensity', 0.3));
-    gl.uniform1f(su.bgSpeed,           p('bgSpeed', 0.5));
+    gl.uniform1f(su.eyeGlowHue,        p('eyeGlowHue', 6));
+    gl.uniform1f(su.beatReactivity,    p('beatReactivity', 0.40));
+    gl.uniform1f(su.bgIntensity,       p('bgIntensity', 0.27));
+    gl.uniform1f(su.bgSpeed,           p('bgSpeed', 0.50));
 
     quad.draw();
 
