@@ -82,7 +82,7 @@ graph TD
     subgraph FX["src/effects/ — init() · render(gl, t, beat, params) · destroy()"]
         Reg["<b>Effect Registry</b><br/>registerEffect() · getEffect(name, variant)"]
         Classic["<b>25 Classic Variants</b><br/>CPU software rasterize<br/>→ texSubImage2D<br/>320×256 faithful"]
-        Remastered["<b>14 Remastered Variants</b><br/>Full GLSL pipeline<br/>4K · Bloom · PBR · Raymarching"]
+        Remastered["<b>22 Remastered Variants</b><br/>Full GLSL pipeline<br/>4K · Bloom · PBR · Raymarching"]
         Bonus["<b>8 Bonus Effects</b><br/>Starfield · Fire · Tunnel<br/>Copper Bars · Grid · Wireframe"]
     end
 
@@ -159,7 +159,7 @@ All 25 parts of the original demo are implemented as classic variants:
 | 1 | Scrolling landscape credits | ALKU | Done | Done |
 | 2 | 3D polygon ships flyover | U2A | Done | Done |
 | 3 | Pre-rendered explosion | PAM | Done | Done |
-| 4 | Title card | BEGLOGO | Done | — |
+| 4 | Title card | BEGLOGO | Done | Done |
 | 5 | Checkerboard fall | GLENZ_TRANSITION | Done | Done |
 | 6 | Translucent rotating polyhedra | GLENZ_3D | Done | Done |
 | 7 | Dot tunnel | TUNNELI | Done | Done |
@@ -167,7 +167,7 @@ All 25 parts of the original demo are implemented as classic variants:
 | 9 | Bars transition | TECHNO_BARS_TRANSITION | Done | — |
 | 10 | Rotating bars | TECHNO_BARS | Done | Done |
 | 11 | Troll picture | TECHNO_TROLL | Done | — |
-| 12 | Mountain scroller | FOREST | Done | — |
+| 12 | Mountain scroller | FOREST | Done | Done |
 | 13 | Lens slide-in | LENS_TRANSITION | Done | — |
 | 14 | Bouncing crystal ball | LENS | Done | Done |
 | 15 | Rotozoom | LENS_ROTO | Done | Done |
@@ -176,30 +176,38 @@ All 25 parts of the original demo are implemented as classic variants:
 | 18 | Mini vector balls | DOTS | Done | Done |
 | 19 | Mirror ball scroller | WATER | Done | Done |
 | 20 | 3D sinusfield / voxel landscape | COMAN | Done | Done |
-| 21 | Jelly logo | JPLOGO | Done | — |
-| 22 | 3D city flyover | U2E | Done | — |
-| 23 | End picture | ENDLOGO | Done | — |
-| 24 | Scrolling credits | CREDITS | Done | — |
-| 25 | Greetings scroll | ENDSCRL | Done | — |
+| 21 | Jelly logo | JPLOGO | Done | Done |
+| 22 | 3D city flyover | U2E | Done | Done |
+| 23 | End picture | ENDLOGO | Done | Done |
+| 24 | Scrolling credits | CREDITS | Done | Done |
+| 25 | Greetings scroll | ENDSCRL | Done | Done |
 
-### Remastered Effects (14/25)
+### Remastered Effects (22/25)
 
 | Effect | Techniques |
 |--------|-----------|
 | ALKU | Atmospheric purple horizon glow, dual-tier bloom, beat-reactive brightness |
 | U2A | GPU polygon ships, palette-ramp texture lighting, hardware depth buffer, horizon glow, dual-tier bloom |
 | PAM | Procedural lava core (plasma + voronoi cracks + orbiting embers), raymarched volumetric smoke with Beer-Lambert self-shadowing, dual-tier bloom |
+| BEGLOGO | RLE-decoded image, palette-interpolated fade-from-white, CPU bilinear 4× upscale, beat-reactive brightness pulse |
 | GLENZ_TRANSITION | GPU checkerboard fall, physics-driven bounce, dual-tier bloom |
 | GLENZ_3D | GPU vertex pipeline, alpha blending, Phong/Fresnel glass, dual-tier bloom |
 | TUNNELI | Gaussian-splat dots, depth-based neon gradients, additive blending, dual-tier bloom |
 | TECHNO_CIRCLES | GPU texture-sampled interference, bilinear-filtered circles, smooth palette gradients, dual-tier bloom |
 | TECHNO_BARS | GPU analytical bar geometry, 4-plane compositing via modular SDF, smooth popcount palette, dual-tier bloom |
+| FOREST | Procedural Voronoi caustic water, FBM noise UV warping, foliage shadow undulation, HSV hue rotation, dual-tier bloom |
 | LENS_LENS | Analytical Snell's law refraction, Blinn-Phong specular + Fresnel crystal ball, chromatic aberration, shared KOE visual treatment with LENS_ROTO, dual-tier bloom |
 | LENS_ROTO | GPU rotozoom, bilinear filtering, Blinn-Phong specular + Fresnel lens material, beat-reactive eye glow, procedural nebula background, dual-tier bloom |
 | PLZ_PLASMA | Full GLSL plasma computation, continuous palette interpolation, color theme presets, dual-tier bloom |
 | PLZ_CUBE | GPU vertex pipeline, per-pixel Phong lighting, perspective-correct texturing, procedural plasma faces, dual-tier bloom |
-| DOTS | Instanced sphere impostors, planar reflections, HSL colouring, dual-tier bloom |
+| DOTS | Instanced sphere impostors, planar reflections, crystalline ground with layered value noise, HSL colouring, dual-tier bloom |
 | WATER | Raymarched chrome spheres, procedural water surface, real-time reflections |
+| COMAN | GPU fragment-shader VoxelSpace, dual height maps, column raymarching, atmospheric fog, 13 colour themes, dual-tier bloom |
+| JPLOGO | Precomputed scroll-in, sine-table jelly bounce with per-scanline zoom, CPU bilinear 4× upscale |
+| U2E | GPU polygon city, palette-ramp Gouraud shading, depth-based atmospheric fog, exhaust glow, raymarched volumetric nebula sky, dual-tier bloom |
+| ENDLOGO | Palette-interpolated fade-from-white / fade-to-black, CPU bilinear 4× upscale |
+| CREDITS | CPU picture+text compositing with per-screen palette swap, deceleration slide-in, CPU bilinear 4× upscale |
+| ENDSCRL | CPU bitmap font scroll at 640×400, CPU bilinear 4× upscale |
 
 ### Bonus Effects (8)
 
@@ -242,22 +250,25 @@ Starfield, Copper Bars, Fire, Wireframe 3D, Vector Balls, Bouncing Bitmap, Grid,
 
 ## Learning Guides
 
-The `docs/learning/` directory contains deep-dive tutorials that use effects from this project to teach real-time graphics programming. Each guide is self-contained with inline code snippets — readable on GitHub without cloning the repo.
+The `docs/learning/` directory contains deep-dive tutorials that use effects from this project to teach real-time graphics programming. Each guide is self-contained with inline code snippets — readable on GitHub without cloning the repo. Every guide follows the same structure: an overview, numbered technical chapters building layer by layer, and a final learning-path chapter with hands-on exercises.
 
-### [Dots Remastered Deep Dive](docs/learning/dots-remastered/00-overview.md)
-
-A 7-layer walkthrough of the remastered DOTS effect. No prerequisites assumed.
-
-| Layer | Topic | What You Will Learn |
-|-------|-------|---------------------|
-| 1 | [Simulation](docs/learning/dots-remastered/01-simulation.md) | Euler integration, seeded PRNG, deterministic replay |
-| 2 | [Instancing](docs/learning/dots-remastered/02-instancing.md) | VAOs, attribute divisors, instanced draw calls |
-| 3 | [Sphere Impostor](docs/learning/dots-remastered/03-sphere-impostor.md) | SDF on a quad, normal reconstruction, Phong lighting |
-| 4 | [Projection](docs/learning/dots-remastered/04-projection.md) | Perspective division, NDC, fixed-point maths |
-| 5 | [Reflections](docs/learning/dots-remastered/05-reflections.md) | Planar reflection, Fresnel, roughness blur |
-| 6 | [Bloom](docs/learning/dots-remastered/06-bloom.md) | Bright extraction, separable Gaussian, ping-pong FBOs |
-| 7 | [Render Loop](docs/learning/dots-remastered/07-render-loop.md) | Multi-pass rendering, MSAA, FBO management |
-| 8 | [Exercises](docs/learning/dots-remastered/08-learning-path.md) | 10 hands-on experiments from beginner to advanced |
+| Guide | Chapters | Topics |
+|-------|----------|--------|
+| [ALKU Remastered](docs/learning/alku-remastered/00-overview.md) | 5 | Landscape scrolling, bitmap font rendering, palette fading, GPU compositing |
+| [U2A Remastered](docs/learning/u2a-remastered/00-overview.md) | 7 | Binary animation streams, polygon meshes, painter's algorithm, Gouraud shading, Sutherland-Hodgman clipping |
+| [PAM Remastered](docs/learning/pam-remastered/00-overview.md) | 4 | FLI frame decoding, RLE codec, palette flash transitions, procedural lava/volumetric smoke |
+| [Glenz Remastered](docs/learning/glenz-remastered/00-overview.md) | 7 | Tetrakis hexahedron geometry, bounce/jelly animation, model-view-projection, alpha/Fresnel transparency, Blinn-Phong |
+| [Tunneli Remastered](docs/learning/tunneli-remastered/00-overview.md) | 6 | Elliptical ring templates, perspective foreshortening, sinusoidal paths, Gaussian-splat point sprites |
+| [Techno Circles Remastered](docs/learning/techno-circles-remastered/00-overview.md) | 5 | EGA bit-plane circles, quarter-circle mirroring, bitwise OR interference, scanline distortion |
+| [Techno Bars Remastered](docs/learning/techno-bars-remastered/00-overview.md) | 5 | Modular-distance bar geometry, EGA 8-page bit-plane compositing, analytical overlap counting |
+| [Lens Lens Remastered](docs/learning/lens-lens-remastered/00-overview.md) | 6 | Snell's law refraction, displacement lookup tables, bounce physics, GPU refraction shader |
+| [Lens Roto Remastered](docs/learning/lens-roto-remastered/00-overview.md) | 5 | 2D rotation matrix rotozoom, GPU texture sampling, scripted animation curves, lens material |
+| [Plasma Remastered](docs/learning/plasma-remastered/00-overview.md) | 5 | Layered sine harmonics, dual-layer interleaved blending, procedural palettes with 21 theme matrices |
+| [PLZ Cube Remastered](docs/learning/plz-cube-remastered/00-overview.md) | 6 | Procedural plasma textures, interleaved vertex buffers, B-spline camera, per-pixel Blinn-Phong |
+| [Dots Remastered](docs/learning/dots-remastered/00-overview.md) | 8 | Instanced sphere impostors, SDF lighting, planar reflections, Fresnel, bloom FBO pipeline |
+| [Water Remastered](docs/learning/water-remastered/00-overview.md) | 5 | POS displacement tables, interlaced rendering, GPU raymarching, SDF spheres, water ripples |
+| [Coman Remastered](docs/learning/coman-remastered/00-overview.md) | 6 | Dual height maps, column-by-column VoxelSpace raymarching, GPU fragment-shader port, atmospheric fog |
+| [U2E Remastered](docs/learning/u2e-remastered/00-overview.md) | 6 | 42-object scene graph, polygon engine pipeline, animation bytecode, depth sorting, GPU palette textures |
 
 ## Design Documents
 
@@ -273,6 +284,7 @@ Detailed technical design docs live in `docs/effects/`. Each effect has a classi
 | [03-pam-remastered.md](docs/effects/03-pam-remastered.md) | Pre-rendered explosion (remastered) |
 | [04-beglogo.md](docs/effects/04-beglogo.md) | Title card |
 | [05-glenz-transition.md](docs/effects/05-glenz-transition.md) | Checkerboard fall |
+| [05-glenz-transition-remastered.md](docs/effects/05-glenz-transition-remastered.md) | Checkerboard fall (remastered) |
 | [06-glenz-3d.md](docs/effects/06-glenz-3d.md) | Glenz vectors (classic) |
 | [06-glenz-3d-remastered.md](docs/effects/06-glenz-3d-remastered.md) | Glenz vectors (remastered) |
 | [07-tunneli.md](docs/effects/07-tunneli.md) | Dot tunnel (classic) |
@@ -284,6 +296,7 @@ Detailed technical design docs live in `docs/effects/`. Each effect has a classi
 | [10-techno-bars-remastered.md](docs/effects/10-techno-bars-remastered.md) | Rotating bars (remastered) |
 | [11-techno-troll.md](docs/effects/11-techno-troll.md) | Troll picture |
 | [12-forest.md](docs/effects/12-forest.md) | Mountain scroller |
+| [12-forest-remastered.md](docs/effects/12-forest-remastered.md) | Mountain scroller (remastered) |
 | [13-lens-transition.md](docs/effects/13-lens-transition.md) | Lens slide-in |
 | [14-lens-lens.md](docs/effects/14-lens-lens.md) | Bouncing crystal ball |
 | [14-lens-lens-remastered.md](docs/effects/14-lens-lens-remastered.md) | Bouncing crystal ball (remastered) |
@@ -301,6 +314,7 @@ Detailed technical design docs live in `docs/effects/`. Each effect has a classi
 | [20-coman-remastered.md](docs/effects/20-coman-remastered.md) | 3D sinusfield (remastered) |
 | [21-jplogo.md](docs/effects/21-jplogo.md) | Jelly logo |
 | [22-u2e.md](docs/effects/22-u2e.md) | 3D city flyover |
+| [22-u2e-remastered.md](docs/effects/22-u2e-remastered.md) | 3D city flyover (remastered) |
 | [23-endlogo.md](docs/effects/23-endlogo.md) | End picture |
 | [24-credits.md](docs/effects/24-credits.md) | Scrolling credits |
 | [25-endscrl.md](docs/effects/25-endscrl.md) | Greetings scroll |
