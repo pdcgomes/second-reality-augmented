@@ -58,6 +58,7 @@ import endlogoRemastered from './endlogo/effect.remastered.js';
 import creditsClassic from './credits/effect.js';
 import creditsRemastered from './credits/effect.remastered.js';
 import endscrlClassic from './endscrl/effect.js';
+import endscrlRemastered from './endscrl/effect.remastered.js';
 
 // ── Bonus effects (not in original demo) ──────────────────────────
 import starfieldClassic from './starfield/effect.js';
@@ -96,7 +97,7 @@ registerEffect('JPLOGO', jplogoClassic, jplogoRemastered);
 registerEffect('U2E', u2eClassic, u2eRemastered);
 registerEffect('ENDLOGO', endlogoClassic, endlogoRemastered);
 registerEffect('CREDITS', creditsClassic, creditsRemastered);
-registerEffect('ENDSCRL', endscrlClassic);
+registerEffect('ENDSCRL', endscrlClassic, endscrlRemastered);
 
 // Bonus / hidden effects
 registerEffect('DDSTARS', starfieldClassic, null, { bonus: true, hidden: true });
