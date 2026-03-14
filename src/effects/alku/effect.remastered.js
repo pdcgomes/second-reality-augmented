@@ -222,6 +222,10 @@ function deleteFBO(gl, fbo) {
   if (fbo.tex) gl.deleteTexture(fbo.tex);
 }
 
+// ── Upscale factor for smoothing source textures ────────────────────
+
+const UPSCALE = 4;
+
 // ── Helpers (shared with classic) ────────────────────────────────────
 
 function b64ToUint8(b64) {
@@ -229,6 +233,40 @@ function b64ToUint8(b64) {
   const arr = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
   return arr;
+}
+
+function bilinearUpscale(src, srcW, srcH, scale) {
+  const dstW = srcW * scale;
+  const dstH = srcH * scale;
+  const dst = new Uint8Array(dstW * dstH * 4);
+
+  for (let dy = 0; dy < dstH; dy++) {
+    const srcY = (dy + 0.5) / scale - 0.5;
+    const sy0 = Math.max(0, Math.floor(srcY));
+    const sy1 = Math.min(sy0 + 1, srcH - 1);
+    const fy = srcY - Math.floor(srcY);
+
+    for (let dx = 0; dx < dstW; dx++) {
+      const srcX = (dx + 0.5) / scale - 0.5;
+      const sx0 = Math.max(0, Math.floor(srcX));
+      const sx1 = Math.min(sx0 + 1, srcW - 1);
+      const fx = srcX - Math.floor(srcX);
+
+      const i00 = (sy0 * srcW + sx0) * 4;
+      const i10 = (sy0 * srcW + sx1) * 4;
+      const i01 = (sy1 * srcW + sx0) * 4;
+      const i11 = (sy1 * srcW + sx1) * 4;
+
+      const di = (dy * dstW + dx) * 4;
+      for (let c = 0; c < 4; c++) {
+        const top = src[i00 + c] * (1 - fx) + src[i10 + c] * fx;
+        const bot = src[i01 + c] * (1 - fx) + src[i11 + c] * fx;
+        dst[di + c] = Math.round(top * (1 - fy) + bot * fy);
+      }
+    }
+  }
+
+  return dst;
 }
 
 function createBlackTexture(gl) {
@@ -244,8 +282,8 @@ function createBlackTexture(gl) {
 function uploadTexture(gl, tex, width, height, rgba) {
   gl.bindTexture(gl.TEXTURE_2D, tex);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, rgba);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 }
@@ -486,7 +524,8 @@ export default {
 
     landscapeTex = gl.createTexture();
     const landscapeRGBA = decodeLandscape();
-    uploadTexture(gl, landscapeTex, LANDSCAPE_W, LANDSCAPE_H, landscapeRGBA);
+    const upLandscape = bilinearUpscale(landscapeRGBA, LANDSCAPE_W, LANDSCAPE_H, UPSCALE);
+    uploadTexture(gl, landscapeTex, LANDSCAPE_W * UPSCALE, LANDSCAPE_H * UPSCALE, upLandscape);
 
     emptyTextTex = createBlackTexture(gl);
 
@@ -495,7 +534,8 @@ export default {
     textTextures = TEXT_SCREENS.map((screen) => {
       const tex = gl.createTexture();
       const rgba = renderTextScreen(screen, font);
-      uploadTexture(gl, tex, DISPLAY_W, DISPLAY_H, rgba);
+      const upText = bilinearUpscale(rgba, DISPLAY_W, DISPLAY_H, UPSCALE);
+      uploadTexture(gl, tex, DISPLAY_W * UPSCALE, DISPLAY_H * UPSCALE, upText);
       return tex;
     });
 
