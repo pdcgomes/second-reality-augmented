@@ -192,14 +192,35 @@ uniform sampler2D uReflectionTex;
 uniform float uReflectivity;
 uniform float uGroundRoughness;
 uniform float uGroundBrightness;
+uniform float uGroundSpecular;
+uniform float uGroundFresnelPow;
 uniform float uFade;
 uniform vec2 uResolution;
 uniform vec3 uGroundTint;
+
+float hash(vec2 p) {
+  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+}
+
+float vnoise(vec2 p) {
+  vec2 i = floor(p);
+  vec2 f = fract(p);
+  f = f * f * (3.0 - 2.0 * f);
+  return mix(
+    mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x),
+    mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x),
+    f.y
+  );
+}
 
 void main() {
   if (vUV.y > 0.5) discard;
 
   float t = (0.5 - vUV.y) / 0.5;
+  float aspect = uResolution.x / uResolution.y;
+
+  float worldZ = 1.0 / (t + 0.002);
+  float worldX = (vUV.x - 0.5) * worldZ * aspect;
 
   vec3 refl = vec3(0.0);
   if (uGroundRoughness > 0.001) {
@@ -219,19 +240,35 @@ void main() {
   }
 
   float viewAngle = 1.0 - t;
-  float fresnel = mix(uReflectivity * 0.4, uReflectivity, pow(viewAngle, 2.0));
+  float fresnel = mix(uReflectivity * 0.35, uReflectivity, pow(viewAngle, uGroundFresnelPow));
 
-  vec3 baseGround = vec3(0.02, 0.02, 0.025) * uGroundBrightness;
+  vec3 tintNorm = normalize(uGroundTint + 0.01);
 
-  float gridX = abs(fract(vUV.x * 40.0) - 0.5);
-  float gridZ = abs(fract(t * 20.0 / (t + 0.1)) - 0.5);
-  float lineX = 1.0 - smoothstep(0.0, 0.02, gridX);
-  float lineZ = 1.0 - smoothstep(0.0, 0.03, gridZ);
-  float gridLine = max(lineX, lineZ) * 0.08 * uGroundBrightness * (1.0 - t * 0.8);
-  baseGround += vec3(gridLine) * uGroundTint;
+  float n1 = vnoise(vec2(worldX * 0.6, worldZ * 0.6));
+  float n2 = vnoise(vec2(worldX * 2.0, worldZ * 2.0));
+  float n3 = vnoise(vec2(worldX * 6.0, worldZ * 6.0));
+  float crystal = n1 * 0.5 + n2 * 0.35 + n3 * 0.15;
 
-  vec3 color = mix(baseGround, refl, fresnel);
-  float edgeFade = smoothstep(0.0, 0.05, t);
+  float sub1 = vnoise(vec2(worldX * 1.2 + 17.3, worldZ * 1.2 + 8.7));
+  float sub2 = vnoise(vec2(worldX * 3.5 - 5.2, worldZ * 3.5 + 3.1));
+  float subsurface = sub1 * 0.6 + sub2 * 0.4;
+
+  vec3 surfaceColor = (vec3(0.012, 0.012, 0.022) + tintNorm * 0.008) * uGroundBrightness;
+  surfaceColor *= (0.6 + crystal * 0.8);
+  surfaceColor += tintNorm * subsurface * 0.02 * uGroundBrightness;
+
+  float depthFog = smoothstep(0.0, 0.04, t);
+  surfaceColor *= depthFog;
+
+  float specX = (vUV.x - 0.5) * 2.0;
+  float specT = t - 0.15;
+  float specDist = specX * specX * 1.2 + specT * specT * 3.0;
+  float groundSpec = exp(-specDist * 1.8) * uGroundSpecular * uGroundBrightness;
+  vec3 specColor = mix(uGroundTint, vec3(1.0), 0.7);
+
+  vec3 color = mix(surfaceColor, refl, fresnel) + specColor * groundSpec;
+
+  float edgeFade = smoothstep(0.0, 0.06, t);
   fragColor = vec4(color * uFade, uFade * edgeFade);
 }
 `;
@@ -357,21 +394,23 @@ export default {
     gp('Palette',          { key: 'hueShift',         label: 'Hue Shift',         type: 'float', min: -180, max: 180, step: 1,    default: 26 }),
     gp('Palette',          { key: 'satBoost',         label: 'Saturation Adjust', type: 'float', min: -0.5, max: 0.5, step: 0.01, default: -0.12 }),
     gp('Lighting',         { key: 'specularPower',    label: 'Specular',          type: 'float', min: 8,   max: 128, step: 1,     default: 32 }),
-    gp('Ground',           { key: 'reflectivity',     label: 'Reflectivity',      type: 'float', min: 0,   max: 1,   step: 0.01,  default: 0.79 }),
-    gp('Ground',           { key: 'groundBrightness', label: 'Ground Brightness', type: 'float', min: 0,   max: 5,   step: 0.1,   default: 1.5 }),
-    gp('Ground',           { key: 'groundRoughness',  label: 'Ground Roughness',  type: 'float', min: 0,   max: 0.5, step: 0.01,  default: 0.05 }),
-    gp('Effect',           { key: 'dotScale',         label: 'Dot Scale',         type: 'float', min: 0.5, max: 3,   step: 0.05,  default: 0.50 }),
-    gp('Depth Cues',       { key: 'depthFog',          label: 'Depth Fog',          type: 'float', min: 0,   max: 1,   step: 0.01,  default: 0.3 }),
-    gp('Depth Cues',       { key: 'depthAlphaFalloff', label: 'Depth Alpha Falloff',type: 'float', min: 0,   max: 1,   step: 0.01,  default: 0.4 }),
-    gp('Depth Cues',       { key: 'depthSatFalloff',   label: 'Depth Sat Falloff', type: 'float', min: 0,   max: 1,   step: 0.01,  default: 0.3 }),
-    gp('Orb Mode',         { key: 'orbMode',           label: 'Enable Orb Mode',   type: 'float', min: 0,   max: 1,   step: 1,     default: 0 }),
-    gp('Orb Mode',         { key: 'orbTranslucency',   label: 'Translucency',      type: 'float', min: 0,   max: 1,   step: 0.01,  default: 0.7 }),
-    gp('Orb Mode',         { key: 'orbGlowIntensity',  label: 'Glow Intensity',    type: 'float', min: 0,   max: 3,   step: 0.05,  default: 1.5 }),
-    gp('Orb Mode',         { key: 'orbGlowSize',       label: 'Glow Size',         type: 'float', min: 0.1, max: 2,   step: 0.05,  default: 0.6 }),
-    gp('Orb Mode',         { key: 'orbRimPower',       label: 'Rim Power',         type: 'float', min: 1,   max: 8,   step: 0.5,   default: 3 }),
-    gp('Post-Processing',  { key: 'bloomThreshold',   label: 'Bloom Threshold',   type: 'float', min: 0,   max: 1,   step: 0.01,  default: 0.3 }),
-    gp('Post-Processing',  { key: 'bloomStrength',    label: 'Bloom Strength',    type: 'float', min: 0,   max: 2,   step: 0.01,  default: 0.5 }),
-    gp('Post-Processing',  { key: 'beatBounce',       label: 'Beat Bounce',       type: 'float', min: 0,   max: 1,   step: 0.01,  default: 0.3 }),
+    gp('Ground',           { key: 'reflectivity',     label: 'Reflectivity',      type: 'float', min: 0,   max: 1,   step: 0.01,  default: 0.53 }),
+    gp('Ground',           { key: 'groundBrightness', label: 'Ground Brightness', type: 'float', min: 0,   max: 5,   step: 0.1,   default: 1.3 }),
+    gp('Ground',           { key: 'groundRoughness',  label: 'Ground Roughness',  type: 'float', min: 0,   max: 0.5, step: 0.01,  default: 0.37 }),
+    gp('Ground',           { key: 'groundSpecular',   label: 'Surface Sheen',     type: 'float', min: 0,   max: 1,   step: 0.01,  default: 0.14 }),
+    gp('Ground',           { key: 'groundFresnelPow', label: 'Fresnel Power',     type: 'float', min: 1,   max: 8,   step: 0.5,   default: 3 }),
+    gp('Effect',           { key: 'dotScale',         label: 'Dot Scale',         type: 'float', min: 0.5, max: 3,   step: 0.05,  default: 0.55 }),
+    gp('Depth Cues',       { key: 'depthFog',          label: 'Depth Fog',          type: 'float', min: 0,   max: 1,   step: 0.01,  default: 0.30 }),
+    gp('Depth Cues',       { key: 'depthAlphaFalloff', label: 'Depth Alpha Falloff',type: 'float', min: 0,   max: 1,   step: 0.01,  default: 0.40 }),
+    gp('Depth Cues',       { key: 'depthSatFalloff',   label: 'Depth Sat Falloff', type: 'float', min: 0,   max: 1,   step: 0.01,  default: 0.30 }),
+    gp('Orb Mode',         { key: 'orbMode',           label: 'Enable Orb Mode',   type: 'float', min: 0,   max: 1,   step: 1,     default: 1 }),
+    gp('Orb Mode',         { key: 'orbTranslucency',   label: 'Translucency',      type: 'float', min: 0,   max: 1,   step: 0.01,  default: 0.53 }),
+    gp('Orb Mode',         { key: 'orbGlowIntensity',  label: 'Glow Intensity',    type: 'float', min: 0,   max: 3,   step: 0.05,  default: 1.20 }),
+    gp('Orb Mode',         { key: 'orbGlowSize',       label: 'Glow Size',         type: 'float', min: 0.1, max: 2,   step: 0.05,  default: 0.60 }),
+    gp('Orb Mode',         { key: 'orbRimPower',       label: 'Rim Power',         type: 'float', min: 1,   max: 8,   step: 0.5,   default: 3.5 }),
+    gp('Post-Processing',  { key: 'bloomThreshold',   label: 'Bloom Threshold',   type: 'float', min: 0,   max: 1,   step: 0.01,  default: 0.30 }),
+    gp('Post-Processing',  { key: 'bloomStrength',    label: 'Bloom Strength',    type: 'float', min: 0,   max: 2,   step: 0.01,  default: 0.50 }),
+    gp('Post-Processing',  { key: 'beatBounce',       label: 'Beat Bounce',       type: 'float', min: 0,   max: 1,   step: 0.01,  default: 0.30 }),
     gp('Post-Processing',  { key: 'scanlineStr',      label: 'Scanlines',         type: 'float', min: 0,   max: 0.5, step: 0.01,  default: 0.03 }),
   ],
 
@@ -406,13 +445,15 @@ export default {
     };
 
     gu = {
-      reflectionTex:   gl.getUniformLocation(groundProg, 'uReflectionTex'),
+      reflectionTex:    gl.getUniformLocation(groundProg, 'uReflectionTex'),
       reflectivity:     gl.getUniformLocation(groundProg, 'uReflectivity'),
       groundBrightness: gl.getUniformLocation(groundProg, 'uGroundBrightness'),
       groundRoughness:  gl.getUniformLocation(groundProg, 'uGroundRoughness'),
+      groundSpecular:   gl.getUniformLocation(groundProg, 'uGroundSpecular'),
+      groundFresnelPow: gl.getUniformLocation(groundProg, 'uGroundFresnelPow'),
       fade:             gl.getUniformLocation(groundProg, 'uFade'),
-      resolution:      gl.getUniformLocation(groundProg, 'uResolution'),
-      groundTint:      gl.getUniformLocation(groundProg, 'uGroundTint'),
+      resolution:       gl.getUniformLocation(groundProg, 'uResolution'),
+      groundTint:       gl.getUniformLocation(groundProg, 'uGroundTint'),
     };
 
     beu = {
@@ -523,23 +564,23 @@ export default {
       reflectionPosData[i * 3 + 2] = bp;
     }
 
-    const dotScale = p('dotScale', 1.0);
-    const pal = PALETTES[p('palette', 0)];
-    const hueShift = p('hueShift', 0);
+    const dotScale = p('dotScale', 0.55);
+    const pal = PALETTES[p('palette', 9)];
+    const hueShift = p('hueShift', 26);
     const hueNear = pal.hueNear + hueShift;
     const hueFar = pal.hueFar + hueShift;
-    const saturation = Math.max(0, Math.min(1, pal.sat + p('satBoost', 0)));
+    const saturation = Math.max(0, Math.min(1, pal.sat + p('satBoost', -0.12)));
     const specularPower = p('specularPower', 32);
 
-    const depthFog = p('depthFog', 0.3);
-    const depthAlphaFalloff = p('depthAlphaFalloff', 0.4);
-    const depthSatFalloff = p('depthSatFalloff', 0.3);
+    const depthFog = p('depthFog', 0.30);
+    const depthAlphaFalloff = p('depthAlphaFalloff', 0.40);
+    const depthSatFalloff = p('depthSatFalloff', 0.30);
 
-    const orbMode = p('orbMode', 0);
-    const orbTranslucency = p('orbTranslucency', 0.7);
-    const orbGlowIntensity = p('orbGlowIntensity', 1.5);
-    const orbGlowSize = p('orbGlowSize', 0.6);
-    const orbRimPower = p('orbRimPower', 3.0);
+    const orbMode = p('orbMode', 1);
+    const orbTranslucency = p('orbTranslucency', 0.53);
+    const orbGlowIntensity = p('orbGlowIntensity', 1.20);
+    const orbGlowSize = p('orbGlowSize', 0.60);
+    const orbRimPower = p('orbRimPower', 3.5);
 
     function setSphereUniforms(isReflection) {
       gl.useProgram(sphereProg);
@@ -595,9 +636,11 @@ export default {
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, reflectionFBO.tex);
     gl.uniform1i(gu.reflectionTex, 0);
-    gl.uniform1f(gu.reflectivity, p('reflectivity', 0.6));
-    gl.uniform1f(gu.groundBrightness, p('groundBrightness', 1.0));
-    gl.uniform1f(gu.groundRoughness, p('groundRoughness', 0.05));
+    gl.uniform1f(gu.reflectivity, p('reflectivity', 0.53));
+    gl.uniform1f(gu.groundBrightness, p('groundBrightness', 1.3));
+    gl.uniform1f(gu.groundRoughness, p('groundRoughness', 0.37));
+    gl.uniform1f(gu.groundSpecular, p('groundSpecular', 0.14));
+    gl.uniform1f(gu.groundFresnelPow, p('groundFresnelPow', 3.0));
     gl.uniform3fv(gu.groundTint, pal.ground);
     gl.uniform1f(gu.fade, fade);
     gl.uniform2f(gu.resolution, sw, sh);
