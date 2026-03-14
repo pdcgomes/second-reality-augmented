@@ -137,6 +137,16 @@ export class ModPlayer {
     this._timeOffset = atTime;
   }
 
+  /**
+   * Pre-assign an AudioContext created during a user gesture so that
+   * mobile browsers permit audio output. Must be called before play().
+   */
+  setAudioContext(ctx) {
+    for (const mp of this._players) {
+      if (mp) mp.context = ctx;
+    }
+  }
+
   async loadBoth(music0ArrayBuffer, music1ArrayBuffer) {
     const bufs = [music0ArrayBuffer, music1ArrayBuffer];
 

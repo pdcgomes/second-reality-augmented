@@ -203,12 +203,19 @@ function tick() {
 async function startDemo() {
   if (started) return;
 
+  // Create and resume AudioContext synchronously inside the user gesture
+  // so mobile browsers permit audio output.
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  const ctx = new AudioCtx();
+  if (ctx.state === 'suspended') ctx.resume();
+
   overlay.textContent = '';
 
   const m0 = b64ToArrayBuffer(window.__MUSIC0_B64__);
   const m1 = b64ToArrayBuffer(window.__MUSIC1_B64__);
   await modPlayer.loadBoth(m0, m1);
 
+  modPlayer.setAudioContext(ctx);
   gl1 = initGL(canvas1);
 
   modPlayer.play(0, 0, 0, 0);
