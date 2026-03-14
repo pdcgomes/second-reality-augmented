@@ -147,6 +147,38 @@ export class ModPlayer {
     }
   }
 
+  /**
+   * Nuclear option for mobile audio: create a brand-new AudioContext from
+   * the current user gesture and rewire every player's ScriptProcessorNode.
+   * Returns the new context.
+   */
+  unlockAudio() {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return null;
+    const ctx = new AudioCtx();
+    if (ctx.state === 'suspended') ctx.resume();
+    for (const mp of this._players) {
+      if (mp) mp.reconnectAudio(ctx);
+    }
+    return ctx;
+  }
+
+  /**
+   * Mute / unmute by disconnecting or reconnecting the active mixer node.
+   * Returns true if audio is now audible.
+   */
+  setMuted(muted) {
+    for (const mp of this._players) {
+      if (!mp || !mp.mixerNode) continue;
+      if (muted) {
+        try { mp.mixerNode.disconnect(); } catch (_) {}
+      } else {
+        try { mp.mixerNode.connect(mp.context.destination); } catch (_) {}
+      }
+    }
+    return !muted;
+  }
+
   async loadBoth(music0ArrayBuffer, music1ArrayBuffer) {
     const bufs = [music0ArrayBuffer, music1ArrayBuffer];
 

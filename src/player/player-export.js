@@ -34,6 +34,10 @@ const project = window.__DEMO_PROJECT__;
 const overlay = document.getElementById('overlay');
 const canvas1 = document.getElementById('c1');
 const hud = document.getElementById('hud');
+const soundBtn = document.getElementById('sound-btn');
+const scrubBar = document.getElementById('scrub-bar');
+const scrubFill = document.getElementById('scrub-fill');
+const scrubTimeEl = document.getElementById('scrub-time');
 
 // ── GL context & effect cache ────────────────────────────────────────
 
@@ -49,6 +53,58 @@ function updateHUD() {
   } else {
     hud.innerHTML = `<span>${variant.toUpperCase()}${pause}</span><kbd>X</kbd><span style="color:rgba(255,255,255,.25);font-size:11px">TO TOGGLE</span>`;
   }
+}
+
+// ── Sound button (mobile) ────────────────────────────────────────────
+
+const ICON_ON = '<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3z"/><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/><path d="M14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>';
+const ICON_OFF = '<svg viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63z"/><path d="M19 12c0 .94-.2 1.82-.54 2.64l1.51 1.51A8.87 8.87 0 0021 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71z"/><path d="M4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06a8.99 8.99 0 003.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4l-2.1 2.1L12 8.2V4z"/></svg>';
+
+let audioUnlocked = false;
+let muted = false;
+
+function updateSoundBtn() {
+  if (!soundBtn) return;
+  soundBtn.innerHTML = muted ? ICON_OFF : ICON_ON;
+}
+
+function onSoundBtnTap(e) {
+  e.stopPropagation();
+  if (!audioUnlocked) {
+    modPlayer.unlockAudio();
+    audioUnlocked = true;
+    muted = false;
+  } else {
+    muted = !muted;
+    modPlayer.setMuted(muted);
+  }
+  updateSoundBtn();
+}
+
+// ── Touch scrub (mobile) ─────────────────────────────────────────────
+
+const SCRUB_DEADZONE = 12;
+const SCRUB_SPEED = 0.15;
+
+let scrubbing = false;
+let wasPlayingBeforeScrub = false;
+let touchStartX = 0;
+let touchStartTime = 0;
+let scrubTime = 0;
+
+function getDuration() {
+  const clips = project.clips;
+  return clips.length ? clips[clips.length - 1].end : 300;
+}
+
+function fmtTime(s) {
+  return `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+}
+
+function updateScrubProgress(t) {
+  const d = getDuration();
+  if (scrubFill) scrubFill.style.width = `${(t / d) * 100}%`;
+  if (scrubTimeEl) scrubTimeEl.textContent = `${fmtTime(t)} / ${fmtTime(d)}`;
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────
@@ -177,7 +233,7 @@ function renderFrame(gl, cache, v, t) {
 // ── Tick loop ────────────────────────────────────────────────────────
 
 function tick() {
-  const t = modPlayer.currentTime();
+  const t = scrubbing ? scrubTime : modPlayer.currentTime();
 
   if (playing) {
     const region = getRegionAtTime(t);
@@ -194,6 +250,10 @@ function tick() {
 
   sizeCanvas(canvas1, gl1, variant);
   renderFrame(gl1, cache1, variant, t);
+
+  if (isMobile && scrubFill && started && !scrubbing) {
+    scrubFill.style.width = `${(t / getDuration()) * 100}%`;
+  }
 
   requestAnimationFrame(tick);
 }
@@ -223,6 +283,10 @@ async function startDemo() {
   playing = true;
   overlay.remove();
   updateHUD();
+  if (isMobile) {
+    if (soundBtn) { soundBtn.style.display = 'flex'; updateSoundBtn(); }
+    if (scrubBar) scrubBar.style.display = 'block';
+  }
   requestAnimationFrame(tick);
 }
 
@@ -252,7 +316,7 @@ updateHUD();
 if (isMobile) {
   overlay.innerHTML =
     '<span>Tap to play</span>' +
-    '<span class="hint">tap during playback to switch<br>between classic and remastered</span>';
+    '<span class="hint">tap during playback to switch variant<br>swipe left/right to scrub</span>';
 }
 
 // ── Input ────────────────────────────────────────────────────────────
@@ -273,10 +337,68 @@ document.addEventListener('keydown', (e) => {
 if (isMobile) {
   document.addEventListener('click', (e) => {
     if (e.target.closest('#gh-link')) return;
+    if (e.target.closest('#sound-btn')) return;
     if (!started) {
       startDemo();
     } else {
       toggleVariant();
+    }
+  });
+  if (soundBtn) soundBtn.addEventListener('click', onSoundBtnTap);
+
+  document.addEventListener('touchstart', (e) => {
+    if (!started) return;
+    if (e.target.closest('#sound-btn') || e.target.closest('#gh-link')) return;
+    touchStartX = e.touches[0].clientX;
+    touchStartTime = scrubbing ? scrubTime : modPlayer.currentTime();
+    scrubbing = false;
+  }, { passive: true });
+
+  document.addEventListener('touchmove', (e) => {
+    if (!started) return;
+    const dx = e.touches[0].clientX - touchStartX;
+
+    if (!scrubbing && Math.abs(dx) > SCRUB_DEADZONE) {
+      scrubbing = true;
+      wasPlayingBeforeScrub = playing;
+      if (playing) { modPlayer.pause(); playing = false; }
+      if (scrubBar) scrubBar.classList.add('active');
+      if (scrubTimeEl) scrubTimeEl.style.display = 'block';
+    }
+
+    if (scrubbing) {
+      e.preventDefault();
+      scrubTime = Math.max(0, Math.min(getDuration() - 0.1, touchStartTime + dx * SCRUB_SPEED));
+      updateScrubProgress(scrubTime);
+    }
+  }, { passive: false });
+
+  document.addEventListener('touchend', (e) => {
+    if (scrubbing) {
+      e.preventDefault();
+      scrubbing = false;
+      modPlayer.seekToTime(scrubTime);
+      if (wasPlayingBeforeScrub) {
+        modPlayer.resume();
+        playing = true;
+      }
+      if (scrubBar) scrubBar.classList.remove('active');
+      if (scrubTimeEl) scrubTimeEl.style.display = 'none';
+      updateHUD();
+    }
+  });
+
+  document.addEventListener('touchcancel', () => {
+    if (scrubbing) {
+      scrubbing = false;
+      modPlayer.seekToTime(scrubTime);
+      if (wasPlayingBeforeScrub) {
+        modPlayer.resume();
+        playing = true;
+      }
+      if (scrubBar) scrubBar.classList.remove('active');
+      if (scrubTimeEl) scrubTimeEl.style.display = 'none';
+      updateHUD();
     }
   });
 }
