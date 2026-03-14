@@ -24,6 +24,7 @@ const W = 320, H = 256;
 let started = false;
 let playing = false;
 let variant = 'classic';
+const isMobile = matchMedia('(pointer: coarse)').matches;
 
 const modPlayer = new ModPlayer();
 const project = window.__DEMO_PROJECT__;
@@ -43,7 +44,11 @@ const cache1 = {};
 
 function updateHUD() {
   const pause = !playing && started ? '  \u23F8' : '';
-  hud.innerHTML = `<span>${variant.toUpperCase()}${pause}</span><kbd>X</kbd><span style="color:rgba(255,255,255,.25);font-size:11px">TO TOGGLE</span>`;
+  if (isMobile) {
+    hud.innerHTML = `<span>${variant.toUpperCase()}${pause}</span>`;
+  } else {
+    hud.innerHTML = `<span>${variant.toUpperCase()}${pause}</span><kbd>X</kbd><span style="color:rgba(255,255,255,.25);font-size:11px">TO TOGGLE</span>`;
+  }
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────
@@ -235,6 +240,14 @@ function toggleVariant() {
 // Show the HUD immediately (before demo starts)
 updateHUD();
 
+// ── Mobile overlay ──────────────────────────────────────────────────
+
+if (isMobile) {
+  overlay.innerHTML =
+    '<span>Tap to play</span>' +
+    '<span class="hint">tap during playback to switch<br>between classic and remastered</span>';
+}
+
 // ── Input ────────────────────────────────────────────────────────────
 
 document.addEventListener('keydown', (e) => {
@@ -249,3 +262,14 @@ document.addEventListener('keydown', (e) => {
       break;
   }
 });
+
+if (isMobile) {
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('#gh-link')) return;
+    if (!started) {
+      startDemo();
+    } else {
+      toggleVariant();
+    }
+  });
+}

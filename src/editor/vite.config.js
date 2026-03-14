@@ -18,6 +18,7 @@ canvas{display:block;width:100%;height:100%;image-rendering:pixelated;image-rend
 #overlay{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;z-index:10;background:#000}
 #overlay span{font-family:'Courier New',monospace;font-size:clamp(16px,3vw,32px);color:#ccc;letter-spacing:.15em;text-transform:uppercase;animation:pulse 1.5s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:.15}50%{opacity:1}}
+#overlay .hint{font-size:clamp(10px,1.8vw,16px);color:rgba(255,255,255,.3);letter-spacing:.08em;animation:none;text-align:center;line-height:1.6}
 #gh-link{position:fixed;top:10px;left:12px;display:inline-flex;align-items:center;gap:6px;color:rgba(255,255,255,.3);text-decoration:none;font-family:'Courier New',monospace;font-size:11px;z-index:5;transition:color .2s}
 #gh-link:hover{color:rgba(255,255,255,.7)}
 #gh-link svg{fill:currentColor}
