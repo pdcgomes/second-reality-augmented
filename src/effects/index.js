@@ -54,6 +54,7 @@ import jplogoRemastered from './jplogo/effect.remastered.js';
 import u2eClassic from './u2e/effect.js';
 import u2eRemastered from './u2e/effect.remastered.js';
 import endlogoClassic from './endlogo/effect.js';
+import endlogoRemastered from './endlogo/effect.remastered.js';
 import creditsClassic from './credits/effect.js';
 import endscrlClassic from './endscrl/effect.js';
 
@@ -92,7 +93,7 @@ registerEffect('WATER', waterClassic, waterRemastered);
 registerEffect('COMAN', comanClassic, comanRemastered);
 registerEffect('JPLOGO', jplogoClassic, jplogoRemastered);
 registerEffect('U2E', u2eClassic, u2eRemastered);
-registerEffect('ENDLOGO', endlogoClassic);
+registerEffect('ENDLOGO', endlogoClassic, endlogoRemastered);
 registerEffect('CREDITS', creditsClassic);
 registerEffect('ENDSCRL', endscrlClassic);
 
