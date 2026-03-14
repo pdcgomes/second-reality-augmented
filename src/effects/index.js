@@ -56,6 +56,7 @@ import u2eRemastered from './u2e/effect.remastered.js';
 import endlogoClassic from './endlogo/effect.js';
 import endlogoRemastered from './endlogo/effect.remastered.js';
 import creditsClassic from './credits/effect.js';
+import creditsRemastered from './credits/effect.remastered.js';
 import endscrlClassic from './endscrl/effect.js';
 
 // ── Bonus effects (not in original demo) ──────────────────────────
@@ -94,7 +95,7 @@ registerEffect('COMAN', comanClassic, comanRemastered);
 registerEffect('JPLOGO', jplogoClassic, jplogoRemastered);
 registerEffect('U2E', u2eClassic, u2eRemastered);
 registerEffect('ENDLOGO', endlogoClassic, endlogoRemastered);
-registerEffect('CREDITS', creditsClassic);
+registerEffect('CREDITS', creditsClassic, creditsRemastered);
 registerEffect('ENDSCRL', endscrlClassic);
 
 // Bonus / hidden effects
