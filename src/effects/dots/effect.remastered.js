@@ -88,6 +88,16 @@ uniform float uFade;
 uniform float uIsReflection;
 uniform float uDepthRange;
 
+uniform float uDepthFog;
+uniform float uDepthAlphaFalloff;
+uniform float uDepthSatFalloff;
+
+uniform float uOrbMode;
+uniform float uOrbTranslucency;
+uniform float uOrbGlowIntensity;
+uniform float uOrbGlowSize;
+uniform float uOrbRimPower;
+
 out vec4 fragColor;
 
 vec3 hsl2rgb(float h, float s, float l) {
@@ -121,21 +131,51 @@ void main() {
   float spec = pow(max(dot(N, H), 0.0), specPow);
 
   float depthFactor = clamp(1.0 - vDepth / uDepthRange, 0.15, 1.0);
+  float sat = uSaturation * mix(1.0, depthFactor, uDepthSatFalloff);
   float lightness = mix(0.15, 0.65, depthFactor);
   float hue = mix(uHueFar, uHueNear, depthFactor);
-  vec3 baseColor = hsl2rgb(hue, uSaturation, lightness);
+  vec3 baseColor = hsl2rgb(hue, sat, lightness);
 
-  vec3 ambient = baseColor * 0.2;
-  vec3 diffuse = baseColor * diff * 0.7;
-  vec3 specular = vec3(1.0) * spec * (0.5 + beatPulse * 0.3);
+  vec3 color;
+  float alpha;
 
-  vec3 color = ambient + diffuse + specular;
+  if (uOrbMode > 0.5) {
+    // Translucent orb: inner volumetric glow + glass-like Fresnel rim
+    float innerDist = sqrt(dist2);
+    float gw = uOrbGlowSize;
+    float innerGlow = exp(-innerDist * innerDist / (gw * gw));
 
-  float alpha = 1.0;
+    float fresnel = pow(1.0 - max(dot(N, V), 0.0), uOrbRimPower);
+
+    vec3 glowColor = hsl2rgb(hue, min(sat + 0.15, 1.0), 0.65);
+    vec3 rimColor = mix(glowColor, vec3(1.0), 0.4);
+
+    color = glowColor * innerGlow * uOrbGlowIntensity
+          + rimColor * fresnel * 0.6
+          + baseColor * diff * 0.15
+          + vec3(1.0) * spec * (0.4 + beatPulse * 0.2);
+
+    float shellAlpha = 0.08;
+    float glowAlpha = innerGlow * 0.7;
+    float rimAlpha = fresnel * 0.5;
+    alpha = mix(1.0, clamp(shellAlpha + glowAlpha + rimAlpha, 0.0, 1.0), uOrbTranslucency);
+  } else {
+    vec3 ambient = baseColor * 0.2;
+    vec3 diffuse = baseColor * diff * 0.7;
+    vec3 specular = vec3(1.0) * spec * (0.5 + beatPulse * 0.3);
+    color = ambient + diffuse + specular;
+    alpha = 1.0;
+  }
+
   if (uIsReflection > 0.5) {
     color *= 0.6;
     alpha *= 0.7;
   }
+
+  float fogFactor = (1.0 - depthFactor) * uDepthFog;
+  color = mix(color, vec3(0.0), fogFactor);
+
+  alpha *= mix(1.0, depthFactor, uDepthAlphaFalloff);
 
   float edgeSoft = 1.0 - smoothstep(0.85, 1.0, dist2);
   fragColor = vec4(color * uFade, alpha * uFade * edgeSoft);
@@ -321,6 +361,14 @@ export default {
     gp('Ground',           { key: 'groundBrightness', label: 'Ground Brightness', type: 'float', min: 0,   max: 5,   step: 0.1,   default: 1.5 }),
     gp('Ground',           { key: 'groundRoughness',  label: 'Ground Roughness',  type: 'float', min: 0,   max: 0.5, step: 0.01,  default: 0.05 }),
     gp('Effect',           { key: 'dotScale',         label: 'Dot Scale',         type: 'float', min: 0.5, max: 3,   step: 0.05,  default: 0.50 }),
+    gp('Depth Cues',       { key: 'depthFog',          label: 'Depth Fog',          type: 'float', min: 0,   max: 1,   step: 0.01,  default: 0.3 }),
+    gp('Depth Cues',       { key: 'depthAlphaFalloff', label: 'Depth Alpha Falloff',type: 'float', min: 0,   max: 1,   step: 0.01,  default: 0.4 }),
+    gp('Depth Cues',       { key: 'depthSatFalloff',   label: 'Depth Sat Falloff', type: 'float', min: 0,   max: 1,   step: 0.01,  default: 0.3 }),
+    gp('Orb Mode',         { key: 'orbMode',           label: 'Enable Orb Mode',   type: 'float', min: 0,   max: 1,   step: 1,     default: 0 }),
+    gp('Orb Mode',         { key: 'orbTranslucency',   label: 'Translucency',      type: 'float', min: 0,   max: 1,   step: 0.01,  default: 0.7 }),
+    gp('Orb Mode',         { key: 'orbGlowIntensity',  label: 'Glow Intensity',    type: 'float', min: 0,   max: 3,   step: 0.05,  default: 1.5 }),
+    gp('Orb Mode',         { key: 'orbGlowSize',       label: 'Glow Size',         type: 'float', min: 0.1, max: 2,   step: 0.05,  default: 0.6 }),
+    gp('Orb Mode',         { key: 'orbRimPower',       label: 'Rim Power',         type: 'float', min: 1,   max: 8,   step: 0.5,   default: 3 }),
     gp('Post-Processing',  { key: 'bloomThreshold',   label: 'Bloom Threshold',   type: 'float', min: 0,   max: 1,   step: 0.01,  default: 0.3 }),
     gp('Post-Processing',  { key: 'bloomStrength',    label: 'Bloom Strength',    type: 'float', min: 0,   max: 2,   step: 0.01,  default: 0.5 }),
     gp('Post-Processing',  { key: 'beatBounce',       label: 'Beat Bounce',       type: 'float', min: 0,   max: 1,   step: 0.01,  default: 0.3 }),
@@ -347,6 +395,14 @@ export default {
       fade:           gl.getUniformLocation(sphereProg, 'uFade'),
       isReflection:   gl.getUniformLocation(sphereProg, 'uIsReflection'),
       depthRange:     gl.getUniformLocation(sphereProg, 'uDepthRange'),
+      depthFog:       gl.getUniformLocation(sphereProg, 'uDepthFog'),
+      depthAlphaFalloff: gl.getUniformLocation(sphereProg, 'uDepthAlphaFalloff'),
+      depthSatFalloff:   gl.getUniformLocation(sphereProg, 'uDepthSatFalloff'),
+      orbMode:        gl.getUniformLocation(sphereProg, 'uOrbMode'),
+      orbTranslucency:gl.getUniformLocation(sphereProg, 'uOrbTranslucency'),
+      orbGlowIntensity: gl.getUniformLocation(sphereProg, 'uOrbGlowIntensity'),
+      orbGlowSize:    gl.getUniformLocation(sphereProg, 'uOrbGlowSize'),
+      orbRimPower:    gl.getUniformLocation(sphereProg, 'uOrbRimPower'),
     };
 
     gu = {
@@ -475,6 +531,16 @@ export default {
     const saturation = Math.max(0, Math.min(1, pal.sat + p('satBoost', 0)));
     const specularPower = p('specularPower', 32);
 
+    const depthFog = p('depthFog', 0.3);
+    const depthAlphaFalloff = p('depthAlphaFalloff', 0.4);
+    const depthSatFalloff = p('depthSatFalloff', 0.3);
+
+    const orbMode = p('orbMode', 0);
+    const orbTranslucency = p('orbTranslucency', 0.7);
+    const orbGlowIntensity = p('orbGlowIntensity', 1.5);
+    const orbGlowSize = p('orbGlowSize', 0.6);
+    const orbRimPower = p('orbRimPower', 3.0);
+
     function setSphereUniforms(isReflection) {
       gl.useProgram(sphereProg);
       gl.uniform1f(su.dotScale, dotScale);
@@ -487,6 +553,14 @@ export default {
       gl.uniform1f(su.fade, fade);
       gl.uniform1f(su.isReflection, isReflection ? 1.0 : 0.0);
       gl.uniform1f(su.depthRange, DEPTH_RANGE);
+      gl.uniform1f(su.depthFog, depthFog);
+      gl.uniform1f(su.depthAlphaFalloff, depthAlphaFalloff);
+      gl.uniform1f(su.depthSatFalloff, depthSatFalloff);
+      gl.uniform1f(su.orbMode, orbMode);
+      gl.uniform1f(su.orbTranslucency, orbTranslucency);
+      gl.uniform1f(su.orbGlowIntensity, orbGlowIntensity);
+      gl.uniform1f(su.orbGlowSize, orbGlowSize);
+      gl.uniform1f(su.orbRimPower, orbRimPower);
     }
 
     // ── Pass 1: Reflection (mirrored dots into reflectionFBO) ────
