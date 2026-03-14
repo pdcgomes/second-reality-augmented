@@ -351,7 +351,7 @@ reference/        Code from the JS port used as implementation reference
 ## Credits
 
 - **Original demo:** Future Crew (1993) — Psi, Trug, Wildfire, Gore, Marvel, Skaven
-- **Music:** Skaven (Peter Hajba) — S3M tracker modules
+- **Music:** Purple Motion (Jonne Valtonen) & Skaven (Peter Hajba) — S3M tracker modules
 - **JS reference port:** [covalichou/second-reality-js](https://github.com/covalichou/second-reality-js)
 - **Code review:** [Fabien Sanglard's Second Reality series](https://fabiensanglard.net/second_reality/)
 
