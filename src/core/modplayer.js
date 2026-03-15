@@ -73,14 +73,20 @@ export class ModPlayer {
   }
 
   /**
-   * Authoritative elapsed time — derived from actual audio samples processed,
-   * not from the constant-BPM formula. Immune to tempo/speed changes in the
-   * S3M pattern data. During silent gaps, returns the frozen offset.
+   * Authoritative elapsed time — derived from the AudioContext clock for
+   * sample-accurate timing. Immune to tempo/speed changes in the S3M
+   * pattern data. During silent gaps, returns the frozen offset.
    */
   currentTime() {
     if (this._activeIndex < 0) return this._timeOffset;
     const mp = this._activePlayer;
     if (!mp) return this._timeOffset;
+    if (mp.context && mp._playCtxTime !== undefined) {
+      if (mp.player && mp.player.paused) {
+        return this._timeOffset + (mp._pauseElapsed || 0);
+      }
+      return this._timeOffset + (mp.context.currentTime - mp._playCtxTime);
+    }
     return this._timeOffset + mp._samplesProcessed / mp.samplerate;
   }
 
@@ -149,9 +155,8 @@ export class ModPlayer {
   }
 
   /**
-   * Nuclear option for mobile audio: create a brand-new AudioContext from
-   * the current user gesture and rewire every player's ScriptProcessorNode.
-   * Returns the new context.
+   * Create a brand-new AudioContext from the current user gesture and
+   * reconnect every player's audio graph. Returns the new context.
    */
   unlockAudio() {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -273,18 +278,13 @@ export class ModPlayer {
 
   pause() {
     const p = this._activePlayer;
-    if (p && p.player && !p.player.paused) {
-      p.player.paused = true;
-    }
+    if (p) p.pause();
   }
 
   resume() {
     const p = this._activePlayer;
-    if (!p || !p.player) return;
-
-    p.player.paused = false;
-    p.playing = true;
-
+    if (!p) return;
+    p.resume();
     if (p.context && p.context.state === 'suspended') {
       p.context.resume().catch(() => {});
     }
