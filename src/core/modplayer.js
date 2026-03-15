@@ -164,16 +164,13 @@ export class ModPlayer {
   }
 
   /**
-   * Mute / unmute by disconnecting or reconnecting the active mixer node.
-   * Returns true if audio is now audible.
+   * Mute / unmute via the GainNode. Returns true if audio is now audible.
    */
   setMuted(muted) {
     for (const mp of this._players) {
-      if (!mp || !mp.mixerNode) continue;
-      if (muted) {
-        try { mp.mixerNode.disconnect(); } catch (_) {}
-      } else {
-        try { mp.mixerNode.connect(mp.context.destination); } catch (_) {}
+      if (!mp) continue;
+      if (mp.gainNode) {
+        mp.gainNode.gain.value = muted ? 0 : 1;
       }
     }
     return !muted;
