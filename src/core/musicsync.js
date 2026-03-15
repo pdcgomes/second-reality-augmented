@@ -348,6 +348,21 @@ export function getRegionStopBoundary(regionIndex) {
 }
 
 /**
+ * Look up the speed and bpm that the S3M engine had when it first reached
+ * a given (music, position, row) during the dry-run time map build.
+ * Returns { speed, bpm } or null if no data is available.
+ */
+export function getTempoAtPosition(music, position, row) {
+  const tm = _timeMaps[music];
+  if (!tm || !tm.rowSpeeds) return null;
+  const key = position * 64 + row;
+  const speed = tm.rowSpeeds[key];
+  const bpm = tm.rowBPMs[key];
+  if (!speed && !bpm) return null;
+  return { speed, bpm };
+}
+
+/**
  * Given a music index and current position/row, find the containing region index.
  */
 export function findRegionIndex(music, position, row) {

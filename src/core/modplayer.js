@@ -14,7 +14,7 @@
  */
 
 import { Modplayer as RawModplayer, buildTimeMap } from '../../lib/webaudio-mod-player/index.js';
-import { musicPosToTime, timeToMusicPos, SPEED_GAIN, setTimeMaps, getRegions, getRegionStopBoundary, findRegionIndex } from './musicsync.js';
+import { musicPosToTime, timeToMusicPos, SPEED_GAIN, setTimeMaps, getRegions, getRegionStopBoundary, findRegionIndex, getTempoAtPosition } from './musicsync.js';
 import { generateBeatsFromTimeMaps } from './beatmap.js';
 
 export class ModPlayer {
@@ -121,7 +121,8 @@ export class ModPlayer {
     }
 
     const mp = this._players[target.music];
-    if (mp) mp.seek(target.position, target.row);
+    const tempo = getTempoAtPosition(target.music, target.position, target.row);
+    if (mp) mp.seek(target.position, target.row, tempo?.speed, tempo?.bpm);
     this._timeOffset = seconds;
     this._setStopBoundary(target.music, target.position, target.row);
   }
@@ -237,7 +238,8 @@ export class ModPlayer {
     }
 
     if (position > 0 || row > 0) {
-      mp.seek(position, row);
+      const tempo = getTempoAtPosition(musicIndex, position, row);
+      mp.seek(position, row, tempo?.speed, tempo?.bpm);
     }
 
     this._setStopBoundary(musicIndex, position, row);
@@ -262,7 +264,8 @@ export class ModPlayer {
     }
 
     if (position > 0 || row > 0) {
-      mp.seek(position, row);
+      const tempo = getTempoAtPosition(musicIndex, position, row);
+      mp.seek(position, row, tempo?.speed, tempo?.bpm);
     }
 
     this._setStopBoundary(musicIndex, position, row);
