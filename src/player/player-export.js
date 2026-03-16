@@ -462,9 +462,15 @@ function tick() {
 async function startDemo() {
   if (started) return;
 
+  // Promote iOS audio session from "ambient" to "playback" so audio
+  // is audible even when the physical silent switch is on.
+  if (navigator.audioSession) navigator.audioSession.type = 'playback';
+  const silence = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==');
+  silence.play().catch(() => {});
+
   const AudioCtx = window.AudioContext || window.webkitAudioContext;
   const ctx = new AudioCtx();
-  if (ctx.state === 'suspended') ctx.resume();
+  if (ctx.state === 'suspended') await ctx.resume();
 
   overlay.textContent = '';
 
